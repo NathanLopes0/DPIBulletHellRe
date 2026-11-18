@@ -71,6 +71,9 @@ namespace Materias {
     /// materia secreta abre sem a regra assim que o aluno passa na materia do "atalho" dela.
     std::string ChaveDoAtalho(const std::string& codigo);
 
+    /// A musica de fundo das batalhas que nao pedem outra ("musica" no materias.json).
+    constexpr const char* kMusicaPadrao = "backgroundmusic.ogg";
+
     struct Materia {
         /// A chave estavel. Vai para o save do aluno e para a exportacao do professor.
         std::string codigo;
@@ -104,6 +107,9 @@ namespace Materias {
         /// So na secreta: o codigo da materia que, aprovada, a abre para quem digitou o codigo
         /// secreto no menu inicial (ChaveDoAtalho). Vazio: o codigo nao a abre.
         std::string atalho;
+        /// A musica de fundo da batalha, em Assets/Sounds ("secret_stage_bgmusic.ogg"). Vazio: a
+        /// de sempre (kMusicaPadrao).
+        std::string musica;
 
         Desbloqueio desbloqueio;
     };

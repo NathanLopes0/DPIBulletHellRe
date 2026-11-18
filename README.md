@@ -424,6 +424,9 @@ menu. O código vale para uma partida só: a atração do gabinete o esquece, e 
 grupo seguinte não o herda. A matéria do atalho vem do `materias.json`
 (`"atalho": "INF213"`), e a sequência mora em `Entrada/CodigoSecreto.h`.
 
+A INF 216 tem **música própria**: a batalha dela toca o `secret_stage_bgmusic.ogg`
+no lugar da música de sempre (o campo `"musica"` do `materias.json`).
+
 **O dia em que ela aparece é uma surpresa.** A luta que cumpre a regra leva à
 seleção de fases (as duas opções do resultado), e a seleção para tudo para a
 **revelação** (`Curso/Revelacao.h`): a tela escurece e a câmera desliza até a ala

@@ -566,6 +566,15 @@ Lista LerMaterias(const std::string& textoJson) {
             }
         }
 
+        // "musica": a musica de fundo da batalha, no lugar da de sempre.
+        if (j.contains("musica")) {
+            if (j["musica"].is_string()) {
+                m.musica = j["musica"].get<std::string>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"musica\" e o nome de um arquivo de Assets/Sounds; ficou a de sempre");
+            }
+        }
+
         // "optativa": vai para a ala das optativas, depois das obrigatorias.
         if (j.contains("optativa")) {
             if (j["optativa"].is_boolean()) {

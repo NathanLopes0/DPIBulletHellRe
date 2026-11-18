@@ -7,6 +7,7 @@
 #include "Ajudantes.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <cstdlib>
 #include <fstream>
 #include <map>
@@ -2764,6 +2765,13 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com 10 materias no Dificil e 6 com 
     // O codigo secreto do menu: com o atalho na ficha, ela abre assim que a INF 213 passa - antes,
     // nao; e sem o atalho, passar na INF 213 nao a abre.
     CHECK(m->atalho == "INF213");
+    // E a musica dela, que esta em Assets/Sounds - como a de qualquer materia que pede uma.
+    CHECK(m->musica == "secret_stage_bgmusic.ogg");
+    for (const Materias::Materia& comMusica : l.materias) {
+        if (comMusica.musica.empty()) continue;
+        INFO(comMusica.codigo);
+        CHECK(std::filesystem::exists(std::string(DPI_ASSETS_DIR) + "/Sounds/" + comMusica.musica));
+    }
     Progresso konami;
     konami.RegistrarAtividade(Materias::ChaveDoAtalho("INF216"));
     CHECK(l.Escondida(jd, konami));

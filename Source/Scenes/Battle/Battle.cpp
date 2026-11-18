@@ -386,7 +386,16 @@ void Battle::TerminarCarregamento() {
     mTelaDeCarregamento.reset();
 
     if (mGame->GetAudio() && !mMusica.IsValid()) {
-        mMusica = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
+        // A materia pode pedir a sua (a secreta tem a dela); senao, a de sempre.
+        const Materias::Materia* materia = Materias::Carregadas().Por(mMateria);
+        const std::string musica = materia && !materia->musica.empty() ? materia->musica : Materias::kMusicaPadrao;
+        mMusica = mGame->GetAudio()->PlaySound(musica, true);
+        if (!mMusica.IsValid() && musica != Materias::kMusicaPadrao) {
+            SDL_Log("BATALHA: a musica %s nao tocou; vai a de sempre.", musica.c_str());
+            mMusica = mGame->GetAudio()->PlaySound(Materias::kMusicaPadrao, true);
+        } else if (mMusica.IsValid()) {
+            SDL_Log("BATALHA: tocando %s.", musica.c_str());
+        }
         mGame->GetAudio()->SetSoundVolume(mMusica, kVolumeDaMusica);
     }
 
