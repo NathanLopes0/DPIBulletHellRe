@@ -157,7 +157,7 @@ void EscolhaDaDificuldade::OnProcessInput(const Uint8* keyState) {
 
     if (mBordaConfirmar.Bateu(confirmar)) {
         mGame->DefinirDificuldade(mEscolhido);
-        mGame->RequestSceneChange(SceneType::StageSelect);
+        mGame->IrParaASelecao();
         return;
     }
 }

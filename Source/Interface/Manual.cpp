@@ -78,6 +78,13 @@ namespace Manual {
         return saida;
     }
 
+    int PaginaDasMencoes(const std::vector<Pagina>& paginas) {
+        for (size_t k = 0; k < paginas.size(); ++k) {
+            if (paginas[k].mencoes) return static_cast<int>(k);
+        }
+        return -1;
+    }
+
     int Virar(const int atual, const int passo, const int quantas) {
         if (quantas <= 0) return 0;
         const int alvo = atual + passo;

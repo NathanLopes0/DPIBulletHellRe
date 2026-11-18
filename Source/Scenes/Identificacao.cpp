@@ -217,8 +217,9 @@ void Identificacao::Confirmar(const std::string& canonica) {
     // IdentificarAluno vale nos dois casos.
     mGame->IdentificarAluno(canonica);
 
-    // Quem nao tem perfil monta a personagem.
+    // Quem nao tem perfil monta a personagem - e, antes das fases, conhece as mencoes.
     if (!jaTemPerfil) {
+        mGame->MarcarPrimeiraEntrada();
         // Ainda nao grava nada.
         mGame->RequestSceneChange(SceneType::CriacaoDePersonagem);
         return;

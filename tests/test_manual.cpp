@@ -79,3 +79,14 @@ TEST_CASE("Manual: a pagina das mencoes nao precisa de linhas") {
     CHECK_FALSE(lido.paginas[1].mencoes);   // "tabela" nao existe: avisado, e a pagina fica com as linhas
     CHECK(lido.problemas.size() == 2u);     // o "mostrar" desconhecido e a pagina sem nada
 }
+
+TEST_CASE("Manual: a pagina que a matricula nova ve antes das fases e a das mencoes") {
+    const auto lido = LerManual(R"({"paginas":[
+        {"titulo":"Objetivo","linhas":["a"]},
+        {"titulo":"Controles","linhas":["b"]},
+        {"titulo":"As mencoes","mostrar":"mencoes"} ]})");
+    CHECK(PaginaDasMencoes(lido.paginas) == 2);
+    CHECK(PaginaDasMencoes({}) == -1);
+    const auto semMencoes = LerManual(R"({"paginas":[{"titulo":"Objetivo","linhas":["a"]}]})");
+    CHECK(PaginaDasMencoes(semMencoes.paginas) == -1);
+}

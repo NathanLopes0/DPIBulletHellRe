@@ -137,6 +137,17 @@ void TelaComoJogar::MostrarAsMencoes(const bool mostrar) {
 
 void TelaComoJogar::Load() {
 
+    // Na entrada de uma matricula nova, so as mencoes. Sem a pagina delas, direto para as fases.
+    mDaEntrada = mGame->TirarManualDaEntrada();
+    if (mDaEntrada) {
+        const int mencoes = Manual::PaginaDasMencoes(Manual::Carregado().paginas);
+        if (mencoes < 0) {
+            mGame->RequestSceneChange(SceneType::StageSelect);
+            return;
+        }
+        mPagina = mencoes;
+    }
+
     CriarFundoDoCorredor(*this);
 
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
@@ -144,7 +155,8 @@ void TelaComoJogar::Load() {
     const float meio = largura / 2.0f;
     const float topo = altura * kTopoDaPlaca;
 
-    Texto("COMO JOGAR", meio, topo / 2.0f, 52, 760);
+    // \xc3\x87 e \xc3\x95 sao o C cedilha e o O til.
+    Texto(mDaEntrada ? "ANTES DE COME\xc3\x87" "AR: AS MEN\xc3\x87\xc3\x95" "ES" : "COMO JOGAR", meio, topo / 2.0f, 52, 1000);
 
     auto placa = std::make_unique<Actor>(this);
     placa->SetPosition(Vector2(meio, topo + kAlturaDaPlaca / 2.0f));
@@ -188,7 +200,7 @@ void TelaComoJogar::Mostrar() {
         mencoes = p.mencoes;
         if (!mencoes) linhas = Manual::Linhas(p, arcade);
         mIndicador->SetText(Manual::Indicador(mPagina, quantas));
-        mIndicador->SetIsVisible(true);
+        mIndicador->SetIsVisible(!mDaEntrada);
     }
     for (size_t i = 0; i < mLinhas.size(); ++i) {
         const bool usada = i < linhas.size();
@@ -198,10 +210,17 @@ void TelaComoJogar::Mostrar() {
 
     MostrarAsMencoes(mencoes);
 
-    const bool temAnterior = mPagina > 0;
-    const bool temProxima = mPagina + 1 < quantas;
+    const bool temAnterior = !mDaEntrada && mPagina > 0;
+    const bool temProxima = !mDaEntrada && mPagina + 1 < quantas;
     mSetaAnterior->SetIsVisible(temAnterior);
     mSetaProxima->SetIsVisible(temProxima);
+
+    if (mDaEntrada) {
+        // \xc3\xa9 e o e agudo.
+        mRodape->SetText(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "escolher a mat\xc3\xa9ria"}},
+                                        mGame->JeitoDoRodape()));
+        return;
+    }
 
     // \xc3\xa1 e \xc3\xb3 sao o a e o o agudos: o MSVC nao le acento em literal.
     mRodape->SetText(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "p\xc3\xa1ginas"),
@@ -211,12 +230,16 @@ void TelaComoJogar::Mostrar() {
                                     mGame->JeitoDoRodape()));
 }
 
+void TelaComoJogar::Sair() {
+    mGame->RequestSceneChange(mDaEntrada ? SceneType::StageSelect : SceneType::MainMenu);
+}
+
 void TelaComoJogar::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
-        mGame->RequestSceneChange(SceneType::MainMenu);
+        Sair();
         return;
     }
 
@@ -235,10 +258,16 @@ void TelaComoJogar::OnProcessInput(const Uint8* keyState) {
     if (mBordaDireita.Bateu(direita)) passo += 1;
     const bool avancou = mBordaAvancar.Bateu(avancar);
 
+    // Na entrada, a pagina nao vira: o botao 1 segue para a selecao.
+    if (mDaEntrada) {
+        if (avancou) Sair();
+        return;
+    }
+
     if (avancou) {
         // Na ultima (ou sem manual), o botao 1 termina: o leitor chegou ao fim.
         if (mPagina + 1 >= quantas) {
-            mGame->RequestSceneChange(SceneType::MainMenu);
+            Sair();
             return;
         }
         passo += 1;

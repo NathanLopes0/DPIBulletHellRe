@@ -136,6 +136,8 @@ TEST_CASE("Dados: Assets/como-jogar.json nao tem problema nenhum") {
     const auto r = Manual::LerManual(LerArquivo("como-jogar.json"));
     CHECK_MESSAGE(r.problemas.empty(), "problemas em como-jogar.json:" << Juntar(r.problemas));
     CHECK(r.paginas.size() > 0);
+    // Quem entra com uma matricula nova ve a pagina das mencoes antes das fases (Game::IrParaASelecao).
+    CHECK(Manual::PaginaDasMencoes(r.paginas) >= 0);
 
     // O gabinete tambem tem o que ler: uma pagina so de teclas ficaria vazia la (Manual::Linhas). A
     // das mencoes e escrita pelo jogo, e nao tem linhas.

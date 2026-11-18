@@ -200,6 +200,16 @@ public:
     /// Desiste da entrada em curso e volta a ser uma partida de um.
     void CancelarEntrada();
 
+    /// Uma matricula entrou pela primeira vez (ainda nao tinha ficha): antes da selecao de fases, a
+    /// pagina das mencoes do "Como Jogar" (IrParaASelecao).
+    void MarcarPrimeiraEntrada() { mMencoesAntesDaSelecao = true; }
+    /// O fim da entrada: a selecao de fases - ou, se alguem entrou pela primeira vez, antes a pagina
+    /// das mencoes, que leva a selecao.
+    void IrParaASelecao();
+    /// Se o "Como Jogar" que abre agora e o da entrada (so a pagina das mencoes, e depois a selecao).
+    /// Vale uma vez: quem pergunta ja o consome.
+    [[nodiscard]] bool TirarManualDaEntrada();
+
     /// O que a proxima tela de ranking deve mostrar, e para onde ela volta.
     struct PedidoDeRanking {
         bool geral = true;                                 ///< media do curso, e nao uma materia
@@ -317,6 +327,8 @@ private:
 
     size_t mPosicaoEntrando = 0;
     bool mEditandoPersonagem = false;
+    bool mMencoesAntesDaSelecao = false;
+    bool mManualDaEntrada = false;
     bool mCodigoSecreto = false;
     /// Grava o atalho das secretas na ficha de todos em jogo, se o codigo secreto entrou.
     void LevarOCodigoSecreto();

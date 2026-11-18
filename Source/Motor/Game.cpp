@@ -201,6 +201,11 @@ void Game::LoadInitialScene()
             }
             else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);
             else if (mSimulacao.cena == "horas") ChangeScene(Scene::SceneType::Horas);
+            // A pagina das mencoes que a matricula nova ve antes da selecao (IrParaASelecao).
+            else if (mSimulacao.cena == "entrada") {
+                mManualDaEntrada = true;
+                ChangeScene(Scene::SceneType::ComoJogar);
+            }
             else if (mSimulacao.orientador.empty()) ChangeScene(Scene::SceneType::EscolhaDoOrientador);
             else ChangeScene(Scene::SceneType::Battle);
             return;
@@ -917,6 +922,22 @@ void Game::AvancarEntrada() {
     RequestSceneChange(Scene::SceneType::EscolhaDaDificuldade);
 }
 
+void Game::IrParaASelecao() {
+    if (mMencoesAntesDaSelecao) {
+        mMencoesAntesDaSelecao = false;
+        mManualDaEntrada = true;
+        RequestSceneChange(Scene::SceneType::ComoJogar);
+        return;
+    }
+    RequestSceneChange(Scene::SceneType::StageSelect);
+}
+
+bool Game::TirarManualDaEntrada() {
+    const bool era = mManualDaEntrada;
+    mManualDaEntrada = false;
+    return era;
+}
+
 void Game::LevarOCodigoSecreto() {
     if (!mCodigoSecreto) return;
     mCodigoSecreto = false;
@@ -934,6 +955,7 @@ void Game::LevarOCodigoSecreto() {
 
 void Game::CancelarEntrada() {
     mEditandoPersonagem = false;
+    mMencoesAntesDaSelecao = false;
     DefinirModoDeJogo(Sessao::Modo::Um);
 }
 

@@ -255,7 +255,10 @@ Dupla**, cada aluno digita a sua no teclado da tela — o manche escolhe a tecla
 botão 1 digita e o botão 2 apaga — e confirma em **ENTRAR**. Não é preciso dizer
 se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e traz
 de volta a aparência escolhida; se não existe, o aluno passa pela criação de
-personagem, e o perfil só é gravado quando ela é confirmada. A tecla
+personagem, e o perfil só é gravado quando ela é confirmada. Na primeira vez de
+uma matrícula, depois da dificuldade e antes da seleção de fases, aparece a
+página das **menções** do "Como Jogar" — cada selo e como se ganha —, e o
+botão 1 segue para as matérias (na dupla, basta um dos dois ser novo). A tecla
 **VISITANTE** entra sem se identificar, e nesse caso nada é gravado.
 
 A personagem é vista de costas, olhando para o professor, e é montada peça por

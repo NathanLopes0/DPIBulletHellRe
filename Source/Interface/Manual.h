@@ -43,4 +43,8 @@ namespace Manual {
 
     /// "3 de 6": onde o leitor esta.
     std::string Indicador(int atual, int quantas);
+
+    /// A pagina das mencoes (Pagina::mencoes), a que quem entra com uma matricula nova ve antes da
+    /// selecao de fases; -1 quando o manual nao tem nenhuma.
+    int PaginaDasMencoes(const std::vector<Pagina>& paginas);
 }

@@ -47,6 +47,11 @@ private:
     std::unique_ptr<Font> mFonte;
 
     int mPagina = 0;
+    /// O manual da entrada (Game::TirarManualDaEntrada): so a pagina das mencoes, e os dois botoes
+    /// levam a selecao de fases, e nao ao menu.
+    bool mDaEntrada = false;
+    /// Para onde a tela sai: o menu, ou a selecao na entrada.
+    void Sair();
 
     DrawTextComponent* mTitulo = nullptr;
     std::vector<DrawTextComponent*> mLinhas;
