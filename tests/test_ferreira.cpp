@@ -14,6 +14,7 @@
 #include "../Source/Attacks/Fase.h"
 #include "../Source/Attacks/JogosDigitais.h"
 #include "../Source/Regras/Nota.h"
+#include "../Source/Regras/PontoExtra.h"
 #include "../Source/Regras/Plataforma.h"
 
 namespace {
@@ -55,7 +56,7 @@ TEST_CASE("JogosDigitais: as fases dele duram o dobro - a das regras, mais -, e 
     ConferirEtapas(Lancamento::kDuracoes, DuracaoDa(Lancamento::kFase));
     CHECK(DuracaoDa(HudHostil::kFase) == doctest::Approx(JogosDigitais::kDuracaoDaFase));
     CHECK(DuracaoDa(RegrasTrocadas::kFase) == doctest::Approx(RegrasTrocadas::kDuracaoDaFase));
-    CHECK(DuracaoDa(Lancamento::kFase) == doctest::Approx(JogosDigitais::kDuracaoDaFase));
+    CHECK(DuracaoDa(Lancamento::kFase) == doctest::Approx(Lancamento::kDuracaoDaFase));
     // Quatro provas, quatro fases do jogo.
     std::set<std::string> fases = {HudHostil::kFase, Gravidade::kFase, RegrasTrocadas::kFase, Lancamento::kFase};
     CHECK(fases.size() == 4u);
@@ -941,6 +942,34 @@ TEST_CASE("Lancamento: a frota marcha, bate na borda, desce e volta") {
     const Marcha andou{60.0f, 2};
     CHECK(LugarNaFrota(1, 3, topo, andou).x == doctest::Approx(LugarNaFrota(1, 3, topo, parada).x + 60.0f));
     CHECK(LugarNaFrota(1, 3, topo, andou).y == doctest::Approx(LugarNaFrota(1, 3, topo, parada).y + 2.0f * kDescidaDaFrota));
+}
+
+TEST_CASE("Lancamento: a frota acelera quando encolhe e a cada onda, e o hotfix so recompila lugar vazio") {
+    using namespace Lancamento;
+    const int total = kFileiras * kColunasDaFrota;
+    CHECK(EntrePassos(0.3f, total, total, 0) == doctest::Approx(0.3f));
+    CHECK(EntrePassos(0.3f, 1, total, 0) < EntrePassos(0.3f, total / 2, total, 0));
+    CHECK(EntrePassos(0.3f, total, total, 1) < EntrePassos(0.3f, total, total, 0));
+    CHECK(EntrePassos(0.3f, 1, total, 3) > 0.02f);   // nunca para de andar
+    Variacao::Sorteio s(9u);
+    CHECK(LugarDoHotfix({}, s) == -1);
+    const std::vector<int> vazios = {2, 7, 19};
+    for (int k = 0; k < 30; ++k) {
+        const int lugar = LugarDoHotfix(vazios, s);
+        CHECK(std::find(vazios.begin(), vazios.end(), lugar) != vazios.end());
+    }
+    // O hotfix e mais rapido que matar um bug por vez sem pressa, mas nao tanto que nao se zere a
+    // frota a tiro: um tiro a cada PontoExtra::kEntreTiros mata um bug.
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(n.hotfix > 8.0f * PontoExtra::kEntreTiros);
+    CHECK(kAvisoDoHotfix < n.hotfix);
+    CHECK(d.hotfix < n.hotfix);
+    CHECK(d.janela < n.janela);
+    CHECK(kFatorDaJanela > 1.0f);
+    CHECK(d.entreLequesDaFrota < n.entreLequesDaFrota);
+    CHECK(d.tirosDoLequeDaFrota >= n.tirosDoLequeDaFrota);
+    // Cabe zerar a frota mais de uma vez na etapa: a chegada, a janela e mais.
+    CHECK(kChegadaDaFrota + n.janela < kDuracoes[2] / 2.0f);
 }
 
 TEST_CASE("Lancamento: cada linha dos creditos tem um vao, fora da faixa do texto, e todas sobem a tempo") {

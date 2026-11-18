@@ -119,16 +119,19 @@
   // Repescagem - o lancamento | gesto: o professor anda no alto. O jogo sai com bugs: primeiro a
   // hitbox descola do desenho - machuca o circulo do modo debug. Depois ele "para de responder": os
   // tiros congelam e um dialogo abre, com os botoes ESPERAR e FECHAR, que se derrubam a tiro. Depois
-  // o genero troca: uma frota de bugs marcha e desce, e cada bug cai com um tiro. No fim os creditos
+  // o genero troca: uma frota de bugs marcha e desce, e cada bug cai com um tiro - e enquanto houver
+  // bug o professor esta em god mode (o tiro nele nao conta), recompila os bugs mortos (o hotfix) e,
+  // zerada a frota, fica sem god mode por uns segundos (o acerto vale o dobro) antes da onda
+  // seguinte, mais rapida. O Ponto Extra guardado desfaz a frota de uma vez. No fim os creditos
   // sobem do rodape, linha por linha, cada uma uma parede com um vao.
   "StateFinal": {
-    "duracao": 40,
+    "duracao": 44,
     "proximo": "StateOne",
     "anuncio": "Dia de lançamento: o jogo vai ao ar",
     "etapas": [
-      { "nome": "Hitbox",   "duracao": 10.0, "anuncio": "debug: desvie do CÍRCULO, não do desenho" },
-      { "nome": "Crash",    "duracao": 10.0, "anuncio": "O jogo travou: atire em ESPERAR" },
-      { "nome": "Frota",    "duracao": 10.0, "anuncio": "genero = nave: derrube os bugs" },
+      { "nome": "Hitbox",   "duracao": 9.0,  "anuncio": "debug: desvie do CÍRCULO, não do desenho" },
+      { "nome": "Crash",    "duracao": 9.0,  "anuncio": "O jogo travou: atire em ESPERAR" },
+      { "nome": "Frota",    "duracao": 16.0, "anuncio": "godMode = true enquanto houver bug" },
       { "nome": "Creditos", "duracao": 10.0, "anuncio": "créditos: passe pelos vãos" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },

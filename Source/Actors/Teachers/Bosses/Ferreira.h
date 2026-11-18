@@ -51,7 +51,12 @@ public:
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
     void OnDerrubou(BossProjectile* qual) override;
     void AoSerPerguntado() override;
-    [[nodiscard]] float FatorDoGanho() const override { return JogosDigitais::kFatorDoGanho; }
+    /// Na janela da frota (o god mode caiu), cada acerto vale Lancamento::kFatorDaJanela.
+    [[nodiscard]] float FatorDoGanho() const override {
+        return JogosDigitais::kFatorDoGanho * (mJanelaAberta ? Lancamento::kFatorDaJanela : 1.0f);
+    }
+    /// O god mode da frota: enquanto houver bug, o tiro nele nao conta.
+    [[nodiscard]] bool AceitaDano() const override { return !mGodMode; }
     void AoTerminarABatalha() override;
 
 protected:
@@ -366,10 +371,21 @@ private:
     /// O botao que o tiro derrubou (OnDerrubou): a escolha vale no quadro seguinte.
     Lancamento::Escolha mEscolhaPendente = Lancamento::Escolha::Nenhuma;
     std::array<BossProjectile*, 2> mBotoes{};   ///< 0: ESPERAR; 1: FECHAR
-    void AtualizarFrota(float te);
+    void AtualizarFrota(float te, float deltaTime);
     std::vector<BossProjectile*> mFrota;
     bool mFrotaMontada = false;
-    bool mFrotaLimpa = false;
+    /// O god mode (enquanto houver bug) e a janela sem ele, depois de zerada a frota.
+    bool mGodMode = false;
+    bool mJanelaAberta = false;
+    float mJanelaAte = -1.0f;
+    int mOndaDaFrota = 0;
+    float mFrotaChegaEm = -1.0f;
+    float mPassosDaFrota = 0.0f;
+    /// O hotfix: quando o proximo bug morto volta, e o lugar que ja pisca para ele.
+    float mProximoHotfix = 0.0f;
+    int mHotfixLugar = -1;
+    float mHotfixEm = 0.0f;
+    std::vector<EtiquetaDeCodigo*> mEtiquetasDaFrota;
     int mBugsDerrubados = 0;
     float mProximaQueda = 0.0f;
     void AtualizarCreditos(float te, float deltaTime);

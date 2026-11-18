@@ -661,7 +661,9 @@ namespace Lancamento {
 
     constexpr const char* kFase = "StateFinal";
     constexpr std::array<const char*, 4> kEtapas = {"Hitbox", "Crash", "Frota", "Creditos"};
-    constexpr std::array<float, 4> kDuracoes = {10.0f, 10.0f, 10.0f, 10.0f};
+    /// A frota e a etapa mais longa: e preciso tempo para zera-la, e de novo.
+    constexpr std::array<float, 4> kDuracoes = {9.0f, 9.0f, 16.0f, 10.0f};
+    constexpr float kDuracaoDaFase = 44.0f;
     constexpr const char* kGatilhoDoAnel = "anel";
     constexpr const char* kGatilhoDoTiro = "tiro";
     constexpr const char* kGatilhoDoSprite = "sprite";
@@ -701,7 +703,16 @@ namespace Lancamento {
     // ---- A frota de bugs ----
 
     /// O jogo troca de genero: uma frota de bugs marcha de um lado ao outro, desce a cada batida na
-    /// borda, e solta tiros. Cada bug cai com um tiro do aluno; zerar a frota vale um bonus.
+    /// borda, e solta tiros. Cada bug cai com um tiro do aluno. E o professor e dono do jogo:
+    ///   - enquanto houver bug, ele esta em GOD MODE - o tiro nele nao conta (Boss::AceitaDano), e
+    ///     cada bug segura o god mode por um fio: ignorar a frota nao adianta;
+    ///   - a cada 'hotfix' segundos ele recompila um bug morto no lugar dele (o lugar pisca
+    ///     kAvisoDoHotfix antes, com o fio dele ate la): matar devagar nao adianta;
+    ///   - a frota anda mais rapido quanto menos bugs sobram, e a cada onda;
+    ///   - zerada a frota, o god mode cai por 'janela' segundos, e cada acerto nele vale
+    ///     kFatorDaJanela; depois vem a onda seguinte.
+    /// O Ponto Extra guardado (a onda que limpa a tela) desfaz a frota inteira de uma vez: e a hora de
+    /// gasta-lo.
     constexpr int kFileiras = 3;
     constexpr int kColunasDaFrota = 9;
     constexpr float kEspacoX = 74.0f;
@@ -716,8 +727,16 @@ namespace Lancamento {
     /// Onde a frota esta depois de 'passos' passos, com 'folga' px livres de cada lado.
     Marcha MarchaEm(int passos, float folga);
     Vector2 LugarNaFrota(int fileira, int coluna, Vector2 centroDoTopo, const Marcha& m);
-    constexpr float kPremioPorBug = 0.5f;
-    constexpr float kPremioDaFrotaLimpa = 5.0f;
+    /// O bug vale pouco: ele e o obstaculo, e o premio e a janela.
+    constexpr float kPremioPorBug = 0.15f;
+    constexpr float kPremioDaFrotaLimpa = 3.0f;
+    constexpr float kAvisoDoHotfix = 0.45f;
+    constexpr float kFatorDaJanela = 2.0f;
+    /// O intervalo entre dois passos da frota com 'vivos' de 'total' bugs na onda 'onda' (0 e a
+    /// primeira): a frota cheia anda no 'base'; a de um bug so, a 40% dele; cada onda, 80% da anterior.
+    float EntrePassos(float base, int vivos, int total, int onda);
+    /// O lugar vazio que o hotfix recompila: um ao acaso entre os 'vazios' (indices); -1 sem nenhum.
+    int LugarDoHotfix(const std::vector<int>& vazios, Variacao::Sorteio& s);
 
     // ---- Os creditos ----
 
@@ -740,10 +759,15 @@ namespace Lancamento {
         int tirosDoAnel = 16;
         float velocidade = 185.0f;
         float entrePassos = 0.3f;
-        float entreQuedas = 0.55f;
+        float entreQuedas = 0.42f;
         float velocidadeDaQueda = 230.0f;
         float entreLinhas = 1.15f;
         float subida = 78.0f;
+        // A frota: o hotfix, a janela sem god mode, e o leque com que ele protege a frota.
+        float hotfix = 1.2f;
+        float janela = 3.5f;
+        float entreLequesDaFrota = 1.7f;
+        int tirosDoLequeDaFrota = 3;
         // A hitbox.
         float entreAneisDaHitbox = 1.15f;
         int tirosDoAnelDaHitbox = 12;

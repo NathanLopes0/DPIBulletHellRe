@@ -970,7 +970,16 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   cada tiro congelado estilhaça — e sem escolha, ele volta acelerado; da
   segunda vez, os botões trocam de lado. Depois o gênero muda: uma **frota de
   bugs** marcha de um lado ao outro, desce a cada batida na borda e solta
-  tiros — cada bug cai com um tiro, e zerar a frota vale um bônus. No fim, os
+  tiros — cada bug cai com um tiro. E ele é dono do jogo: enquanto houver bug,
+  o professor está em **god mode** — uma gaiola verde do modo debug em volta
+  dele, um fio de cada bug até ele, e o seu tiro **murcha** nele sem contar —,
+  então não adianta ignorar a frota. Ele ainda **recompila** os bugs mortos (o
+  *hotfix*: um lugar vazio pisca, o fio dele vai até lá e o bug volta), protege
+  a frota com leques mirados, e a frota acelera quanto menos bugs sobram. Zerada
+  a frota, o god mode cai por uns segundos — a barra dourada embaixo dele — e
+  **cada acerto nele vale o dobro**; depois vem uma onda nova, mais rápida, e o
+  god mode volta. O **Ponto Extra** guardado desfaz a frota inteira de uma vez:
+  gastá-lo na chegada de uma onda é abrir a janela na hora. No fim, os
   **créditos** sobem do rodapé, linha por linha, cada uma uma parede de blocos
   com um vão fora do texto ("QA · você, agora", "BUGS · todos de propósito").
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele

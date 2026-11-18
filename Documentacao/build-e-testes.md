@@ -336,6 +336,14 @@ então o número dele é o de quem só foge. Sem o recuo depois do acerto
 (`IaDoInimigo::kRecuo`), o gigante prendia o `esquiva` na parede e o acertava
 a cada fim de invencibilidade: quatro acertos seguidos, e o Difícil zerava na
 fase 2 nas três sementes.
+Na repescagem, a frota de bugs põe o professor em god mode enquanto houver bug
+(`Ferreira::AceitaDano`): o `esquiva`, que atira para cima atrás do professor,
+mata os bugs da coluna dele sem querer e às vezes zera a frota, mas não gasta o
+Ponto Extra. Medindo só a repescagem (`--estado StateFinal`, começando com 40),
+ele fica em 45 a 52 no Normal e 10 a 23 no Difícil (eram 45 a 63 e 5 a 27, com
+o professor sempre aberto ao tiro); gastando um Ponto Extra na chegada da
+frota (`--teclas "B@1270"`), a semente 101 passa de 52 para 62 e aprova.
+
 A abertura não machuca: o professor reescreve a nota para 15
 (`HudHostil::NumeroEm`, `kNotaDaAbertura`) e só então a luta começa. Antes ela
 era um golpe de três anéis que pegava quase todo mundo; sem ele, a fase 1 custa

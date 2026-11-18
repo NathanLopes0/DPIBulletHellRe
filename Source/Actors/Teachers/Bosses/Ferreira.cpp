@@ -382,7 +382,15 @@ void Ferreira::DesmontarEtapa() {
     for (BossProjectile*& b : mBotoes) Matar(b);
     MatarTodos(mFrota);
     mFrotaMontada = false;
-    mFrotaLimpa = false;
+    mGodMode = false;
+    mJanelaAberta = false;
+    mJanelaAte = -1.0f;
+    mOndaDaFrota = 0;
+    mFrotaChegaEm = -1.0f;
+    mPassosDaFrota = 0.0f;
+    mProximoHotfix = 0.0f;
+    mHotfixLugar = -1;
+    Esconder(mEtiquetasDaFrota);
     mBugsDerrubados = 0;
     mProximaQueda = 0.0f;
     for (LinhaDeCredito& l : mCreditos) MatarTodos(l.blocos);
@@ -1869,7 +1877,7 @@ void Ferreira::AtualizarLancamento(const float t, const float deltaTime) {
     Varrer(t, 0.3f, 8.0f);
     if (etapa == 0) AtualizarHitbox(te);
     else if (etapa == 1) AtualizarCrash(te);
-    else if (etapa == 2) AtualizarFrota(te);
+    else if (etapa == 2) AtualizarFrota(te, deltaTime);
     else AtualizarCreditos(te, deltaTime);
 }
 
@@ -2015,47 +2023,63 @@ void Ferreira::AtualizarCrash(const float te) {
     Placar(kFase, 1, "Build de lan\xc3\xa7" "amento: nada pode dar errado");
 }
 
-void Ferreira::AtualizarFrota(const float te) {
+void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
     using namespace Lancamento;
     const Degrau& g = mDegrauDoLancamento;
     const SDL_FRect c = Campo();
     Battle* b = Batalha();
     const Vector2 topo(c.x + c.w / 2.0f, c.y + 170.0f);
     const float folga = (c.w - static_cast<float>(kColunasDaFrota - 1) * kEspacoX) / 2.0f - 40.0f;
+    const int total = kFileiras * kColunasDaFrota;
     const auto indice = [](const int fileira, const int coluna) { return static_cast<size_t>(fileira * kColunasDaFrota + coluna); };
+    const Vector2 eu = GetPosition();
+    const std::string onda = std::to_string(mOndaDaFrota + 1);
 
-    if (!mFrotaMontada) {
-        // O aviso: os lugares da frota, piscando.
+    // A chegada de uma onda: os lugares piscam e os bugs aparecem - ja com o god mode ligado.
+    if (!mFrotaMontada && !mJanelaAberta) {
+        mGodMode = true;
+        if (mFrotaChegaEm < 0.0f) mFrotaChegaEm = te + kChegadaDaFrota;
         if (Aceso(te, 0.12f)) {
             for (int f = 0; f < kFileiras; ++f) {
                 for (int col = 0; col < kColunasDaFrota; ++col) Circulo(LugarNaFrota(f, col, topo, Marcha{}), 12.0f, kDebugFraco, 8);
             }
         }
-        if (te >= kChegadaDaFrota) {
+        if (te >= mFrotaChegaEm) {
             mFrotaMontada = true;
-            mFrota.assign(static_cast<size_t>(kFileiras * kColunasDaFrota), nullptr);
+            mPassosDaFrota = 0.0f;
+            mProximoHotfix = te + g.hotfix;
+            mFrota.assign(static_cast<size_t>(total), nullptr);
             for (int f = 0; f < kFileiras; ++f) {
                 for (int col = 0; col < kColunasDaFrota; ++col) {
                     mFrota[indice(f, col)] = Peca(kGatilhoDoBug, LugarNaFrota(f, col, topo, Marcha{}), "Bug");
                 }
             }
+            if (mOndaDaFrota > 0) Avisar("new Wave(" + onda + "): mais r\xc3\xa1pida, e o god mode de volta", 1.6f);
             SomDoDisparo();
         }
-        Placar(kFase, 2, "genero = nave: os bugs do lan\xc3\xa7" "amento chegaram");
+        Placar(kFase, 2, mOndaDaFrota == 0 ? "genero = nave: os bugs do lan\xc3\xa7" "amento chegaram"
+                                           : "onda " + onda + " a caminho");
         return;
     }
 
-    // A marcha: de um lado ao outro, e um degrau para baixo a cada batida na borda.
-    const Marcha m = MarchaEm(static_cast<int>((te - kChegadaDaFrota) / g.entrePassos), folga);
+    // A marcha: de um lado ao outro, um degrau para baixo a cada batida na borda - e mais rapida quanto
+    // menos bugs sobram, e a cada onda.
     int vivos = 0;
+    for (const BossProjectile* p : mFrota) vivos += p ? 1 : 0;
+    if (vivos > 0) mPassosDaFrota += deltaTime / EntrePassos(g.entrePassos, vivos, total, mOndaDaFrota);
+    const Marcha m = MarchaEm(static_cast<int>(mPassosDaFrota), folga);
     std::vector<size_t> deBaixo;
+    std::vector<int> vazios;
     for (int col = 0; col < kColunasDaFrota; ++col) {
         bool achou = false;
         for (int f = kFileiras - 1; f >= 0; --f) {
             BossProjectile* p = mFrota[indice(f, col)];
-            if (!p) continue;
-            ++vivos;
+            if (!p) {
+                vazios.push_back(static_cast<int>(indice(f, col)));
+                continue;
+            }
             p->SetPosition(LugarNaFrota(f, col, topo, m));
+            p->RenovarTempoDeVida();
             Parar(p);
             if (!achou) deBaixo.push_back(indice(f, col));
             achou = true;
@@ -2063,21 +2087,91 @@ void Ferreira::AtualizarFrota(const float te) {
     }
     // O bug de baixo de uma coluna solta um tiro.
     if (!deBaixo.empty() && te >= mProximaQueda) {
-        mProximaQueda = te + g.entreQuedas;
+        mProximaQueda = te + g.entreQuedas * std::pow(0.85f, static_cast<float>(mOndaDaFrota));
         const size_t qual = deBaixo[static_cast<size_t>(mSorteio.Inteiro(0, static_cast<int>(deBaixo.size()) - 1))];
         Um(kGatilhoDaQueda, mFrota[qual]->GetPosition() + Vector2(0.0f, 18.0f), "Tiro", Vector2(0.0f, g.velocidadeDaQueda));
     }
-    if (vivos == 0 && !mFrotaLimpa) {
-        mFrotaLimpa = true;
+
+    // O god mode: cada bug vivo o segura por um fio, e a gaiola do modo debug fica em volta dele.
+    EtiquetaDeCodigo* rotulo = Etiqueta(mEtiquetasDaFrota, 0, 180, 26);
+    if (vivos > 0) {
+        mGodMode = true;
+        for (const BossProjectile* p : mFrota) {
+            if (p) Tracejada(eu + Vector2(0.0f, 30.0f), p->GetPosition(), kDebugFraco, 7.0f);
+        }
+        Circulo(eu, 74.0f + 3.0f * Math::Sin(mRelogio * 7.0f), kDebug, 28);
+        Circulo(eu, 80.0f, kDebugFraco, 28);
+        // Em god mode ele protege a frota: um leque mirado de tanto em tanto, mais rapido a cada onda.
+        if (te >= mProximoLeque) {
+            mProximoLeque = te + g.entreLequesDaFrota * std::pow(0.85f, static_cast<float>(mOndaDaFrota));
+            Leque(kGatilhoDoTiro, g.tirosDoLequeDaFrota, 34.0f, g.velocidade + 20.0f, "Tiro");
+        }
+        if (rotulo) {
+            rotulo->Pintar(SDL_Color{120, 255, 120, 160}, SDL_Color{10, 12, 24, 215}, SDL_Color{150, 255, 170, 255});
+            Escrever(rotulo, "godMode = true", eu + Vector2(eu.x > Campo().x + Campo().w - 260.0f ? -170.0f : 170.0f, 10.0f));
+        }
+    }
+
+    // O hotfix: um lugar vazio pisca, o fio do professor vai ate ele, e o bug volta.
+    if (vivos > 0 && vivos < total && mHotfixLugar < 0 && te >= mProximoHotfix) {
+        mHotfixLugar = LugarDoHotfix(vazios, mSorteio);
+        mHotfixEm = te + kAvisoDoHotfix;
+    }
+    if (mHotfixLugar >= 0) {
+        const int f = mHotfixLugar / kColunasDaFrota, col = mHotfixLugar % kColunasDaFrota;
+        const Vector2 onde = LugarNaFrota(f, col, topo, m);
+        if (vivos == 0 || mFrota[static_cast<size_t>(mHotfixLugar)]) {
+            mHotfixLugar = -1;   // a frota acabou antes do patch: ele nao tem onde aplicar
+        } else if (te < mHotfixEm) {
+            Tracejada(eu + Vector2(0.0f, 30.0f), onde, kMagenta, 6.0f);
+            if (Aceso(te, 0.07f)) Circulo(onde, 16.0f, kMagenta, 10);
+        } else {
+            mFrota[static_cast<size_t>(mHotfixLugar)] = Peca(kGatilhoDoBug, onde, "Bug");
+            if (b) b->Faiscar(onde, Hud::Faisca::Coleta);
+            mHotfixLugar = -1;
+            mProximoHotfix = te + g.hotfix;
+            ++vivos;
+        }
+    }
+
+    // Zerada a frota, o god mode cai: a janela.
+    if (vivos == 0 && !mJanelaAberta) {
+        mJanelaAberta = true;
+        mGodMode = false;
+        mJanelaAte = te + g.janela;
         if (b) b->Conquistar(kPremioDaFrotaLimpa);
-        Avisar("0 bugs conhecidos: pode lan\xc3\xa7" "ar!", 2.0f);
+        mClarao = 0.2f;
+        mCorDoClarao = kOuro;
+        Avisar("0 bugs: godMode = false - ATIRE NELE, cada acerto vale o dobro!", 1.8f);
+        SomDoDisparo();
     }
-    // Sem frota, o professor volta a atirar.
-    if (mFrotaLimpa && te >= mProximoLeque) {
-        mProximoLeque = te + 1.1f;
-        Leque(kGatilhoDoTiro, 3, 26.0f, g.velocidade + 30.0f, "Tiro");
+    if (mJanelaAberta) {
+        // Sem frota, ele se defende atirando; a barra embaixo dele e o tempo da janela.
+        if (te >= mProximoLeque) {
+            mProximoLeque = te + 0.9f;
+            Leque(kGatilhoDoTiro, 4, 30.0f, g.velocidade + 40.0f, "Tiro");
+        }
+        const float u = std::clamp((mJanelaAte - te) / std::max(g.janela, 0.1f), 0.0f, 1.0f);
+        const Vector2 a(eu.x - 70.0f, eu.y + 66.0f), z(eu.x + 70.0f, eu.y + 74.0f);
+        Retangulo(a, z, kOuro);
+        Preencher(a, Vector2(Mistura(a.x, z.x, u), z.y), kOuro);
+        if (Aceso(te, 0.15f)) Circulo(eu, 70.0f, kPerigo, 24);
+        if (rotulo) {
+            rotulo->Pintar(SDL_Color{255, 214, 90, 160}, SDL_Color{10, 12, 24, 215}, SDL_Color{255, 214, 90, 255});
+            Escrever(rotulo, "godMode = false", eu + Vector2(eu.x > Campo().x + Campo().w - 260.0f ? -170.0f : 170.0f, 10.0f));
+        }
+        if (te >= mJanelaAte) {
+            // A onda seguinte: mais rapida, e o god mode de volta.
+            mJanelaAberta = false;
+            mFrotaMontada = false;
+            mFrotaChegaEm = -1.0f;
+            ++mOndaDaFrota;
+            mGodMode = true;
+        }
+        Placar(kFase, 2, "godMode = false: ATIRE NO PROFESSOR (x2)!");
+        return;
     }
-    Placar(kFase, 2, "genero = nave: faltam " + std::to_string(vivos) + " bugs. Derrube todos!");
+    Placar(kFase, 2, "godMode = true enquanto houver bug: faltam " + std::to_string(vivos) + " (onda " + onda + ")");
 }
 
 void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {

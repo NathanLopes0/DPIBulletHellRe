@@ -73,7 +73,9 @@ namespace JogosDigitais {
     }
 
     float DuracaoDa(const std::string& fase) {
-        return fase == RegrasTrocadas::kFase ? RegrasTrocadas::kDuracaoDaFase : kDuracaoDaFase;
+        if (fase == RegrasTrocadas::kFase) return RegrasTrocadas::kDuracaoDaFase;
+        if (fase == Lancamento::kFase) return Lancamento::kDuracaoDaFase;
+        return kDuracaoDaFase;
     }
 }
 
@@ -883,6 +885,16 @@ namespace Lancamento {
         return m;
     }
 
+    float EntrePassos(const float base, const int vivos, const int total, const int onda) {
+        const float u = total > 0 ? std::clamp(static_cast<float>(vivos) / static_cast<float>(total), 0.0f, 1.0f) : 1.0f;
+        return base * (0.4f + 0.6f * u) * std::pow(0.8f, static_cast<float>(std::max(0, onda)));
+    }
+
+    int LugarDoHotfix(const std::vector<int>& vazios, Variacao::Sorteio& s) {
+        if (vazios.empty()) return -1;
+        return vazios[static_cast<size_t>(s.Inteiro(0, static_cast<int>(vazios.size()) - 1))];
+    }
+
     Vector2 LugarNaFrota(const int fileira, const int coluna, const Vector2 centroDoTopo, const Marcha& m) {
         const float meio = static_cast<float>(kColunasDaFrota - 1) / 2.0f;
         return Vector2(centroDoTopo.x + (static_cast<float>(coluna) - meio) * kEspacoX + m.dx,
@@ -911,10 +923,14 @@ namespace Lancamento {
         d.tirosDoAnel = 20;
         d.velocidade = 215.0f;
         d.entrePassos = 0.24f;
-        d.entreQuedas = 0.4f;
+        d.entreQuedas = 0.3f;
         d.velocidadeDaQueda = 270.0f;
         d.entreLinhas = 0.95f;
         d.subida = 92.0f;
+        d.hotfix = 0.85f;
+        d.janela = 2.8f;
+        d.entreLequesDaFrota = 1.25f;
+        d.tirosDoLequeDaFrota = 5;
         d.entreAneisDaHitbox = 0.9f;
         d.tirosDoAnelDaHitbox = 16;
         d.velocidadeDaHitbox = 205.0f;
