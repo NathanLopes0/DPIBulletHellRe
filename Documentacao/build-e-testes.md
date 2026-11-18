@@ -357,7 +357,8 @@ e o fantasma, feitos sem deltaTime, andam 2,4 vezes (ou 4 vezes) o que está
 escrito neles. O `esquiva` apanha ali de 5 a 9 vezes, quase sempre do
 fantasma, e foi isso que o levou de 0 a 71 para 0 a 22 no Normal e de 32 a 38
 para 0 no Difícil. Segurando o foco, o vermelho e o fantasma andam à metade, e
-só a parede azul — com deltaTime — pede para soltá-lo: o vão novo fica longe o
+só a parede azul — com deltaTime — pede para soltá-lo (e soltar tem um respiro
+de 0,4 s, `RegrasTrocadas::kFolgaAoSoltar`, antes de o FPS voltar a subir): o vão novo fica longe o
 bastante para não ser alcançado com foco e perto o bastante para ser alcançado
 sem ele (`RegrasTrocadas::VaoAlcancavel`). Para ver o foco numa foto, rode sem
 piloto e segure a tecla com o roteiro — uma a cada 3 quadros, que é o que uma

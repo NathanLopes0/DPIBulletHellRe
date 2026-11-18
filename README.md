@@ -942,7 +942,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   cada um longe do anterior. O FPS é **seu**: segurar o **foco** liga o modo
   economia e o jogo cai para **30 FPS** — o vermelho em câmera lenta, e você
   ganha o anel frio —, mas focado você anda devagar, e para chegar ao vão da
-  parede azul é preciso soltar o foco e correr. O fantasma também foi feito sem
+  parede azul é preciso soltar o foco e correr. Soltar tem um respiro: por 0,4 s
+  o jogo segura a câmera lenta, e só então o FPS volta a subir. O fantasma também foi feito sem
   deltaTime: a 144 FPS ele te alcança, a 30 você o despista. No Difícil, o
   teto é 240. Ao fim do FPS, o fantasma se desfaz em faíscas — por enquanto. A
   do estado: o **quick save** guarda a sua nota num disquete — e o disquete fica

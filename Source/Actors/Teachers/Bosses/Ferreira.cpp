@@ -356,6 +356,7 @@ void Ferreira::DesmontarEtapa() {
     }
     mVermelhos.clear();
     mFps = RegrasTrocadas::kFpsDeReferencia;
+    mFolgaDoFoco = RegrasTrocadas::Folga{};
     mHistoricoDoFps.clear();
     mProximaAmostra = 0.0f;
     mRelogioSemDt = 0.0f;
@@ -1575,7 +1576,9 @@ void Ferreira::AtualizarFps(const float te, const float deltaTime) {
     int focados = 0;
     for (const Player* a : alunos) focados += a->Focado() ? 1 : 0;
     const float fracao = alunos.empty() ? 0.0f : static_cast<float>(focados) / static_cast<float>(alunos.size());
-    if (te >= kComecaOFps) mFps = PassoDoFps(mFps, FpsAlvo(fracao, g.fpsMaximo), g.fpsMaximo, deltaTime);
+    // Soltar o foco tem um respiro: o FPS segura kFolgaAoSoltar antes de subir.
+    const float valendo = FocadosComFolga(mFolgaDoFoco, fracao, deltaTime);
+    if (te >= kComecaOFps) mFps = PassoDoFps(mFps, FpsAlvo(valendo, g.fpsMaximo), g.fpsMaximo, deltaTime);
     const float fator = SemDeltaTime(mFps);
     mRelogioSemDt += deltaTime * fator;
     if (te >= mProximaAmostra) {

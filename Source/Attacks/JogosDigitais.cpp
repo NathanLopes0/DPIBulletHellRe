@@ -667,6 +667,20 @@ namespace RegrasTrocadas {
         return std::exp(std::log(alto) * (1.0f - f) + std::log(kFpsMinimo) * f);
     }
 
+    float FocadosComFolga(Folga& f, const float agora, const float dt) {
+        if (agora >= f.focados) {
+            f.focados = agora;
+            f.ha = 0.0f;
+        } else {
+            f.ha += dt;
+            if (f.ha >= kFolgaAoSoltar) {
+                f.focados = agora;
+                f.ha = 0.0f;
+            }
+        }
+        return f.focados;
+    }
+
     float PassoDoFps(const float fps, const float alvo, const float teto, const float dt) {
         const float alto = std::max(teto, kFpsMinimo + 1.0f);
         const float menor = std::log(kFpsMinimo), maior = std::log(alto), vao = maior - menor;

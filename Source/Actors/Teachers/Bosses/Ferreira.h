@@ -313,6 +313,7 @@ private:
     void AtualizarFps(float te, float deltaTime);
     /// O FPS desta etapa, e o que ele foi nos ultimos segundos (o grafico embaixo do contador).
     float mFps = RegrasTrocadas::kFpsDeReferencia;
+    RegrasTrocadas::Folga mFolgaDoFoco;
     std::vector<float> mHistoricoDoFps;
     float mProximaAmostra = 0.0f;
     /// O relogio de quem foi feito sem deltaTime: anda SemDeltaTime(FPS) segundos por segundo.

@@ -774,6 +774,20 @@ TEST_CASE("RegrasTrocadas: no FPS o foco derruba o jogo para 30, e o que foi fei
     CHECK(t == doctest::Approx(kSubidaDoFps).epsilon(0.05));
     CHECK(kQuedaDoFps < kSubidaDoFps);
     CHECK(PassoDoFps(60.0f, 60.0f, n.fpsMaximo, 0.016f) == doctest::Approx(60.0f));
+    // Soltar o foco: o FPS segura kFolgaAoSoltar (no maximo meio segundo) antes de subir; apertar
+    // vale na hora.
+    CHECK(kFolgaAoSoltar > 0.0f);
+    CHECK(kFolgaAoSoltar <= 0.5f);
+    Folga folga;
+    CHECK(FocadosComFolga(folga, 1.0f, 0.016f) == doctest::Approx(1.0f));
+    float segurou = 0.0f;
+    while (FocadosComFolga(folga, 0.0f, 0.01f) > 0.5f && segurou < 2.0f) segurou += 0.01f;
+    CHECK(segurou == doctest::Approx(kFolgaAoSoltar).epsilon(0.05));
+    CHECK(FocadosComFolga(folga, 0.0f, 0.01f) == doctest::Approx(0.0f));
+    CHECK(FocadosComFolga(folga, 1.0f, 0.01f) == doctest::Approx(1.0f));   // apertar: na hora
+    FocadosComFolga(folga, 0.0f, 0.2f);
+    CHECK(FocadosComFolga(folga, 1.0f, 0.01f) == doctest::Approx(1.0f));   // apertar de novo zera a folga
+    CHECK(folga.ha == doctest::Approx(0.0f));
     CHECK(PassoDoFps(900.0f, 900.0f, n.fpsMaximo, 0.016f) <= n.fpsMaximo + 0.01f);
     // Sem deltaTime: a 60 FPS, o que esta escrito; o dobro de quadros, o dobro da velocidade.
     CHECK(SemDeltaTime(kFpsDeReferencia) == doctest::Approx(1.0f));

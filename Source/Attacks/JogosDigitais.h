@@ -536,6 +536,15 @@ namespace RegrasTrocadas {
     float FpsAlvo(float focados, float teto);
     /// O FPS 'fps' um passo de 'dt' segundos mais perto de 'alvo'.
     float PassoDoFps(float fps, float alvo, float teto, float dt);
+    /// Soltar o foco nao acelera o jogo na hora: por kFolgaAoSoltar o FPS segura onde esta, e so
+    /// depois volta a subir - o respiro de quem solta o foco para correr. Apertar vale na hora.
+    constexpr float kFolgaAoSoltar = 0.4f;
+    struct Folga {
+        float focados = 0.0f;   ///< a fracao de focados que ainda vale
+        float ha = 0.0f;        ///< ha quanto tempo menos alunos seguram o foco
+    };
+    /// A fracao de focados que o FPS deve seguir, com 'agora' focados neste quadro.
+    float FocadosComFolga(Folga& f, float agora, float dt);
     /// O quanto anda, neste FPS, quem foi feito sem deltaTime: 1 a kFpsDeReferencia.
     float SemDeltaTime(float fps);
     /// A altura de 'fps' no grafico do contador: 0 em kFpsMinimo, 1 no 'teto' (escala log).
