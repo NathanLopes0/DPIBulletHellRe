@@ -202,6 +202,7 @@ void Game::LoadInitialScene()
             else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);
             else if (mSimulacao.cena == "horas") ChangeScene(Scene::SceneType::Horas);
             // A pagina das mencoes que a matricula nova ve antes da selecao (IrParaASelecao).
+            else if (mSimulacao.cena == "personagem") ChangeScene(Scene::SceneType::CriacaoDePersonagem);
             else if (mSimulacao.cena == "entrada") {
                 mManualDaEntrada = true;
                 ChangeScene(Scene::SceneType::ComoJogar);

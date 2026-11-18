@@ -49,6 +49,16 @@ namespace {
     constexpr SDL_Color kBordaDaSelecao = {235, 235, 235, 255};
     constexpr SDL_Color kFundoDaSelecao = { 34,  38,  48, 170};
 
+    /// O botao CONFIRMAR: no meio das duas colunas, uma linha depois da ultima. Dourado quando o foco
+    /// esta nele.
+    constexpr float kBotaoX = (kObjetoX + kCorX) / 2.0f;
+    constexpr int kBotaoLargura = 304;
+    constexpr int kBotaoAltura = 50;
+    constexpr SDL_Color kBordaDoBotao = {150, 150, 160, 255};
+    constexpr SDL_Color kFundoDoBotao = { 34,  38,  48, 200};
+    constexpr SDL_Color kBordaDoBotaoEmFoco = {255, 214, 72, 255};
+    constexpr SDL_Color kFundoDoBotaoEmFoco = { 70,  58,  20, 230};
+
     std::string NomeDaPeca(const Personagens::Categoria& c, const std::string& id) {
         const Personagens::Peca* p = c.PecaPor(id);
         return p ? p->nome : std::string();
@@ -153,16 +163,27 @@ void CriacaoDePersonagem::Load() {
     }
     AjustarColuna();
 
+    // O CONFIRMAR, uma linha depois da ultima: a personagem so e gravada nele.
+    {
+        const float y = altura * (kPrimeiraLinha + static_cast<float>(mLinhas.size()) * kEspacoEntreLinhas);
+        auto botao = std::make_unique<Actor>(this);
+        botao->SetPosition(Vector2(largura * kBotaoX, y));
+        botao->AddComponent<DrawCaixaComponent>(kBotaoLargura, kBotaoAltura, kBordaDoBotao, kFundoDoBotao, 3, 92);
+        mBotaoAtor = botao.get();
+        AddActor(std::move(botao));
+        Texto("CONFIRMAR", largura * kBotaoX, y, 26, kBotaoLargura - 24);
+    }
+
     if (mLinhas.empty()) {
         Texto("Nada para escolher: confira Assets/personagens.json.",
               largura / 2.0f, altura * 0.80f, 24, 1000);
     }
 
     // Uma linha so para o manche, e o rodape saindo dos botoes.
-    Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam",
-          largura / 2.0f, altura * 0.86f, 22, 900);
+    Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam - CONFIRMAR fica no fim",
+          largura / 2.0f, altura * 0.88f, 22, 1100);
     Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "objeto / cor"},
-                          {PainelDaVez(), Painel::Botao::Um,   "confirmar"},
+                          {PainelDaVez(), Painel::Botao::Um,   "ir ao CONFIRMAR / confirmar"},
                           {PainelDaVez(), Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.92f, 22, 1000);
@@ -233,7 +254,18 @@ void CriacaoDePersonagem::Redesenhar() const {
         }
     }
 
-    if (mSelecaoAtor && !mLinhas.empty()) {
+    // No botao, a moldura da tabela some e o botao acende.
+    if (mBotaoAtor) {
+        if (auto* caixa = mBotaoAtor->GetComponent<DrawCaixaComponent>()) {
+            caixa->SetMoldura(NoBotao() ? kBordaDoBotaoEmFoco : kBordaDoBotao);
+            caixa->SetFundo(NoBotao() ? kFundoDoBotaoEmFoco : kFundoDoBotao);
+        }
+    }
+    if (mSelecaoAtor) {
+        if (auto* caixa = mSelecaoAtor->GetComponent<DrawCaixaComponent>()) caixa->SetIsVisible(!NoBotao());
+    }
+
+    if (mSelecaoAtor && !mLinhas.empty() && !NoBotao()) {
         const auto largura = static_cast<float>(mGame->GetWindowWidth());
         const auto altura  = static_cast<float>(mGame->GetWindowHeight());
         mSelecaoAtor->SetPosition(Vector2(
@@ -274,7 +306,8 @@ void CriacaoDePersonagem::Trocar(const int passo) {
 
 void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
-    const int quantas = static_cast<int>(mLinhas.size());
+    // As linhas e, depois da ultima, o botao CONFIRMAR: o manche da a volta passando por ele.
+    const int quantas = static_cast<int>(mLinhas.size()) + 1;
 
     // O painel da vez: quem monta a personagem do jogador 2 e o jogador 2, no manche dele.
     const Painel::Jogador kQuem = PainelDaVez();
@@ -290,7 +323,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool paraEsquerda = mBordaEsquerda.Bateu(esquerda);
     const bool paraDireita = mBordaDireita.Bateu(direita);
     const bool trocouDeColuna = mBordaColuna.Bateu(Painel::Apertado(keyState, kQuem, Painel::Botao::Tres));
-    if (quantas > 0) {
+    {
         if (subiu) {
             mLinhaEmFoco = (mLinhaEmFoco - 1 + quantas) % quantas;
             AjustarColuna();
@@ -317,16 +350,13 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool confirmar = Painel::Apertado(keyState, kQuem, Painel::Botao::Um)
                         || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (mBordaConfirmar.Bateu(confirmar)) {
-        mGame->DefinirAparencia(mAparencia);
-
-        // Quem veio da dificuldade ou do boletim - um perfil que ja existia - volta para la.
-        if (mGame->EditandoPersonagem()) {
-            mGame->TerminarEdicaoDePersonagem();
+        // Numa linha, o Botao 1 so leva ao CONFIRMAR; nele, grava.
+        if (!NoBotao()) {
+            mLinhaEmFoco = static_cast<int>(mLinhas.size());
+            Redesenhar();
             return;
         }
-
-        // Nao vai direto para a selecao.
-        mGame->AvancarEntrada();
+        Confirmar();
         return;
     }
 
@@ -341,4 +371,17 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
         mGame->RequestSceneChange(SceneType::Identificacao);
         return;
     }
+}
+
+void CriacaoDePersonagem::Confirmar() {
+    mGame->DefinirAparencia(mAparencia);
+
+    // Quem veio da dificuldade ou do boletim - um perfil que ja existia - volta para la.
+    if (mGame->EditandoPersonagem()) {
+        mGame->TerminarEdicaoDePersonagem();
+        return;
+    }
+
+    // Nao vai direto para a selecao.
+    mGame->AvancarEntrada();
 }

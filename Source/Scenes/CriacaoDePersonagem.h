@@ -79,6 +79,12 @@ private:
 
     Actor* mPersonagemAtor{};
     Actor* mSelecaoAtor{};
+    /// O botao CONFIRMAR, depois da ultima linha: so nele o Botao 1 grava a personagem.
+    Actor* mBotaoAtor{};
+    /// O foco esta no botao, e nao numa linha da tabela.
+    [[nodiscard]] bool NoBotao() const { return mLinhaEmFoco == static_cast<int>(mLinhas.size()); }
+    /// Grava a aparencia e segue a entrada (ou volta para quem abriu a edicao).
+    void Confirmar();
 
     /// A aparencia sendo montada.
     Personagens::Aparencia mAparencia;
