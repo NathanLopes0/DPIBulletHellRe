@@ -94,6 +94,7 @@ void Player::OnUpdate(const float deltaTime) {
     AndarNaPlataforma(deltaTime);
     // Cada um so anda o relogio dele; quem pinta e um so.
     AtualizarCorrente(deltaTime);
+    mTempoDeImpulso = std::max(0.0f, mTempoDeImpulso - deltaTime);
     AtualizarSobrecarga(deltaTime);
     AtualizarImunidade(deltaTime);
     AtualizarCorDoEstado();
@@ -339,6 +340,11 @@ void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
         mTempoDeCorrente = segundos;
         mFatorDaCorrente = fatorDeVelocidade;
     }
+}
+
+void Player::Impulsionar(const float segundos, const float fator) {
+    mTempoDeImpulso = std::max(mTempoDeImpulso, segundos);
+    mFatorDoImpulso = fator;
 }
 
 void Player::GanharPontoExtra() {

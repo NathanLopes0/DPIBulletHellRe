@@ -545,6 +545,17 @@ namespace RegrasTrocadas {
     };
     /// A fracao de focados que o FPS deve seguir, com 'agora' focados neste quadro.
     float FocadosComFolga(Folga& f, float agora, float dt);
+    /// E quem solta o foco ganha um impulso: kImpulso segundos a kFatorDoImpulso da velocidade -
+    /// o arranque para atravessar o campo ate o vao da parede azul. So vale para quem segurou o foco
+    /// por kFocoParaImpulso: tocar o foco sem parar nao da impulso sem fim.
+    constexpr float kImpulso = 0.6f;
+    constexpr float kFatorDoImpulso = 1.7f;
+    constexpr float kFocoParaImpulso = 0.3f;
+    struct Arranque {
+        float focado = 0.0f;    ///< ha quanto tempo o foco esta seguro
+    };
+    /// Um quadro do foco de um aluno: se ele soltou agora, depois de segurar o bastante - o impulso.
+    bool Impulsiona(Arranque& a, bool focadoAgora, float dt);
     /// O quanto anda, neste FPS, quem foi feito sem deltaTime: 1 a kFpsDeReferencia.
     float SemDeltaTime(float fps);
     /// A altura de 'fps' no grafico do contador: 0 em kFpsMinimo, 1 no 'teto' (escala log).

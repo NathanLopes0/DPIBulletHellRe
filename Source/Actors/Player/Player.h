@@ -69,12 +69,18 @@ public:
     /// Battle e as regras de projetil leem isto.
     [[nodiscard]] bool EstaAcorrentado() const { return mTempoDeCorrente > 0.0f; }
 
+    /// O contrario da corrente: o aluno anda 'fator' vezes mais rapido por um tempo (o impulso de
+    /// quem solta o foco no FPS da INF 216). Renova, nao acumula.
+    void Impulsionar(float segundos, float fator);
+    [[nodiscard]] bool Impulsionado() const { return mTempoDeImpulso > 0.0f; }
+
     /// Se o aluno segura o foco neste quadro (Painel::TeclaDoFoco): anda devagar e mostra a hitbox.
     [[nodiscard]] bool Focado() const { return mFocado; }
 
     /// Quao rapido o aluno anda neste instante, ja com a corrente e o foco. Fonte unica.
     [[nodiscard]] float VelocidadeDeAndar() const {
-        return kVelocidade * (mTempoDeCorrente > 0.0f ? mFatorDaCorrente : 1.0f) * (mFocado ? kFatorDoFoco : 1.0f);
+        return kVelocidade * (mTempoDeCorrente > 0.0f ? mFatorDaCorrente : 1.0f) * (mFocado ? kFatorDoFoco : 1.0f) *
+               (mTempoDeImpulso > 0.0f ? mFatorDoImpulso : 1.0f);
     }
 
     /// Quanto ainda falta da imunidade do parceiro. Zero quer dizer desprotegido.
@@ -166,6 +172,9 @@ private:
     /// A corrente: o que resta, quanto ela corta da velocidade, e o pulso do ferro.
     float mTempoDeCorrente = 0.0f;
     float mFatorDaCorrente = 1.0f;
+    /// O impulso: o que resta, e quanto ele soma a velocidade.
+    float mTempoDeImpulso = 0.0f;
+    float mFatorDoImpulso = 1.0f;
     /// O foco segurado neste quadro: anda devagar e mostra a hitbox.
     bool mFocado = false;
     float mPulsoDaCorrente = 0.0f;

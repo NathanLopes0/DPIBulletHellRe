@@ -357,6 +357,7 @@ void Ferreira::DesmontarEtapa() {
     mVermelhos.clear();
     mFps = RegrasTrocadas::kFpsDeReferencia;
     mFolgaDoFoco = RegrasTrocadas::Folga{};
+    mArranques = {};
     mHistoricoDoFps.clear();
     mProximaAmostra = 0.0f;
     mRelogioSemDt = 0.0f;
@@ -1576,6 +1577,13 @@ void Ferreira::AtualizarFps(const float te, const float deltaTime) {
     int focados = 0;
     for (const Player* a : alunos) focados += a->Focado() ? 1 : 0;
     const float fracao = alunos.empty() ? 0.0f : static_cast<float>(focados) / static_cast<float>(alunos.size());
+    // Quem solta o foco (depois de segura-lo um pouco) arranca: o impulso para correr ate o vao.
+    for (size_t i = 0; i < alunos.size() && i < mArranques.size(); ++i) {
+        if (Impulsiona(mArranques[i], alunos[i]->Focado(), deltaTime)) {
+            alunos[i]->Impulsionar(kImpulso, kFatorDoImpulso);
+            if (Battle* b = Batalha()) b->Faiscar(alunos[i]->GetPosition(), Hud::Faisca::Coleta);
+        }
+    }
     // Soltar o foco tem um respiro: o FPS segura kFolgaAoSoltar antes de subir.
     const float valendo = FocadosComFolga(mFolgaDoFoco, fracao, deltaTime);
     if (te >= kComecaOFps) mFps = PassoDoFps(mFps, FpsAlvo(valendo, g.fpsMaximo), g.fpsMaximo, deltaTime);
@@ -1628,9 +1636,19 @@ void Ferreira::AtualizarFps(const float te, const float deltaTime) {
         SomDoDisparo();
     }
 
-    // Quem segura o foco ganha o anel frio: o jogo esta em camera lenta por causa dele.
+    // Quem segura o foco ganha o anel frio: o jogo esta em camera lenta por causa dele. Quem arranca
+    // deixa um rastro de velocidade, para tras do rumo.
     for (const Player* a : alunos) {
         if (a->Focado()) Circulo(a->GetPosition(), 24.0f + 2.0f * Math::Sin(mRelogio * 6.0f), kFrio, 16);
+        if (!a->Impulsionado()) continue;
+        const auto* corpo = a->GetComponent<RigidBodyComponent>();
+        const Vector2 v = corpo ? corpo->GetVelocity() : Vector2::Zero;
+        if (v.Length() < 1.0f) continue;
+        const Vector2 rumo = v * (1.0f / v.Length()), lado(-rumo.y, rumo.x);
+        for (int k = -1; k <= 1; ++k) {
+            const Vector2 de = a->GetPosition() + lado * (9.0f * static_cast<float>(k)) - rumo * 12.0f;
+            Linha(de, de - rumo * 34.0f, kFrio);
+        }
     }
 
     // O contador, no canto de cima a direita, como o de quem mede o jogo: frio em camera lenta, quente

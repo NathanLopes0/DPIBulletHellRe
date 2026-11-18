@@ -788,6 +788,17 @@ TEST_CASE("RegrasTrocadas: no FPS o foco derruba o jogo para 30, e o que foi fei
     FocadosComFolga(folga, 0.0f, 0.2f);
     CHECK(FocadosComFolga(folga, 1.0f, 0.01f) == doctest::Approx(1.0f));   // apertar de novo zera a folga
     CHECK(folga.ha == doctest::Approx(0.0f));
+    // O impulso: so quem segurou o foco o bastante arranca ao solta-lo, e uma vez por soltada.
+    Arranque arranque;
+    CHECK_FALSE(Impulsiona(arranque, true, kFocoParaImpulso / 2.0f));
+    CHECK_FALSE(Impulsiona(arranque, false, 0.016f));   // um toque: nada
+    for (int k = 0; k < 40; ++k) CHECK_FALSE(Impulsiona(arranque, true, 0.016f));
+    CHECK(Impulsiona(arranque, false, 0.016f));
+    CHECK_FALSE(Impulsiona(arranque, false, 0.016f));
+    // Com ele, quem estava num vao chega ao seguinte (o mais longe possivel) bem antes da parede.
+    CHECK(kAlunoSemFoco * kFatorDoImpulso * kImpulso + kAlunoSemFoco * (n.entreParedes - kImpulso) >
+          VaoAlcancavel(kAlunoSemFoco, n.entreParedes, 400.0f) * 1.2f);
+    CHECK(kFatorDoImpulso > 1.0f);
     CHECK(PassoDoFps(900.0f, 900.0f, n.fpsMaximo, 0.016f) <= n.fpsMaximo + 0.01f);
     // Sem deltaTime: a 60 FPS, o que esta escrito; o dobro de quadros, o dobro da velocidade.
     CHECK(SemDeltaTime(kFpsDeReferencia) == doctest::Approx(1.0f));

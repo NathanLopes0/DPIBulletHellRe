@@ -314,6 +314,8 @@ private:
     /// O FPS desta etapa, e o que ele foi nos ultimos segundos (o grafico embaixo do contador).
     float mFps = RegrasTrocadas::kFpsDeReferencia;
     RegrasTrocadas::Folga mFolgaDoFoco;
+    /// O foco de cada aluno, para o impulso de quem o solta.
+    std::array<RegrasTrocadas::Arranque, 2> mArranques{};
     std::vector<float> mHistoricoDoFps;
     float mProximaAmostra = 0.0f;
     /// O relogio de quem foi feito sem deltaTime: anda SemDeltaTime(FPS) segundos por segundo.
