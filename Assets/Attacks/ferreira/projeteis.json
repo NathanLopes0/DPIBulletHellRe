@@ -4,12 +4,13 @@
   // gerar_ferreira.py --animacoes.
 
   // O tiro de sempre e as caras que ele ganha quando o jogo muda: a moeda das regras invertidas (e
-  // a da chuva), a duvida do aluno que volta contra ele, o fragmento da travada - e a cara vazia, a
-  // da hitbox que descolou do desenho.
+  // a da chuva), a duvida do aluno que volta contra ele, o fragmento da travada, a cara vazia (a da
+  // hitbox que descolou do desenho) - e os dois do FPS: o vermelho feito sem deltaTime, que corre
+  // com o FPS, e o azul com deltaTime (o relogio), que nao muda.
   "Tiro": {
     "sprite": "Teachers/Projectiles/DPIBHFerreiraTiros.png",
     "dados":  "Teachers/Projectiles/DPIBHFerreiraTiros.json",
-    "animacoes": { "Tiro": [0], "Moeda": [1], "Seu": [2], "Vazio": [3], "Fragmento": [4] },
+    "animacoes": { "Tiro": [0], "Moeda": [1], "Seu": [2], "Vazio": [3], "Fragmento": [4], "SemDt": [5], "ComDt": [6] },
     "animacaoInicial": "Tiro",
     "ordemDeDesenho": 91,
     "colisorDivisor": 2.6

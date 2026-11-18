@@ -318,8 +318,8 @@ longe. Sozinho, com as sementes 101 a 103:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 0 (zera no começo da fase 3) | 0 (zera na fase 1) |
-| `esquiva` | 0 a 71 (aprova em uma, no exame) | 32 a 38 (reprova nas três) |
+| `segue` | 0 (zera na fase 2) | 0 (zera na fase 1) |
+| `esquiva` | 0 a 22 (reprova nas três) | 0 (zera na fase 3 nas três) |
 
 Na fase 2 o jogo vira de plataforma, e os dois pilotos andam nela. O `segue`
 vai pelo chão atrás do professor, sem pular, e as pilhas de caixas e as lanças
@@ -345,9 +345,29 @@ Na fase 3, a inversão: cada dúvida que chega ao professor custa 1,3, e os dois
 pilotos atiram sem parar. Quem lê o placar ("INVERTIDO: pegue as moedas e NÃO
 atire") para de atirar e cata as moedas. O `esquiva` também não pega as moedas
 da chuva nem mira o botão ESPERAR do crash: são os pontos que a prova dá a quem
-entende o jogo. As fases duram 40 s, o dobro das outras, e cada acerto no
-professor vale 0,55 do de uma matéria comum (`JogosDigitais::kFatorDoGanho`):
-sem isso, o tempo dobrado dobraria a nota de quem só atira.
+entende o jogo. As fases duram 40 s, o dobro das outras (a das regras, 48 s), e
+cada acerto no professor vale 0,55 do de uma matéria comum
+(`JogosDigitais::kFatorDoGanho`): sem isso, o tempo dobrado dobraria a nota de
+quem só atira.
+
+A etapa do FPS, na fase 3, é a que mais separa quem entende de quem só desvia:
+os pilotos nunca seguram o foco (`Player::LerManche` o desliga para eles), então
+o jogo fica no teto — 144 FPS no Normal, 240 no Difícil —, e a espiral vermelha
+e o fantasma, feitos sem deltaTime, andam 2,4 vezes (ou 4 vezes) o que está
+escrito neles. O `esquiva` apanha ali de 5 a 9 vezes, quase sempre do
+fantasma, e foi isso que o levou de 0 a 71 para 0 a 22 no Normal e de 32 a 38
+para 0 no Difícil. Segurando o foco, o vermelho e o fantasma andam à metade, e
+só a parede azul — com deltaTime — pede para soltá-lo: o vão novo fica longe o
+bastante para não ser alcançado com foco e perto o bastante para ser alcançado
+sem ele (`RegrasTrocadas::VaoAlcancavel`). Para ver o foco numa foto, rode sem
+piloto e segure a tecla com o roteiro — uma a cada 3 quadros, que é o que uma
+tecla do roteiro dura (`Simulacao::kQuadrosDeTecla`):
+
+```bash
+TECLAS=$(python3 -c "print(','.join(f'Left Shift@{q}' for q in range(1500, 1800, 3)))")
+./build/DPIBulletHellRe --batalha 16 --estado StateThree --imortal --passo 0.016 \
+    --teclas "$TECLAS" --fotos 1560,1900 --fotos-em /tmp/fotos --fim-em 1950
+```
 
 ### Fotografar
 

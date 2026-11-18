@@ -26,16 +26,18 @@ class Player;
 /// ensina materia: pega o jogo que o aluno ja conhece e mexe nos sistemas dele.
 ///   1. a interface - o golpe do primeiro quadro, para assustar; a barra da nota, a da HUD de
 ///      verdade, arrancada do rodape para varrer o campo (cheia ate a nota do aluno: deitada sobe e
-///      desce, de pe vai de um lado ao outro, e volta para o lugar); e o primeiro inimigo, gigante e
-///      sem textura, com a IA a mostra - ele persegue, o power-up o faz fugir (e cada bloco dele vira
-///      nota), e um tiro no olho o atordoa;
+///      desce, de pe vai de um lado ao outro, e volta para o lugar); e o primeiro inimigo, um
+///      fantasma de fliperama gigante e sem textura, com a IA a mostra - ele persegue, o power-up o
+///      faz fugir (e cada bloco dele vira nota), e um tiro no olho o atordoa;
 ///   2. a fisica - a prova inteira e jogo de plataforma, e ele escolhe para que lado a gravidade
 ///      puxa: o chao de sempre (pular as pilhas de caixas), a parede esquerda (as lancas em duas
 ///      alturas), o teto (a chuva de blocos e moedas) e a parede direita (a esteira ate o moedor);
-///   3. as regras - a inversao (acertar tira nota, os tiros dao), o fogo amigo (o tiro do aluno que
-///      erra volta por baixo), o lag (os tiros andam aos saltos) e o quick save: o disquete guarda a
-///      nota e anda - foge se ela e maior que a de agora, persegue se e menor -, e quem ele encosta
-///      volta para o save, com a nota dele;
+///   3. as regras - o fantasma da fase 1 volta nas tres primeiras: a inversao (acertar tira nota,
+///      os tiros dao, e o fantasma vira moeda e foge), o fogo amigo (o tiro do aluno que erra volta
+///      por baixo), o FPS (o vermelho foi feito sem deltaTime e corre com o FPS, o azul nao; o foco
+///      derruba o FPS, e o fantasma tambem anda sem deltaTime) e o quick save: o disquete guarda a
+///      nota e anda - foge se ela e maior que a de agora (encurralado num canto ele trava, e o tiro o
+///      faz engasgar), persegue se e menor -, e quem ele encosta volta para o save, com a nota dele;
 ///   e a repescagem, o lancamento: a hitbox descola do desenho, o jogo trava e pede uma escolha, uma
 ///   frota de bugs marcha, e os creditos sobem.
 /// As contas estao em JogosDigitais.h; aqui, os tiros no campo.
@@ -134,6 +136,9 @@ private:
     /// O chao do jogo de plataforma vai embaixo de tudo o que a HUD do campo mostra (o placar e 60).
     DrawLinhasComponent* mLinhasDoChao = nullptr;
     static constexpr int kOrdemDoChao = 55;
+    /// O contador de FPS e um overlay: vai por cima de tudo, o cartao do professor inclusive.
+    DrawLinhasComponent* mLinhasDoContador = nullptr;
+    static constexpr int kOrdemDoContador = 160;
     void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
     void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
     void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16);
@@ -189,8 +194,17 @@ private:
     /// A barra volta para o rodape, e os segmentos embaixo dela somem.
     void DevolverABarra();
     std::vector<BossProjectile*> mBarra;
-    /// O inimigo gigante (IaDoInimigo): a maquina de estados decide, e aqui o corpo anda.
-    void AtualizarInimigo(float te, float deltaTime);
+    /// O inimigo gigante (IaDoInimigo): a maquina de estados decide, e aqui o corpo anda. Na fase 1 ele
+    /// tem o power-up e o placar dele; nas regras, nao - a inversao o assusta, e no FPS ele anda sem
+    /// deltaTime.
+    struct ComoOInimigo {
+        bool fase1 = true;      ///< o power-up, os leques do professor e o placar sao dele
+        float passo = 1.0f;     ///< o quanto ele anda por segundo de deltaTime (o FPS)
+        float susto = 0.0f;     ///< > 0: um susto de fora, agora, deste tamanho (a inversao)
+    };
+    void AtualizarInimigo(float te, float deltaTime, const ComoOInimigo& como);
+    /// Nas regras, o inimigo passa de uma etapa para a outra: a troca nao o desmonta.
+    bool mInimigoFica = false;
     /// O corpo inteiro e os olhos, no ninho: ele nasce.
     void MontarOInimigo();
     /// Os olhos que faltam (o tiro derrubou), de volta no lugar.
@@ -296,14 +310,27 @@ private:
     };
     std::vector<QueDaAVolta> mQueDaoAVolta;
     void LimparClasses();
-    void AtualizarLag(float te);
-    struct AosSaltos {
+    void AtualizarFps(float te, float deltaTime);
+    /// O FPS desta etapa, e o que ele foi nos ultimos segundos (o grafico embaixo do contador).
+    float mFps = RegrasTrocadas::kFpsDeReferencia;
+    std::vector<float> mHistoricoDoFps;
+    float mProximaAmostra = 0.0f;
+    /// O relogio de quem foi feito sem deltaTime: anda SemDeltaTime(FPS) segundos por segundo.
+    float mRelogioSemDt = 0.0f;
+    float mProximaEspiral = 0.0f;
+    float mGiroDaEspiral = 0.0f;
+    float mProximaParede = 0.0f;
+    float mVaoDaParede = -1.0f;
+    /// Um tiro vermelho e a velocidade dele a kFpsDeReferencia: a de agora e ela vezes o FPS.
+    struct Vermelho {
         BossProjectile* p = nullptr;
-        Vector2 onde;
         Vector2 v;
     };
-    std::vector<AosSaltos> mAosSaltos;
-    int mQuadroDoLag = -1;
+    std::vector<Vermelho> mVermelhos;
+    static constexpr size_t kAmostrasDoGrafico = 64;
+    /// O contador: digitos e letras de sete segmentos, de 'altura' px, a partir do canto de cima a
+    /// esquerda. Devolve a largura escrita.
+    float SeteSegmentos(const std::string& texto, Vector2 canto, float altura, SDL_Color cor);
     void AtualizarSaveLoad(float te, float deltaTime);
     /// O quick load: quem o save encostou volta para onde estava, e a nota volta a ser a dele.
     void Carregar(float te);
@@ -314,8 +341,9 @@ private:
         std::vector<Vector2> alunos;
     };
     Salvo mSalvo;
-    /// O disquete do save, vivo no campo.
+    /// O disquete do save, vivo no campo, e a fuga dele (o canto que trava, o tiro que engasga).
     BossProjectile* mSave = nullptr;
+    RegrasTrocadas::Fuga mFuga;
     float mUltimoLoad = -1.0f;
 
     // ---- A repescagem: o lancamento ----
@@ -376,6 +404,9 @@ private:
     static constexpr SDL_Color kMagenta = {255, 60, 230, 200};
     static constexpr SDL_Color kMagentaFraco = {255, 60, 230, 70};
     static constexpr SDL_Color kSave = {110, 170, 255, 220};
+    /// O FPS: o rastro do vermelho (o tamanho e a velocidade) e o frio da camera lenta.
+    static constexpr SDL_Color kRastro = {255, 110, 90, 150};
+    static constexpr SDL_Color kFrio = {110, 220, 255, 235};
     /// O chao do jogo de plataforma: a faixa, a linha de cima e as juntas dos ladrilhos.
     static constexpr SDL_Color kChaoFundo = {26, 30, 54, 215};
     static constexpr SDL_Color kChaoLinha = {175, 185, 235, 235};

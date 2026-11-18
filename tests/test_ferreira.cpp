@@ -29,10 +29,10 @@ namespace {
     constexpr float kRaioDoTiro = 20.0f / 2.6f;
 
     template <std::size_t N>
-    void ConferirEtapas(const std::array<float, N>& d) {
+    void ConferirEtapas(const std::array<float, N>& d, const float duracao) {
         float soma = 0.0f;
         for (const float x : d) soma += x;
-        CHECK(soma == doctest::Approx(JogosDigitais::kDuracaoDaFase));
+        CHECK(soma == doctest::Approx(duracao));
         CHECK(JogosDigitais::Etapa(d, 0.0f) == 0);
         float inicio = 0.0f;
         for (std::size_t k = 0; k < N; ++k) {
@@ -64,12 +64,17 @@ namespace {
     }
 }
 
-TEST_CASE("JogosDigitais: as fases dele duram o dobro, e as etapas somam a fase") {
+TEST_CASE("JogosDigitais: as fases dele duram o dobro - a das regras, mais -, e as etapas somam a fase") {
+    using JogosDigitais::DuracaoDa;
     CHECK(JogosDigitais::kDuracaoDaFase == doctest::Approx(2.0f * Fase::kDuracao));
-    ConferirEtapas(HudHostil::kDuracoes);
-    ConferirEtapas(Gravidade::kDuracoes);
-    ConferirEtapas(RegrasTrocadas::kDuracoes);
-    ConferirEtapas(Lancamento::kDuracoes);
+    CHECK(RegrasTrocadas::kDuracaoDaFase > JogosDigitais::kDuracaoDaFase);
+    ConferirEtapas(HudHostil::kDuracoes, DuracaoDa(HudHostil::kFase));
+    ConferirEtapas(Gravidade::kDuracoes, DuracaoDa(Gravidade::kFase));
+    ConferirEtapas(RegrasTrocadas::kDuracoes, DuracaoDa(RegrasTrocadas::kFase));
+    ConferirEtapas(Lancamento::kDuracoes, DuracaoDa(Lancamento::kFase));
+    CHECK(DuracaoDa(HudHostil::kFase) == doctest::Approx(JogosDigitais::kDuracaoDaFase));
+    CHECK(DuracaoDa(RegrasTrocadas::kFase) == doctest::Approx(RegrasTrocadas::kDuracaoDaFase));
+    CHECK(DuracaoDa(Lancamento::kFase) == doctest::Approx(JogosDigitais::kDuracaoDaFase));
     // Quatro provas, quatro fases do jogo.
     std::set<std::string> fases = {HudHostil::kFase, Gravidade::kFase, RegrasTrocadas::kFase, Lancamento::kFase};
     CHECK(fases.size() == 4u);
@@ -297,11 +302,11 @@ TEST_CASE("HudHostil: os segmentos cobrem a barra de ponta a ponta, e de pe ela 
 
 // ---- A interface: o inimigo e a IA dele ----
 
-TEST_CASE("IaDoInimigo: o corpo e um bloco com dois olhos, simetrico e do tamanho dito") {
+TEST_CASE("IaDoInimigo: o corpo e um fantasma com dois olhos, simetrico e do tamanho dito") {
     using namespace IaDoInimigo;
     const auto blocos = LugaresDosBlocos();
     const auto olhos = LugaresDosOlhos();
-    CHECK(blocos.size() == 35u);
+    CHECK(blocos.size() == 38u);
     REQUIRE(olhos.size() == 2u);
     // Os olhos na mesma altura, um de cada lado do meio, na metade de cima.
     CHECK(olhos[0].y == doctest::Approx(olhos[1].y));
@@ -318,6 +323,28 @@ TEST_CASE("IaDoInimigo: o corpo e um bloco com dois olhos, simetrico e do tamanh
     for (const Vector2& b : blocos) CHECK(lugares.count({static_cast<int>(std::lround(-b.x)), static_cast<int>(std::lround(b.y))}) == 1);
     // Gigante: bem maior que o aluno (o desenho dele tem 64 px).
     CHECK(2.0f * kMeiaLargura > 2.5f * 64.0f);
+    // A cupula: a linha de cima e mais estreita que a do meio.
+    float larguraDeCima = 0.0f, larguraDoMeio = 0.0f;
+    for (const Vector2& b : blocos) {
+        if (b.y < -kMeiaAltura + kBloco) larguraDeCima = std::max(larguraDeCima, std::fabs(b.x));
+        if (std::fabs(b.y) < 1.0f) larguraDoMeio = std::max(larguraDoMeio, std::fabs(b.x));
+    }
+    CHECK(larguraDeCima < larguraDoMeio);
+    // A barra: quatro pes, nas colunas pares, que ondulam - cada um ao contrario do vizinho.
+    std::vector<int> pes;
+    for (const Vector2& b : blocos) {
+        if (NaBarra(b)) pes.push_back(Coluna(b));
+    }
+    std::sort(pes.begin(), pes.end());
+    CHECK(pes == std::vector<int>{0, 2, 4, 6});
+    for (const float t : {0.13f, 0.7f, 1.9f}) {
+        CHECK(std::fabs(Onda(0, t)) <= kOnda + 1e-4f);
+        CHECK(Onda(0, t) == doctest::Approx(-Onda(2, t)).epsilon(0.001));
+        CHECK(Onda(2, t) == doctest::Approx(-Onda(4, t)).epsilon(0.001));
+        CHECK(std::fabs(Flutua(t)) <= kFlutua + 1e-4f);
+    }
+    CHECK(Coluna(Vector2(0.0f, 0.0f)) == kColunas / 2);
+    CHECK_FALSE(NaBarra(Vector2(0.0f, 0.0f)));
 }
 
 TEST_CASE("IaDoInimigo: nasce, patrulha, ve o aluno, avisa, persegue cada vez mais rapido e desiste de longe") {
@@ -414,6 +441,17 @@ TEST_CASE("IaDoInimigo: o tiro no olho atordoa, o power-up faz fugir, e pegar o 
     // O olho nao atordoa quem ja foge.
     Passo(ia, olho, 0.016f, g);
     CHECK(ia.estado == Estado::Fugindo);
+    // O susto de fora (a inversao das regras) dura o que ela manda, e nao o do power-up.
+    {
+        Ia invertida;
+        invertida.estado = Estado::Persegue;
+        Percepcao inversao = p;
+        inversao.pegouOPoder = true;
+        inversao.susto = 7.5f;
+        CHECK(Passo(invertida, inversao, 0.016f, g));
+        CHECK(invertida.estado == Estado::Fugindo);
+        CHECK(invertida.susto == doctest::Approx(7.5f));
+    }
     for (float t = 0.0f; t < g.susto - kPiscaNoFim + 0.1f; t += 0.05f) Passo(ia, p, 0.05f, g);
     CHECK(ia.estado == Estado::Fugindo);
     CHECK((Pisca(ia, 0.05f) || Pisca(ia, 0.15f)));
@@ -711,16 +749,93 @@ TEST_CASE("RegrasTrocadas: no fogo amigo o campo da a volta") {
     CHECK(kVelocidadeDoRetorno > 0.0f);
 }
 
-TEST_CASE("RegrasTrocadas: o lag anda aos saltos") {
+TEST_CASE("RegrasTrocadas: no FPS o foco derruba o jogo para 30, e o que foi feito sem deltaTime anda com ele") {
     using namespace RegrasTrocadas;
-    CHECK(QuadroEm(0.0f) == 0);
-    CHECK(QuadroEm(kQuadroDoLag - 0.01f) == 0);
-    CHECK(QuadroEm(kQuadroDoLag + 0.01f) == 1);
-    CHECK(QuadroEm(-1.0f) == 0);
-    const Vector2 p = NoQuadro(Vector2(100.0f, 100.0f), Vector2(200.0f, -50.0f), 3);
-    CHECK(p.x == doctest::Approx(100.0f + 200.0f * 3.0f * kQuadroDoLag));
-    CHECK(p.y == doctest::Approx(100.0f - 50.0f * 3.0f * kQuadroDoLag));
-    CHECK((NoQuadro(Vector2(7.0f, 9.0f), Vector2(200.0f, 200.0f), 0) - Vector2(7.0f, 9.0f)).Length() < 1e-4f);
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    // Ninguem focado, o teto; todos, 30; metade da dupla, a media geometrica.
+    CHECK(FpsAlvo(0.0f, n.fpsMaximo) == doctest::Approx(n.fpsMaximo));
+    CHECK(FpsAlvo(1.0f, n.fpsMaximo) == doctest::Approx(kFpsMinimo));
+    CHECK(FpsAlvo(0.5f, 240.0f) == doctest::Approx(std::sqrt(240.0f * kFpsMinimo)));
+    CHECK(n.fpsMaximo > kFpsDeReferencia);
+    CHECK(d.fpsMaximo > n.fpsMaximo);
+    // O passo: cai em kQuedaDoFps, sobe em kSubidaDoFps, e nunca passa do alvo.
+    float fps = n.fpsMaximo, t = 0.0f;
+    while (fps > kFpsMinimo + 0.01f && t < 5.0f) {
+        fps = PassoDoFps(fps, kFpsMinimo, n.fpsMaximo, 0.004f);
+        t += 0.004f;
+    }
+    CHECK(t == doctest::Approx(kQuedaDoFps).epsilon(0.05));
+    CHECK(fps >= kFpsMinimo - 0.01f);
+    t = 0.0f;
+    while (fps < n.fpsMaximo - 0.01f && t < 5.0f) {
+        fps = PassoDoFps(fps, n.fpsMaximo, n.fpsMaximo, 0.004f);
+        t += 0.004f;
+    }
+    CHECK(t == doctest::Approx(kSubidaDoFps).epsilon(0.05));
+    CHECK(kQuedaDoFps < kSubidaDoFps);
+    CHECK(PassoDoFps(60.0f, 60.0f, n.fpsMaximo, 0.016f) == doctest::Approx(60.0f));
+    CHECK(PassoDoFps(900.0f, 900.0f, n.fpsMaximo, 0.016f) <= n.fpsMaximo + 0.01f);
+    // Sem deltaTime: a 60 FPS, o que esta escrito; o dobro de quadros, o dobro da velocidade.
+    CHECK(SemDeltaTime(kFpsDeReferencia) == doctest::Approx(1.0f));
+    CHECK(SemDeltaTime(2.0f * kFpsDeReferencia) == doctest::Approx(2.0f));
+    CHECK(SemDeltaTime(kFpsMinimo) == doctest::Approx(0.5f));
+    // O grafico: 30 no chao, o teto no alto, 60 no meio do caminho.
+    CHECK(NoGrafico(kFpsMinimo, n.fpsMaximo) == doctest::Approx(0.0f));
+    CHECK(NoGrafico(n.fpsMaximo, n.fpsMaximo) == doctest::Approx(1.0f));
+    CHECK(NoGrafico(kFpsDeReferencia, n.fpsMaximo) > 0.2f);
+    CHECK(NoGrafico(kFpsDeReferencia, n.fpsMaximo) < 0.8f);
+    // Os sete segmentos: o 8 acende todos, o 1 so os da direita, o espaco nenhum; o S e o 5.
+    const auto acesos = [](const char c) {
+        int k = 0;
+        for (const bool s : Segmentos(c)) k += s ? 1 : 0;
+        return k;
+    };
+    CHECK(acesos('8') == 7);
+    CHECK(acesos('1') == 2);
+    CHECK(Segmentos('1')[1]);
+    CHECK(Segmentos('1')[2]);
+    CHECK(acesos(' ') == 0);
+    CHECK(acesos('0') == 6);
+    CHECK_FALSE(Segmentos('0')[6]);
+    CHECK(Segmentos('S') == Segmentos('5'));
+    CHECK(acesos('F') == 4);
+    CHECK(acesos('P') == 5);
+}
+
+TEST_CASE("RegrasTrocadas: a parede azul so deixa passar pelo vao, e o vao muda de lado") {
+    using namespace RegrasTrocadas;
+    // Entre dois tiros da parede nao cabe o aluno: os colisores quase se encostam.
+    CHECK(kEntreTirosDaParede - 2.0f * kRaioDoTiro < 2.0f * kRaioDoAluno);
+    // O vao cabe o aluno com folga.
+    CHECK(kVaoDaParede > 6.0f * kRaioDoAluno + 2.0f * kRaioDoTiro);
+    // O vao novo: longe do anterior o bastante para quem esta focado (150 px/s) nao chegar, e perto o
+    // bastante para quem solta o foco (300 px/s) chegar antes da parede.
+    const Degrau n0 = DegrauDo(Dificuldade::Nivel::Normal);
+    const float longe = 1200.0f / 3.0f, perto = VaoAlcancavel(kAlunoSemFoco, n0.entreParedes, longe);
+    CHECK(longe > 150.0f * n0.entreParedes);
+    CHECK(perto < 300.0f * n0.entreParedes);
+    CHECK(perto > longe);
+    Variacao::Sorteio s(5u);
+    float antes = -1.0f;
+    for (int k = 0; k < 80; ++k) {
+        const float vao = VaoDaParede(s, antes, 0.0f, 1200.0f, longe, perto);
+        CHECK(vao - kVaoDaParede / 2.0f >= -0.01f);
+        CHECK(vao + kVaoDaParede / 2.0f <= 1200.01f);
+        if (antes >= 0.0f) {
+            CHECK(std::fabs(vao - antes) >= longe - 0.01f);
+            CHECK(std::fabs(vao - antes) <= perto + 0.01f);
+        }
+        antes = vao;
+    }
+    // O Dificil: o vermelho mais rapido e mais denso, as paredes mais frequentes e mais rapidas.
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreEspirais < n.entreEspirais);
+    CHECK(d.velocidadeVermelha > n.velocidadeVermelha);
+    CHECK(d.entreParedes < n.entreParedes);
+    CHECK(d.velocidadeAzul > n.velocidadeAzul);
+    // Com o foco, o aluno anda a 150 px/s: a parede azul do Normal desce o campo em mais tempo que
+    // ele leva para cruza-lo pela metade - focado, so chega ao vao se ja estava perto.
+    CHECK(n.velocidadeAzul > 150.0f);
 }
 
 TEST_CASE("RegrasTrocadas: o save foge quando vale mais, persegue quando vale menos, e o toque e o load") {
@@ -749,6 +864,58 @@ TEST_CASE("RegrasTrocadas: o save foge quando vale mais, persegue quando vale me
     CHECK_FALSE(HoraDeSalvar(kUltimoSave + 0.01f, -1.0f));
     CHECK(kUltimoSave < kDuracoes[3] - 1.5f);
     CHECK(kPrimeiroSave + kEntreSaves < kUltimoSave);
+}
+
+TEST_CASE("RegrasTrocadas: o save que foge e alcancavel - encurralado ele trava, e o tiro o faz engasgar") {
+    using namespace RegrasTrocadas;
+    const JogosDigitais::Campo area{0.0f, 150.0f, 1200.0f, 580.0f};
+    // O canto so prende com o aluno perto.
+    const Vector2 canto(10.0f, 720.0f);
+    CHECK(Encurralado(canto, canto + Vector2(120.0f, -80.0f), area));
+    CHECK_FALSE(Encurralado(canto, canto + Vector2(400.0f, -80.0f), area));
+    CHECK_FALSE(Encurralado(Vector2(600.0f, 720.0f), Vector2(640.0f, 680.0f), area));   // so uma parede
+    // Encurralado, ele fica parado kEncurralado, e depois escapa pela parede; o canto so volta a
+    // prender depois da recarga.
+    Fuga f;
+    const Vector2 aluno = canto + Vector2(150.0f, -100.0f);
+    float parado = 0.0f;
+    Vector2 eu = canto;
+    for (int k = 0; k < 200; ++k) {
+        const Vector2 passo = PassoDoSave(f, Humor::Foge, eu, aluno, area, kSaveRapido, 0, 0.01f);
+        if (passo.Length() < 1e-6f) parado += 0.01f;
+        else break;
+    }
+    CHECK(parado == doctest::Approx(kEncurralado).epsilon(0.05));
+    CHECK(f.recarga > 0.0f);
+    CHECK(PassoDoSave(f, Humor::Foge, eu, aluno, area, kSaveRapido, 0, 0.01f).Length() > 0.0f);
+    // Em campo aberto, ele foge de quem chega.
+    Fuga aberto;
+    const Vector2 longe = PassoDoSave(aberto, Humor::Foge, Vector2(600.0f, 400.0f), Vector2(500.0f, 400.0f), area, 200.0f, 0, 0.1f);
+    CHECK(longe.x > 0.0f);
+    CHECK(longe.Length() == doctest::Approx(20.0f));
+    // O tiro: engasga (parado), e logo depois fica imune por um tempo - anda aos trancos.
+    Fuga tiro;
+    CHECK(PassoDoSave(tiro, Humor::Foge, Vector2(600.0f, 400.0f), Vector2(600.0f, 600.0f), area, 200.0f, 1, 0.01f).Length() < 1e-6f);
+    CHECK(Treme(tiro));
+    float andou = 0.0f, trancos = 0.0f;
+    for (int k = 0; k < 150; ++k) {
+        const Vector2 p = PassoDoSave(tiro, Humor::Foge, Vector2(600.0f, 400.0f), Vector2(600.0f, 600.0f), area, 200.0f, 1, 0.01f);
+        if (p.Length() > 0.0f) andou += 0.01f;
+        else trancos += 0.01f;
+    }
+    CHECK(andou > 0.3f);     // atirar sem parar nao o congela
+    CHECK(trancos > 0.3f);   // mas o para um bocado
+    CHECK(kEngasgo * 4.0f > kEngasgoMaximo);
+    // Perseguindo, o tiro tambem o segura: e assim que se foge do save que vale menos.
+    Fuga persegue;
+    CHECK(PassoDoSave(persegue, Humor::Persegue, Vector2(600.0f, 400.0f), Vector2(600.0f, 600.0f), area, 200.0f, 2, 0.01f).Length() < 1e-6f);
+    CHECK(PassoDoSave(persegue, Humor::Persegue, Vector2(600.0f, 400.0f), Vector2(600.0f, 600.0f), area, 200.0f, 0, 0.5f).Length() < 1e-6f);
+    Fuga solto;
+    CHECK(PassoDoSave(solto, Humor::Persegue, Vector2(600.0f, 400.0f), Vector2(600.0f, 600.0f), area, 200.0f, 0, 0.1f).y > 0.0f);
+    // Parado (empate), nao anda; e o teto da fuga fica bem abaixo do aluno.
+    Fuga empate;
+    CHECK(PassoDoSave(empate, Humor::Parado, Vector2(600.0f, 400.0f), Vector2(600.0f, 600.0f), area, 200.0f, 0, 0.1f).Length() < 1e-6f);
+    CHECK(kSaveRapido < 0.75f * 300.0f);
 }
 
 // ---- O lancamento ----

@@ -11,7 +11,8 @@ a moeda, o disquete do save, as caixas de colisao do jogo de plataforma. A barra
 folha: no campo, ela e a da HUD, de verdade.
 
   DPIBHFerreira          128x128   o cartao: o controle, o coracao de pixel e a barra de nota
-  DPIBHFerreiraTiros      20x20    Tiro Moeda Seu Vazio Fragmento
+  DPIBHFerreiraTiros      20x20    Tiro Moeda Seu Vazio Fragmento SemDt ComDt (o vermelho feito sem
+                                   deltaTime e o azul com ele, os dois do FPS)
   DPIBHFerreiraFisica     28x28    Caixa Espinho Lanca Bloco Fagulha Vazia (a plataforma; a Vazia
                                    e o segmento sem cara embaixo da barra da nota)
   DPIBHFerreiraInimigo    24x24    Textura Moeda Olho OlhoEsquerda OlhoDireita Assustado Poder (dois
@@ -113,7 +114,8 @@ def ferreira():
 # ---- Os tiros (20 x 20) -------------------------------------------------------------
 
 TW = 20
-TIROS = ["Tiro", "Moeda", "Seu", "Vazio", "Fragmento"]
+TIROS = ["Tiro", "Moeda", "Seu", "Vazio", "Fragmento", "SemDt", "ComDt"]
+AZUL = (90, 160, 255)
 
 
 def tiro(nome):
@@ -135,6 +137,16 @@ def tiro(nome):
         centrado(d, "?", 10, 8, fonte(11, True), TINTA)
     elif nome == "Fragmento":
         d.polygon([(10, 3), (16, 10), (10, 17), (4, 10)], fill=claro(ROXO, 0.3), outline=escuro(ROXO, 0.4))
+    elif nome == "SemDt":
+        # O vermelho, feito sem deltaTime: a bolinha quente, com o miolo branco - corre com o FPS.
+        mapa = ["..####..", ".#rrrr#.", "#rrRRrr#", "#rRWWRr#", "#rRWWRr#", "#rrRRrr#", ".#rrrr#.", "..####.."]
+        pixels(d, mapa, 2, 2, 2, {"#": escuro(VERMELHO, 0.5), "r": cheia(VERMELHO), "R": claro(VERMELHO, 0.35), "W": TINTA})
+    elif nome == "ComDt":
+        # O azul, com deltaTime: um relogio - anda tantos px por segundo, em qualquer FPS.
+        d.ellipse([2, 2, 17, 17], fill=cheia(AZUL), outline=escuro(AZUL, 0.45))
+        d.ellipse([5, 5, 14, 14], fill=claro(AZUL, 0.75), outline=escuro(AZUL, 0.5))
+        d.line([(10, 10), (10, 6)], fill=escuro(AZUL, 0.3), width=1)
+        d.line([(10, 10), (13, 10)], fill=escuro(AZUL, 0.3), width=1)
     return im
 
 

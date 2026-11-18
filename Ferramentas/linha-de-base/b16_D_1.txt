@@ -34,5 +34,5 @@ q01980 nota=16.7020 sofridos=9
 q02040 nota=16.7020 sofridos=9
 q02100 nota=18.0110 sofridos=9
 q02160 nota=14.5814 sofridos=10
-q02220 nota=4.2873 sofridos=12
+q02220 nota=4.1286 sofridos=12
 FIM nota=0.0000 acertos_sofridos=13 acertos_dados=127 aprovado=0

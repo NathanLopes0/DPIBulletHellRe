@@ -76,21 +76,25 @@
     ]
   },
 
-  // Fase 3 - as regras | gesto: o professor anda no alto. A da nota: na inversao, acertar o
-  // professor tira nota e os tiros dele viram moedas, que passam pelo aluno e dao nota - ate as
-  // regras voltarem. A do campo: no fogo amigo, o tiro do aluno que erra o professor volta por baixo.
-  // A do tempo: no lag os tiros andam aos saltos, e um circulo mostra o proximo quadro. A do estado:
-  // no save/load ele salva a nota num disquete que anda: se a nota do save e maior que a de agora,
-  // ele foge do aluno; se e menor, persegue - e quem ele encosta volta para o save, com a nota dele.
+  // Fase 3 - as regras | gesto: o professor anda no alto. E a mais longa (48 s), e o primeiro
+  // inimigo - o fantasma da fase 1 - volta nas tres primeiras etapas. A da nota: na inversao, acertar
+  // o professor tira nota e os tiros dele viram moedas, que passam pelo aluno e dao nota - e o
+  // fantasma vira moeda e foge - ate as regras voltarem. A do campo: no fogo amigo, o tiro do aluno
+  // que erra o professor volta por baixo. A do tempo: no FPS, o jogo perde o limite de quadros; o
+  // tiro vermelho foi feito sem deltaTime e corre com o FPS, o azul nao; segurar o foco derruba o
+  // FPS para 30 - e o fantasma tambem anda sem deltaTime. A do estado: no save/load ele salva a nota
+  // num disquete que anda: se a nota do save e maior que a de agora, ele foge do aluno (encurralado
+  // num canto, trava; o tiro do aluno o faz engasgar); se e menor, persegue - e quem ele encosta volta
+  // para o save, com a nota dele.
   "StateThree": {
-    "duracao": 40,
+    "duracao": 48,
     "proximo": "",
     "anuncio": "As regras mudam: nada vale como antes",
     "etapas": [
       { "nome": "Inversao",  "duracao": 10.0, "anuncio": "regras.inverter(): acertar TIRA, tiro DÁ nota" },
       { "nome": "FogoAmigo", "duracao": 10.0, "anuncio": "fogoAmigo = true: tiro que erra volta" },
-      { "nome": "Lag",       "duracao": 10.0, "anuncio": "fps = 2.5: o círculo é o próximo quadro" },
-      { "nome": "SaveLoad",  "duracao": 10.0, "anuncio": "quicksave(): o save foge ou te persegue" }
+      { "nome": "Fps",       "duracao": 16.0, "anuncio": "fps.limite = off: o vermelho não usa deltaTime" },
+      { "nome": "SaveLoad",  "duracao": 12.0, "anuncio": "quicksave(): o save foge ou te persegue" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
@@ -101,7 +105,15 @@
       { "som": false, "gatilho": "retorno", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "disquete", "estrategia": "WaveAttack", "projetil": "Save",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "inimigo", "estrategia": "WaveAttack", "projetil": "Inimigo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "olho", "estrategia": "WaveAttack", "projetil": "Olho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "vermelho", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 2, "velocidade": 120, "angulo": 180, "intervalo": 0 },
+      { "som": false, "gatilho": "azul", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 205, "angulo": 0, "intervalo": 0 }
     ]
   },
 

@@ -291,8 +291,8 @@ void Ferreira::Sanear() {
     Sanear(mMoedor, false);
     mQueDaoAVolta.erase(std::remove_if(mQueDaoAVolta.begin(), mQueDaoAVolta.end(),
                                        [](const QueDaAVolta& q) { return !Vivo(q.p); }), mQueDaoAVolta.end());
-    mAosSaltos.erase(std::remove_if(mAosSaltos.begin(), mAosSaltos.end(), [](const AosSaltos& s) { return !Vivo(s.p); }),
-                     mAosSaltos.end());
+    mVermelhos.erase(std::remove_if(mVermelhos.begin(), mVermelhos.end(), [](const Vermelho& v) { return !Vivo(v.p); }),
+                     mVermelhos.end());
     for (Descolado& d : mDescolados) {
         if (!Vivo(d.desenho)) d.desenho = nullptr;
         if (!Vivo(d.colisor)) d.colisor = nullptr;
@@ -324,7 +324,8 @@ void Ferreira::DesmontarEtapa() {
     mAneis.clear();
     mPoupado = {};
     DevolverABarra();
-    DesmontarOInimigo();
+    // Nas regras, o inimigo passa de uma etapa para a outra (mInimigoFica).
+    if (!mInimigoFica) DesmontarOInimigo();
     for (PilhaViva& p : mPilhas) MatarTodos(p.caixas);
     mPilhas.clear();
     mPilhasPorVir.clear();
@@ -349,12 +350,19 @@ void Ferreira::DesmontarEtapa() {
     LimparClasses();
     mVoltaram.clear();
     mQueDaoAVolta.clear();
-    for (AosSaltos& s : mAosSaltos) {
-        // Fora do lag, o tiro volta a andar sozinho.
-        if (Vivo(s.p)) Andar(s.p, s.v);
+    for (Vermelho& v : mVermelhos) {
+        // Fora do FPS, o vermelho volta a andar o que foi escrito nele.
+        if (Vivo(v.p)) Andar(v.p, v.v);
     }
-    mAosSaltos.clear();
-    mQuadroDoLag = -1;
+    mVermelhos.clear();
+    mFps = RegrasTrocadas::kFpsDeReferencia;
+    mHistoricoDoFps.clear();
+    mProximaAmostra = 0.0f;
+    mRelogioSemDt = 0.0f;
+    mProximaEspiral = 0.0f;
+    mGiroDaEspiral = 0.0f;
+    mProximaParede = 0.0f;
+    mVaoDaParede = -1.0f;
     for (Descolado& d : mDescolados) {
         Matar(d.colisor);
         Matar(d.desenho);
@@ -362,6 +370,7 @@ void Ferreira::DesmontarEtapa() {
     mDescolados.clear();
     mSalvo = Salvo{};
     Matar(mSave);
+    mFuga = RegrasTrocadas::Fuga{};
     mUltimoLoad = -1.0f;
     for (Travado& t : mTravados) {
         if (Vivo(t.p)) Andar(t.p, t.v);
@@ -389,12 +398,15 @@ void Ferreira::DesmontarEtapa() {
 }
 
 void Ferreira::Desmontar() {
+    // A troca de fase leva tudo, o inimigo tambem.
+    mInimigoFica = false;
     DesmontarEtapa();
     // A gravidade e da fase inteira: so a troca de fase (ou o fim da luta) a desliga.
     SoltarAGravidade();
     mVirada = -1;
     if (mLinhas) mLinhas->Limpar();
     if (mLinhasDoChao) mLinhasDoChao->Limpar();
+    if (mLinhasDoContador) mLinhasDoContador->Limpar();
     mAlvo.reset();
     mAvisoAte = -1.0f;
     mEtapaAnterior = -1;
@@ -531,10 +543,12 @@ void Ferreira::OnUpdate(const float deltaTime) {
         auto ator = std::make_unique<Actor>(mScene);
         mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
         mLinhasDoChao = ator->AddComponent<DrawLinhasComponent>(kOrdemDoChao);
+        mLinhasDoContador = ator->AddComponent<DrawLinhasComponent>(kOrdemDoContador);
         mScene->AddActor(std::move(ator));
     }
     if (mLinhas) mLinhas->Limpar();
     if (mLinhasDoChao) mLinhasDoChao->Limpar();
+    if (mLinhasDoContador) mLinhasDoContador->Limpar();
 
     if (fase == HudHostil::kFase) AtualizarHud(t, deltaTime);
     else if (fase == Gravidade::kFase) AtualizarFisica(t, deltaTime);
@@ -566,7 +580,7 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
         return;
     }
     if (etapa == kEtapaDoInimigo) {
-        AtualizarInimigo(te, deltaTime);
+        AtualizarInimigo(te, deltaTime, ComoOInimigo{});
         return;
     }
     AtualizarBarra(etapa, te);
@@ -771,7 +785,9 @@ void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo:
     if (para == Estado::Fugindo) {
         mClarao = 0.15f;
         mCorDoClarao = SDL_Color{255, 214, 90, 255};
-        Avisar("powerUp.usar(): agora ELE foge de voc\xc3\xaa!", 1.3f);
+        Avisar(mFase == RegrasTrocadas::kFase ? "regras.inverter(): o fantasma virou moeda - pegue!"
+                                               : "powerUp.usar(): agora ELE foge de voc\xc3\xaa!",
+               1.3f);
         SomDoDisparo();
     }
     if (de == Estado::Fugindo) {
@@ -795,7 +811,7 @@ void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo:
     }
 }
 
-void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
+void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const ComoOInimigo& como) {
     using namespace IaDoInimigo;
     const IaDoInimigo::Degrau& g = mDegrauDoInimigo;
     const JogosDigitais::Campo campo = CampoPuro();
@@ -825,7 +841,7 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
         mCorDoClarao = SDL_Color{255, 60, 230, 255};
         SomDoDisparo();
     }
-    if (mProximoPoder < 0.0f) mProximoPoder = g.primeiroPoder;
+    if (como.fase1 && mProximoPoder < 0.0f) mProximoPoder = g.primeiroPoder;
 
     // O power-up: nasce longe dele e espera; quem encosta faz ele fugir. Enquanto ele nasce, ou
     // depois de derrotado, o power-up espera.
@@ -839,7 +855,8 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
             Matar(mPoder);
             break;
         }
-    } else if (te >= mProximoPoder && mIa.estado != Estado::Fugindo && te < HudHostil::kDuracoes[HudHostil::kEtapaDoInimigo] - 1.5f) {
+    } else if (como.fase1 && te >= mProximoPoder && mIa.estado != Estado::Fugindo &&
+               te < HudHostil::kDuracoes[HudHostil::kEtapaDoInimigo] - 1.5f) {
         mPoder = Peca(HudHostil::kGatilhoDoPoder, LugarDoPoder(mSorteio, campo, mCentroDoInimigo), "Poder");
         if (mPoder) mPoder->DefinirEnfeite(true);
         mProximoPoder = 1e9f;
@@ -859,7 +876,9 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
     // A IA percebe e decide.
     Percepcao p;
     p.distancia = distancia;
-    p.pegouOPoder = pegou;
+    // O susto de fora (a inversao) faz o mesmo que o power-up, com o tempo dele.
+    p.pegouOPoder = pegou || como.susto > 0.0f;
+    p.susto = pegou ? 0.0f : como.susto;
     p.olhoAtingido = mOlhoAtingido;
     p.acertouOAluno = acertou && Machuca(mIa.estado);
     p.blocos = mCorpoMontado ? BlocosVivos() : 0;
@@ -886,7 +905,8 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
         const JogosDigitais::Campo arena{ronda[0].x, ronda[0].y, ronda[2].x - ronda[0].x, ronda[2].y - ronda[0].y};
         rumo = JogosDigitais::Fugir(mCentroDoInimigo, ondeAluno, arena, 10.0f);
     }
-    mVelocidadeDoInimigo = rumo * Rapidez(mIa, g);
+    // No FPS ele anda sem deltaTime: o passo dele e o do quadro.
+    mVelocidadeDoInimigo = rumo * (Rapidez(mIa, g) * como.passo);
     if (mCorpoMontado) mCentroDoInimigo = NaArena(mCentroDoInimigo + mVelocidadeDoInimigo * deltaTime, campo);
 
     // O corpo e os olhos no lugar. Nascendo, os blocos vem do meio para o lugar; no alerta, ele treme.
@@ -894,12 +914,17 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
     const bool pisca = Pisca(mIa, mRelogio);
     const bool machuca = Machuca(mIa.estado);
     const float junta = mIa.estado == Estado::Nascendo ? std::clamp(mIa.noEstado / kNascendo, 0.0f, 1.0f) : 1.0f;
-    const Vector2 tremor = mIa.estado == Estado::Alerta ? Vector2(4.0f * Math::Sin(mRelogio * 70.0f), 0.0f) : Vector2::Zero;
+    // O fantasma flutua - o corpo sobe e desce, e a barra ondula embaixo.
+    const Vector2 tremor = (mIa.estado == Estado::Alerta ? Vector2(4.0f * Math::Sin(mRelogio * 70.0f), 0.0f) : Vector2::Zero) +
+                           Vector2(0.0f, Flutua(mRelogio));
     const auto lugares = LugaresDosBlocos();
     for (size_t k = 0; k < mCorpo.size() && k < lugares.size(); ++k) {
         BossProjectile* bloco = mCorpo[k];
         if (!bloco) continue;
-        bloco->SetPosition(mCentroDoInimigo + tremor + lugares[k] * (0.2f + 0.8f * junta));
+        const Vector2 onda(0.0f, NaBarra(lugares[k]) ? Onda(Coluna(lugares[k]), mRelogio) : 0.0f);
+        bloco->SetPosition(mCentroDoInimigo + tremor + onda + lugares[k] * (0.2f + 0.8f * junta));
+        // Nas regras ele vive mais que um tiro (Projectile::kTempoDeVidaMaximo): o corpo nao expira.
+        bloco->RenovarTempoDeVida();
         Andar(bloco, mVelocidadeDoInimigo);
         Cara(bloco, fugindo && !pisca ? "Moeda" : "Textura");
         bloco->DefinirEnfeite(!machuca);
@@ -909,6 +934,7 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
         BossProjectile* olho = mOlhos[k];
         if (!olho) continue;
         olho->SetPosition(mCentroDoInimigo + tremor + lugaresDosOlhos[k] * (0.2f + 0.8f * junta));
+        olho->RenovarTempoDeVida();
         Andar(olho, mVelocidadeDoInimigo);
         const float dx = ondeAluno.x - olho->GetPosition().x;
         const bool tonto = fugindo || mIa.estado == Estado::Atordoado;
@@ -993,7 +1019,9 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
         rotulo->Mostrar(false);
     }
 
-    // O professor continua: os leques, menos que no resto da prova.
+    // Na fase 1, o professor continua: os leques, menos que no resto da prova. Nas regras, a etapa
+    // e quem atira, e o placar e dela.
+    if (!como.fase1) return;
     if (te >= 1.0f && te >= mProximoLeque) {
         mProximoLeque = te + mDegrauDoHud.entreLeques * 1.4f;
         Leque(HudHostil::kGatilhoDoLeque, mDegrauDoHud.tirosDoLeque, 26.0f, mDegrauDoHud.velocidade, "Tiro");
@@ -1367,12 +1395,33 @@ void Ferreira::AtualizarRegras(const float t, const float deltaTime) {
     using namespace RegrasTrocadas;
     const int etapa = JogosDigitais::Etapa(kDuracoes, t);
     const float te = JogosDigitais::NaEtapa(kDuracoes, t);
+    // O fantasma da fase 1 volta e passa de uma etapa para a outra; o save fica sem ele.
+    if (etapa >= kInimigoAte && mInimigoFica && mCorpoMontado) {
+        if (Battle* b = Batalha()) {
+            for (BossProjectile* bloco : mCorpo) {
+                if (Vivo(bloco)) b->Faiscar(bloco->GetPosition(), Hud::Faisca::Dissolvido);
+            }
+        }
+        Avisar("inimigo.desativar(): o fantasma sai de cena - por enquanto", 1.4f);
+    }
+    mInimigoFica = etapa < kInimigoAte;
     TrocouDeEtapa(etapa);
     Varrer(t, 0.32f, 8.0f);
-    if (etapa == 0) AtualizarInversao(te);
-    else if (etapa == 1) AtualizarFogoAmigo(te);
-    else if (etapa == 2) AtualizarLag(te);
+    if (etapa == kEtapaDaInversao) AtualizarInversao(te);
+    else if (etapa == kEtapaDoFogoAmigo) AtualizarFogoAmigo(te);
+    else if (etapa == kEtapaDoFps) AtualizarFps(te, deltaTime);
     else AtualizarSaveLoad(te, deltaTime);
+    if (etapa < kInimigoAte) {
+        ComoOInimigo como;
+        como.fase1 = false;
+        // Invertidas as regras, o tiro e moeda - e o fantasma tambem: ele foge ate elas voltarem.
+        if (etapa == kEtapaDaInversao && RegraEm(te) == Regra::Invertida && mIa.estado != IaDoInimigo::Estado::Fugindo) {
+            como.susto = std::max(0.5f, kVoltou - te);
+        }
+        // No FPS, ele anda sem deltaTime.
+        if (etapa == kEtapaDoFps) como.passo = SemDeltaTime(mFps);
+        AtualizarInimigo(t, deltaTime, como);
+    }
 }
 
 void Ferreira::AtualizarInversao(const float te) {
@@ -1492,53 +1541,129 @@ void Ferreira::AtualizarFogoAmigo(const float te) {
     Placar(kFase, 1, ligado ? "fogoAmigo = true: tiro que ERRA volta por baixo" : "fogoAmigo = true em 3, 2, 1...");
 }
 
-void Ferreira::AtualizarLag(const float te) {
+float Ferreira::SeteSegmentos(const std::string& texto, const Vector2 canto, const float altura, const SDL_Color cor) {
+    // Cada caractere tem meia altura de largura e um traco de um oitavo dela.
+    const float w = altura * 0.5f, e = std::max(2.0f, altura / 8.0f), meio = altura / 2.0f;
+    float x = canto.x;
+    const float y = canto.y;
+    for (const char ch : texto) {
+        if (ch == ' ') {
+            x += w * 0.6f;
+            continue;
+        }
+        const auto s = RegrasTrocadas::Segmentos(ch);
+        if (s[0]) Preencher(Vector2(x + e, y), Vector2(x + w - e, y + e), cor);
+        if (s[1]) Preencher(Vector2(x + w - e, y + e), Vector2(x + w, y + meio - e / 2.0f), cor);
+        if (s[2]) Preencher(Vector2(x + w - e, y + meio + e / 2.0f), Vector2(x + w, y + altura - e), cor);
+        if (s[3]) Preencher(Vector2(x + e, y + altura - e), Vector2(x + w - e, y + altura), cor);
+        if (s[4]) Preencher(Vector2(x, y + meio + e / 2.0f), Vector2(x + e, y + altura - e), cor);
+        if (s[5]) Preencher(Vector2(x, y + e), Vector2(x + e, y + meio - e / 2.0f), cor);
+        if (s[6]) Preencher(Vector2(x + e, y + meio - e / 2.0f), Vector2(x + w - e, y + meio + e / 2.0f), cor);
+        x += w + e * 1.6f;
+    }
+    return x - canto.x;
+}
+
+void Ferreira::AtualizarFps(const float te, const float deltaTime) {
     using namespace RegrasTrocadas;
     const Degrau& g = mDegrauDasRegras;
     const SDL_FRect c = Campo();
+    const std::vector<Player*> alunos = Jogadores();
 
-    // O tiro novo entra na lista e para: quem o move, de quadro em quadro, e o lag.
-    const auto entrar = [this](const std::vector<BossProjectile*>& novos) {
-        for (BossProjectile* p : novos) {
-            p->DefinirMargemDeSaida(2.0f, 1.0f);
-            mAosSaltos.push_back({p, p->GetPosition(), VelocidadeDe(p)});
-            Parar(p);
+    // O FPS e do aluno: quem segura o foco liga o modo economia. Em dupla, ele so cai inteiro com os
+    // dois focados.
+    int focados = 0;
+    for (const Player* a : alunos) focados += a->Focado() ? 1 : 0;
+    const float fracao = alunos.empty() ? 0.0f : static_cast<float>(focados) / static_cast<float>(alunos.size());
+    if (te >= kComecaOFps) mFps = PassoDoFps(mFps, FpsAlvo(fracao, g.fpsMaximo), g.fpsMaximo, deltaTime);
+    const float fator = SemDeltaTime(mFps);
+    mRelogioSemDt += deltaTime * fator;
+    if (te >= mProximaAmostra) {
+        mProximaAmostra = te + 0.05f;
+        mHistoricoDoFps.push_back(mFps);
+        if (mHistoricoDoFps.size() > kAmostrasDoGrafico) mHistoricoDoFps.erase(mHistoricoDoFps.begin());
+    }
+
+    // O vermelho: a espiral de dois bracos, feita sem deltaTime - dispara e gira pelo relogio dela, e
+    // anda o que esta escrito nela vezes o FPS. O desenho e sempre o mesmo; so o tempo dele muda.
+    if (te >= kComecaOFps) {
+        if (mProximaEspiral <= 0.0f) mProximaEspiral = mRelogioSemDt;
+        for (int k = 0; k < 4 && mRelogioSemDt >= mProximaEspiral; ++k) {
+            mProximaEspiral += g.entreEspirais;
+            mGiroDaEspiral = std::fmod(mGiroDaEspiral + g.giroDaEspiral, 360.0f);
+            auto par = DispararEm(kGatilhoDoVermelho, GetPosition() + Vector2(0.0f, 30.0f), 2, mGiroDaEspiral, 180.0f,
+                                  g.velocidadeVermelha);
+            DarVelocidade(par, mGiroDaEspiral, 180.0f, g.velocidadeVermelha);
+            for (BossProjectile* p : par) {
+                Cara(p, "SemDt");
+                mVermelhos.push_back({p, VelocidadeDe(p)});
+            }
         }
+    }
+    // A cada quadro o vermelho anda o que o FPS manda, e o rastro diz o quanto.
+    for (Vermelho& v : mVermelhos) {
+        if (!Vivo(v.p)) continue;
+        Andar(v.p, v.v * fator);
+        const float escrita = v.v.Length();
+        if (escrita < 1.0f) continue;
+        const Vector2 onde = v.p->GetPosition();
+        Linha(onde - v.v * (std::min(70.0f, escrita * fator * 0.08f) / escrita), onde, kRastro);
+    }
+
+    // O azul: a parede com um vao, que desce com deltaTime - na mesma velocidade em qualquer FPS. Para
+    // chegar ao vao e preciso correr, e quem corre solta o foco.
+    if (te >= kComecaOFps + 0.8f && te >= mProximaParede) {
+        mProximaParede = te + g.entreParedes;
+        // O vao novo: longe do anterior (focado nao se chega), mas ao alcance de quem solta o foco.
+        const float longe = c.w / 3.0f;
+        mVaoDaParede = VaoDaParede(mSorteio, mVaoDaParede, c.x + 10.0f, c.x + c.w - 10.0f, longe,
+                                   VaoAlcancavel(kAlunoSemFoco, g.entreParedes, longe));
+        for (float x = c.x + kEntreTirosDaParede / 2.0f; x < c.x + c.w; x += kEntreTirosDaParede) {
+            if (std::fabs(x - mVaoDaParede) < kVaoDaParede / 2.0f) continue;
+            Um(kGatilhoDoAzul, Vector2(x, c.y + 150.0f), "ComDt", Vector2(0.0f, g.velocidadeAzul));
+        }
+        SomDoDisparo();
+    }
+
+    // Quem segura o foco ganha o anel frio: o jogo esta em camera lenta por causa dele.
+    for (const Player* a : alunos) {
+        if (a->Focado()) Circulo(a->GetPosition(), 24.0f + 2.0f * Math::Sin(mRelogio * 6.0f), kFrio, 16);
+    }
+
+    // O contador, no canto de cima a direita, como o de quem mede o jogo: frio em camera lenta, quente
+    // quando o vermelho corre. Embaixo, o grafico dos ultimos segundos.
+    const float u = NoGrafico(mFps, g.fpsMaximo);
+    const auto mistura = [](const SDL_Color a, const SDL_Color b, const float k) {
+        const float q = std::clamp(k, 0.0f, 1.0f);
+        const auto m = [q](const Uint8 x, const Uint8 y) {
+            return static_cast<Uint8>(std::lround(static_cast<float>(x) + (static_cast<float>(y) - static_cast<float>(x)) * q));
+        };
+        return SDL_Color{m(a.r, b.r), m(a.g, b.g), m(a.b, b.b), m(a.a, b.a)};
     };
-    if (te >= 0.8f && te >= mProximoAnel) {
-        mProximoAnel = te + g.entreAneisDoMotor;
-        entrar(Anel(kGatilhoDoAnel, g.tirosDoAnelDoMotor, g.velocidadeDoMotor, "Tiro"));
+    const SDL_Color morno{240, 244, 255, 240}, quente{255, 90, 70, 245};
+    const SDL_Color cor = u < 0.5f ? mistura(kFrio, morno, u * 2.0f) : mistura(morno, quente, (u - 0.5f) * 2.0f);
+    const Vector2 canto(c.x + c.w - 262.0f, c.y + 18.0f);
+    // O contador vai na camada de cima: o professor passa por baixo dele.
+    DrawLinhasComponent* doCampo = mLinhas;
+    if (mLinhasDoContador) mLinhas = mLinhasDoContador;
+    Preencher(canto - Vector2(12.0f, 10.0f), canto + Vector2(250.0f, 112.0f), SDL_Color{8, 10, 20, 235});
+    Retangulo(canto - Vector2(12.0f, 10.0f), canto + Vector2(250.0f, 112.0f), SDL_Color{cor.r, cor.g, cor.b, 120});
+    const float largura = SeteSegmentos(std::to_string(static_cast<int>(std::lround(mFps))), canto, 46.0f, cor);
+    SeteSegmentos("FPS", canto + Vector2(largura + 10.0f, 20.0f), 26.0f, cor);
+    const Vector2 g0(canto.x, canto.y + 60.0f), g1(canto.x + 238.0f, canto.y + 100.0f);
+    Retangulo(g0, g1, SDL_Color{150, 160, 200, 110});
+    const float y60 = g1.y - (g1.y - g0.y) * NoGrafico(kFpsDeReferencia, g.fpsMaximo);
+    Tracejada(Vector2(g0.x, y60), Vector2(g1.x, y60), SDL_Color{240, 244, 255, 80}, 6.0f);
+    const float passo = (g1.x - g0.x) / static_cast<float>(kAmostrasDoGrafico - 1);
+    for (size_t k = 1; k < mHistoricoDoFps.size(); ++k) {
+        const float a0 = g1.y - (g1.y - g0.y) * NoGrafico(mHistoricoDoFps[k - 1], g.fpsMaximo);
+        const float a1 = g1.y - (g1.y - g0.y) * NoGrafico(mHistoricoDoFps[k], g.fpsMaximo);
+        Linha(Vector2(g0.x + passo * static_cast<float>(k - 1), a0), Vector2(g0.x + passo * static_cast<float>(k), a1), cor);
     }
-    if (te >= 1.4f && te >= mProximoLeque) {
-        mProximoLeque = te + g.entreLequesDoMotor;
-        entrar(Leque(kGatilhoDoTiro, g.tirosDoLequeDoMotor, 28.0f, g.velocidadeDoMotor + 110.0f, "Tiro"));
-    }
+    mLinhas = doCampo;
 
-    const int quadro = QuadroEm(te);
-    const bool saltou = quadro != mQuadroDoLag;
-    mQuadroDoLag = quadro;
-    for (AosSaltos& s : mAosSaltos) {
-        if (saltou) s.onde = NoQuadro(s.onde, s.v, 1);
-        if (!NoCampo(s.onde, 50.0f)) {
-            Matar(s.p);
-            continue;
-        }
-        s.p->SetPosition(s.onde);
-        Parar(s.p);
-        // O proximo quadro: o circulo, e o risco ate ele.
-        const Vector2 proximo = NoQuadro(s.onde, s.v, 1);
-        Circulo(proximo, 9.0f, kFantasma, 8);
-        Linha(s.onde, proximo, kFantasmaFraco);
-    }
-    mAosSaltos.erase(std::remove_if(mAosSaltos.begin(), mAosSaltos.end(), [](const AosSaltos& s) { return !s.p; }),
-                     mAosSaltos.end());
-
-    // O medidor do quadro, no alto: enche ate o proximo salto.
-    const float u = std::fmod(te, kQuadroDoLag) / kQuadroDoLag;
-    const Vector2 a(c.x + c.w * 0.4f, c.y + 134.0f), z(c.x + c.w * 0.6f, c.y + 142.0f);
-    Retangulo(a, z, kFantasma);
-    Preencher(a, Vector2(Mistura(a.x, z.x, u), z.y), kFantasma);
-    Placar(kFase, 2, "fps = 2.5: o c\xc3\xadrculo \xc3\xa9 o PR\xc3\x93XIMO quadro");
+    if (te < kComecaOFps) Placar(kFase, kEtapaDoFps, "fps.limite = off: segure o FOCO e o jogo cai para 30 FPS");
+    else Placar(kFase, kEtapaDoFps, "VERMELHO sem deltaTime: corre com o FPS. AZUL com deltaTime: n\xc3\xa3o muda");
 }
 
 void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
@@ -1564,6 +1689,7 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
     // O save: a nota de agora e onde cada aluno esta. O disquete nasce um pouco acima do aluno.
     if (!mSalvo.tem && HoraDeSalvar(te, mUltimoLoad)) {
         mSalvo = Salvo{};
+        mFuga = RegrasTrocadas::Fuga{};
         mSalvo.tem = true;
         mSalvo.nota = agora;
         for (const Player* a : alunos) mSalvo.alunos.push_back(a->GetPosition());
@@ -1593,12 +1719,21 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
         const Humor humor = HumorDoSave(mSalvo.nota, agora);
         const Vector2 eu = mSave->GetPosition();
         const Vector2 ondeAluno = alvo ? alvo->GetPosition() : PosicaoDoAluno();
-        Vector2 rumo = Vector2::Zero;
-        if (mSalvo.ha >= kGravando) {
-            if (humor == Humor::Foge) rumo = JogosDigitais::Fugir(eu, ondeAluno, area, 12.0f);
-            else if (humor == Humor::Persegue) rumo = JogosDigitais::Rumo(eu, ondeAluno);
+        // O tiro do aluno que acerta o disquete fica nele: o drive engasga (RegrasTrocadas::PassoDoSave).
+        int tiros = 0;
+        if (const Battle* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+            for (const auto& tiro : batalha->GerenteDeProjeteis()->GetPlayerProjectiles()) {
+                if (!tiro || tiro->GetState() != ActorState::Active || tiro->Murchando()) continue;
+                if ((tiro->GetPosition() - eu).Length() > kRaioDoSave + 6.0f) continue;
+                ++tiros;
+                tiro->Kill();
+            }
         }
-        mSave->SetPosition(JogosDigitais::Prender(eu + rumo * (RapidezDoSave(mSalvo.nota, agora) * deltaTime), area, 0.0f, 0.0f));
+        // A fuga e vencivel: encurralado num canto ele trava, e o tiro o faz andar aos trancos.
+        const Vector2 passo = mSalvo.ha >= kGravando
+                                  ? PassoDoSave(mFuga, humor, eu, ondeAluno, area, RapidezDoSave(mSalvo.nota, agora), tiros, deltaTime)
+                                  : Vector2::Zero;
+        mSave->SetPosition(JogosDigitais::Prender(eu + passo, area, 0.0f, 0.0f));
         Parar(mSave);
         // Gravando, ele pisca; depois, a cara diz o humor: verde foge (vale mais), vermelho persegue.
         const bool gravando = mSalvo.ha < kGravando;
@@ -1615,6 +1750,24 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
         const SDL_Color cor = humor == Humor::Foge ? SDL_Color{110, 230, 150, 220}
                                                    : (humor == Humor::Persegue ? SDL_Color{255, 100, 100, 220} : kSave);
         Circulo(mSave->GetPosition(), 26.0f + 2.0f * Math::Sin(mRelogio * 9.0f), cor, 16);
+        if (mFuga.travado > 0.0f) {
+            // Encurralado: os cantos de uma gaiola em volta dele - a hora de pega-lo.
+            const Vector2 s = mSave->GetPosition();
+            for (int k = 0; k < 4; ++k) {
+                const float sx = k % 2 == 0 ? -1.0f : 1.0f, sy = k < 2 ? -1.0f : 1.0f;
+                const Vector2 q = s + Vector2(sx * 32.0f, sy * 32.0f);
+                Linha(q, q - Vector2(sx * 13.0f, 0.0f), kOuro);
+                Linha(q, q - Vector2(0.0f, sy * 13.0f), kOuro);
+            }
+        } else if (mFuga.engasgo > 0.0f) {
+            // Engasgado: o drive lendo, um arco que gira em volta.
+            const Vector2 s = mSave->GetPosition();
+            for (int k = 0; k < 6; ++k) {
+                const float a0 = mRelogio * 14.0f + static_cast<float>(k) * 0.35f;
+                Linha(s + Vector2(Math::Cos(a0), Math::Sin(a0)) * 32.0f, s + Vector2(Math::Cos(a0 + 0.3f), Math::Sin(a0 + 0.3f)) * 32.0f,
+                      kSave);
+            }
+        }
 
         // A nota que ele guarda, em cima dele, na cor do humor.
         if (EtiquetaDeCodigo* e = Etiqueta(mEtiquetasDoSave, 0, 110, 24)) {
@@ -1633,7 +1786,7 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
         if (mSalvo.tem) {
             const std::string notas = "o save tem " + Inteiro(mSalvo.nota) + ", voc\xc3\xaa tem " + Inteiro(agora);
             switch (humor) {
-                case Humor::Foge: Placar(kFase, 3, notas + ": ele FOGE - pegue-o!"); break;
+                case Humor::Foge: Placar(kFase, 3, notas + ": ele FOGE - encurrale num canto, ou atire nele!"); break;
                 case Humor::Persegue: Placar(kFase, 3, notas + ": ele te PERSEGUE - fuja!"); break;
                 case Humor::Parado: Placar(kFase, 3, notas + ": ele espera"); break;
             }
@@ -1652,6 +1805,7 @@ void Ferreira::Carregar(const float te) {
         alunos[i]->SetPosition(mSalvo.alunos[i]);
         alunos[i]->Proteger(0.6f);
     }
+    mFuga = RegrasTrocadas::Fuga{};
     const float antes = Nota();
     if (b) b->DefinirNota(mSalvo.nota);
     Matar(mSave);

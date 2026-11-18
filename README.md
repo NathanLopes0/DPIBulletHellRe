@@ -874,9 +874,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   ache o alvo, atire nele, e a fita abre ali.
 - **Lucas Ferreira — INF 216, a optativa secreta.** Projeto e Implementação de
   Jogos Digitais — a batalha mais difícil do jogo, e a mais longa:
-  cada fase dura 40 s, o dobro das outras (e cada acerto nele vale um pouco
-  mais que a metade, para a nota andar no ritmo de sempre enquanto o perigo
-  dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**,
+  cada fase dura 40 s, o dobro das outras — a das regras, 48 s — (e cada acerto
+  nele vale um pouco mais que a metade, para a nota andar no ritmo de sempre
+  enquanto o perigo dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**,
   nas peças que até ali eram só a interface e as regras de sempre.
   A prova começa com um **susto**: no primeiro quadro, sem aviso, três anéis
   rápidos fecham sobre você, cada um com um vão só — do lado em que há campo —,
@@ -890,9 +890,11 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   fica de pé e é jogada de um lado ao outro; a cada passada espelha — quem
   passou por um lado tem de passar pelo outro na volta —, e no fim ela volta
   para o rodapé. O pedaço vazio fica marcado em verde, e uma linha mostra onde
-  o cheio acaba. Por fim vem o **primeiro inimigo do jogo**: um gigante feito
-  de blocos de **textura que faltou** — o xadrez magenta e preto que o motor põe
-  no lugar da arte que não carregou —, com dois olhos que seguem você. E a
+  o cheio acaba. Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
+  fliperama** gigante, feito de blocos de **textura que faltou** — o xadrez
+  magenta e preto que o motor põe no lugar da arte que não carregou —: a cúpula,
+  dois olhos que seguem você e, embaixo, a barra de quatro pés que ondula
+  enquanto ele flutua. E a
   **IA dele aparece**, como no modo debug de quem faz o jogo: o estado fica
   escrito em cima dele, e cada troca tem o seu aviso. Ele nasce no canto mais
   longe de você e **patrulha** os cantos, com o raio de visão desenhado; quem
@@ -904,7 +906,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   E um **power-up** — a estrela — aparece longe dele: pegue-o e os papéis se
   invertem, os blocos viram **moedas** e é **ele que foge**; cada bloco que
   você encosta é nota, e pegar todos o derrota (com bônus) até o respawn, no
-  canto dele. No fim do power-up os blocos piscam: é a hora de se afastar.
+  canto dele. No fim do power-up os blocos piscam: é a hora de se afastar. E
+  ele não fica só aí: o fantasma **volta nas regras**.
   A **física** é a prova inteira: o jogo vira **de plataforma**, e é ele quem
   escolhe para que lado a gravidade puxa. Uma seta avisa, e a virada arremessa
   você no chão novo — o desenho gira com os pés nele, o seu tiro sai para o
@@ -919,23 +922,41 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   lado, e moedas, que pagam a quem as pega; na **parede direita**, o chão é uma
   **esteira** que leva você até o moedor, na ponta, e os buracos de espinhos
   vêm com ela — ande contra ela e pule.
-  Nas **regras**, a da nota: a **inversão** — acertar o professor passa a
-  **tirar** nota, e os tiros dele viram **moedas**, que passam por você e dão
-  nota (o professor fica vermelho com um "−", você ganha um anel dourado com um
-  "+"), até as regras voltarem e as moedas que sobraram piscarem de volta em
-  tiros. A do campo: no **fogo amigo**, o seu tiro que **erra** o professor sai
-  por cima e volta por baixo, no mesmo lugar — quem atira parado acerta a si
-  mesmo —, e o tiro dele que sai por baixo reaparece em cima. A do tempo: no
-  **lag**, os tiros andam aos saltos, a 2,5 quadros por segundo, e um círculo
-  mostra onde cada um vai estar no próximo quadro. A do estado: o **quick
-  save** guarda a sua nota num disquete — e o disquete fica vivo no campo, com
-  a nota dele em cima, comparando-a com a sua. Se a do save é **maior** (você
-  perdeu nota desde então), ele vale mais e **foge** de você, verde e
-  assustado; se é **menor** (você ganhou), ele fica vermelho e bravo e **te
-  persegue** — quanto maior a diferença, mais rápido. Quando ele **encosta** em
-  você, é o quick load: você volta para onde estava no save, com a **nota do
-  save**, para o bem e para o mal. Pegue o save que vale mais; fuja do que vale
-  menos. Depois de cada load, um save novo.
+  Nas **regras** — a fase mais longa — o fantasma da interface volta e passa
+  pelas três primeiras etapas, e cada regra mexe nele também. A da nota: a
+  **inversão** — acertar o professor passa a **tirar** nota, e os tiros dele
+  viram **moedas**, que passam por você e dão nota (o professor fica vermelho
+  com um "−", você ganha um anel dourado com um "+") —, e o fantasma também
+  vira moedas e foge, até as regras voltarem e as moedas que sobraram piscarem
+  de volta em tiros. A do campo: no **fogo amigo**, o seu tiro que **erra** o
+  professor sai por cima e volta por baixo, no mesmo lugar — quem atira parado
+  acerta a si mesmo —, e o tiro dele que sai por baixo reaparece em cima,
+  enquanto o fantasma volta a caçar. A do tempo: o **FPS**. O jogo perde o
+  limite de quadros, e um contador de FPS — em sete segmentos, como o de quem
+  mede o jogo, com o gráfico dos últimos segundos — fica no canto, por cima de
+  tudo. O professor atira de dois jeitos: o tiro **vermelho** foi programado
+  **sem deltaTime** — anda tantos pixels por quadro —, então **corre com o
+  FPS**, numa espiral de dois braços (a 144 FPS, duas vezes e meia mais rápido,
+  e o rastro dele mostra o quanto); o **azul**, um relógio, usa o deltaTime e
+  desce sempre na mesma velocidade, em paredes de ponta a ponta com um vão só,
+  cada um longe do anterior. O FPS é **seu**: segurar o **foco** liga o modo
+  economia e o jogo cai para **30 FPS** — o vermelho em câmera lenta, e você
+  ganha o anel frio —, mas focado você anda devagar, e para chegar ao vão da
+  parede azul é preciso soltar o foco e correr. O fantasma também foi feito sem
+  deltaTime: a 144 FPS ele te alcança, a 30 você o despista. No Difícil, o
+  teto é 240. Ao fim do FPS, o fantasma se desfaz em faíscas — por enquanto. A
+  do estado: o **quick save** guarda a sua nota num disquete — e o disquete fica
+  vivo no campo, com a nota dele em cima, comparando-a com a sua. Se a do save é
+  **maior** (você perdeu nota desde então), ele vale mais e **foge** de você,
+  verde e assustado; se é **menor** (você ganhou), ele fica vermelho e bravo e
+  **te persegue** — quanto maior a diferença, mais rápido. Quando ele
+  **encosta** em você, é o quick load: você volta para onde estava no save, com
+  a **nota do save**, para o bem e para o mal. Pegue o save que vale mais; fuja
+  do que vale menos. Fugindo, ele é alcançável: **encurralado num canto**, ele
+  **trava** — numa gaiola dourada — antes de escorregar pela parede, e cada tiro
+  seu o faz **engasgar** (o drive lendo, um arco que gira): atirar sem parar faz
+  o save andar aos trancos. O tiro segura também o save que te persegue. Depois
+  de cada load, um save novo.
   O exame é o **lançamento**, e o jogo sai com bugs: primeiro a **hitbox**
   descola — o desenho de cada tiro vira enfeite, e o modo debug mostra o
   círculo verde que machuca de verdade, que se afasta e gira em volta do

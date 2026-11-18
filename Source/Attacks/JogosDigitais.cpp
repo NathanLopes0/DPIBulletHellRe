@@ -71,6 +71,10 @@ namespace JogosDigitais {
         return Vector2(x0 <= x1 ? std::clamp(p.x, x0, x1) : c.x + c.w / 2.0f,
                        y0 <= y1 ? std::clamp(p.y, y0, y1) : c.y + c.h / 2.0f);
     }
+
+    float DuracaoDa(const std::string& fase) {
+        return fase == RegrasTrocadas::kFase ? RegrasTrocadas::kDuracaoDaFase : kDuracaoDaFase;
+    }
 }
 
 // ---- Fase 1: a interface ----
@@ -298,6 +302,24 @@ namespace IaDoInimigo {
         return Lugares('O');
     }
 
+    bool NaBarra(const Vector2 lugar) {
+        return lugar.y > kMeiaAltura - kBloco;
+    }
+
+    int Coluna(const Vector2 lugar) {
+        const int c = static_cast<int>(std::lround(lugar.x / kBloco + static_cast<float>(kColunas - 1) / 2.0f));
+        return std::clamp(c, 0, kColunas - 1);
+    }
+
+    float Onda(const int coluna, const float relogio) {
+        // Um quarto de volta por coluna: os pes (nas colunas pares) ficam meia volta um do outro.
+        return kOnda * std::sin(relogio * 9.0f + static_cast<float>(coluna) * 1.5707963f);
+    }
+
+    float Flutua(const float relogio) {
+        return kFlutua * std::sin(relogio * 2.4f);
+    }
+
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
@@ -331,7 +353,7 @@ namespace IaDoInimigo {
         }
         if (p.pegouOPoder && vivo) {
             if (ia.estado != Estado::Fugindo) ir(Estado::Fugindo);
-            ia.susto = g.susto;
+            ia.susto = p.susto > 0.0f ? p.susto : g.susto;
             return ia.estado != antes;
         }
         if (p.olhoAtingido && (ia.estado == Estado::Patrulha || ia.estado == Estado::Alerta || ia.estado == Estado::Persegue)) {
@@ -639,12 +661,69 @@ namespace RegrasTrocadas {
         return Vector2(x, fundo + 10.0f);
     }
 
-    int QuadroEm(const float t) {
-        return static_cast<int>(std::floor(std::max(0.0f, t) / kQuadroDoLag));
+    float FpsAlvo(const float focados, const float teto) {
+        const float f = std::clamp(focados, 0.0f, 1.0f);
+        const float alto = std::max(teto, kFpsMinimo);
+        return std::exp(std::log(alto) * (1.0f - f) + std::log(kFpsMinimo) * f);
     }
 
-    Vector2 NoQuadro(const Vector2 p0, const Vector2 v, const int quadros) {
-        return p0 + v * (kQuadroDoLag * static_cast<float>(quadros));
+    float PassoDoFps(const float fps, const float alvo, const float teto, const float dt) {
+        const float alto = std::max(teto, kFpsMinimo + 1.0f);
+        const float menor = std::log(kFpsMinimo), maior = std::log(alto), vao = maior - menor;
+        float l = std::log(std::clamp(fps, kFpsMinimo, alto));
+        const float quer = std::log(std::clamp(alvo, kFpsMinimo, alto));
+        if (quer < l) l = std::max(quer, l - vao / kQuedaDoFps * dt);
+        else l = std::min(quer, l + vao / kSubidaDoFps * dt);
+        return std::exp(l);
+    }
+
+    float SemDeltaTime(const float fps) {
+        return fps / kFpsDeReferencia;
+    }
+
+    float NoGrafico(const float fps, const float teto) {
+        const float menor = std::log(kFpsMinimo), maior = std::log(std::max(teto, kFpsMinimo + 1.0f));
+        return std::clamp((std::log(std::max(fps, 1.0f)) - menor) / (maior - menor), 0.0f, 1.0f);
+    }
+
+    std::array<bool, 7> Segmentos(const char c) {
+        //                        a      b      c      d      e      f      g
+        switch (c) {
+            case '0': return {true,  true,  true,  true,  true,  true,  false};
+            case '1': return {false, true,  true,  false, false, false, false};
+            case '2': return {true,  true,  false, true,  true,  false, true};
+            case '3': return {true,  true,  true,  true,  false, false, true};
+            case '4': return {false, true,  true,  false, false, true,  true};
+            case '5':
+            case 'S': return {true,  false, true,  true,  false, true,  true};
+            case '6': return {true,  false, true,  true,  true,  true,  true};
+            case '7': return {true,  true,  true,  false, false, false, false};
+            case '8': return {true,  true,  true,  true,  true,  true,  true};
+            case '9': return {true,  true,  true,  true,  false, true,  true};
+            case 'F': return {true,  false, false, false, true,  true,  true};
+            case 'P': return {true,  true,  false, false, true,  true,  true};
+            default:  return {false, false, false, false, false, false, false};
+        }
+    }
+
+    float VaoDaParede(Variacao::Sorteio& s, const float anterior, const float de, const float ate, const float longe,
+                      const float perto) {
+        const float x0 = de + kVaoDaParede / 2.0f, x1 = ate - kVaoDaParede / 2.0f;
+        if (x1 <= x0) return (de + ate) / 2.0f;
+        if (anterior < 0.0f) return s.Real(x0, x1);
+        // Um lado ou o outro do anterior, a uma distancia entre 'longe' e 'perto' - o lado que nao
+        // cabe no campo cede para o outro.
+        const float minimo = std::max(0.0f, longe), maximo = std::max(minimo, perto);
+        const bool cabeADireita = anterior + minimo <= x1, cabeAEsquerda = anterior - minimo >= x0;
+        float sentido = s.Real(0.0f, 1.0f) < 0.5f ? -1.0f : 1.0f;
+        if (sentido > 0.0f && !cabeADireita) sentido = -1.0f;
+        if (sentido < 0.0f && !cabeAEsquerda) sentido = 1.0f;
+        const float x = anterior + sentido * s.Real(minimo, maximo);
+        return std::clamp(x, x0, x1);
+    }
+
+    float VaoAlcancavel(const float velocidade, const float entreParedes, const float longe) {
+        return std::max(longe + 40.0f, 0.85f * velocidade * entreParedes);
     }
 
     Humor HumorDoSave(const float salva, const float agora) {
@@ -660,6 +739,52 @@ namespace RegrasTrocadas {
 
     bool Encostou(const Vector2 save, const Vector2 aluno, const float raioDoAluno) {
         return (save - aluno).Length() <= kRaioDoSave + raioDoAluno;
+    }
+
+    bool Encurralado(const Vector2 eu, const Vector2 aluno, const JogosDigitais::Campo& area) {
+        const bool nosLados = eu.x <= area.x + kNoCanto || eu.x >= area.x + area.w - kNoCanto;
+        const bool emCimaOuEmbaixo = eu.y <= area.y + kNoCanto || eu.y >= area.y + area.h - kNoCanto;
+        return nosLados && emCimaOuEmbaixo && (eu - aluno).Length() <= kPertoDoCanto;
+    }
+
+    Vector2 PassoDoSave(Fuga& f, const Humor h, const Vector2 eu, const Vector2 aluno, const JogosDigitais::Campo& area,
+                        const float rapidez, const int tiros, const float dt) {
+        f.recarga = std::max(0.0f, f.recarga - dt);
+        f.imune = std::max(0.0f, f.imune - dt);
+        // O tiro: o drive engasga - cada tiro alonga o engasgo, ate kEngasgoMaximo desde que ele
+        // comecou -, a nao ser logo depois de um engasgo.
+        if (tiros > 0 && f.imune <= 0.0f) {
+            f.engasgo = std::min(kEngasgoMaximo - f.engasgado, f.engasgo + kEngasgo * static_cast<float>(tiros));
+        }
+        if (f.engasgo > 0.0f) {
+            f.engasgo -= dt;
+            f.engasgado += dt;
+            if (f.engasgo <= 0.0f) {
+                f.engasgo = 0.0f;
+                f.engasgado = 0.0f;
+                f.imune = kImuneAoTiro;
+            }
+            return Vector2::Zero;
+        }
+        if (h == Humor::Foge) {
+            if (f.travado > 0.0f) {
+                f.travado = std::max(0.0f, f.travado - dt);
+                if (f.travado <= 0.0f) f.recarga = kRecargaDoCanto;
+                return Vector2::Zero;
+            }
+            if (f.recarga <= 0.0f && Encurralado(eu, aluno, area)) {
+                f.travado = kEncurralado;
+                return Vector2::Zero;
+            }
+            return JogosDigitais::Fugir(eu, aluno, area, 12.0f) * (rapidez * dt);
+        }
+        f.travado = 0.0f;
+        if (h == Humor::Persegue) return JogosDigitais::Rumo(eu, aluno) * (rapidez * dt);
+        return Vector2::Zero;
+    }
+
+    bool Treme(const Fuga& f) {
+        return f.travado > 0.0f || f.engasgo > 0.0f;
     }
 
     bool HoraDeSalvar(const float te, const float ultimoLoad) {
@@ -681,6 +806,12 @@ namespace RegrasTrocadas {
         d.velocidadeDoMotor = 205.0f;
         d.entreLequesDoMotor = 1.2f;
         d.tirosDoLequeDoMotor = 5;
+        d.fpsMaximo = 240.0f;
+        d.entreEspirais = 0.1f;
+        d.giroDaEspiral = 15.0f;
+        d.velocidadeVermelha = 130.0f;
+        d.entreParedes = 1.9f;
+        d.velocidadeAzul = 235.0f;
         return d;
     }
 }

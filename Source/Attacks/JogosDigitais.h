@@ -18,18 +18,23 @@
 /// Digitais pega o jogo que o aluno ja conhece e mexe nele. Cada prova e um sistema:
 ///   1. a interface (HudHostil): um golpe no primeiro quadro, para assustar; depois a barra da nota -
 ///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; e por fim
-///      o primeiro inimigo, gigante, com a IA dele a mostra (IaDoInimigo);
+///      o primeiro inimigo, um fantasma de fliperama gigante, com a IA dele a mostra (IaDoInimigo) -
+///      ele volta na fase das regras;
 ///   2. a fisica (Gravidade): a prova inteira vira jogo de plataforma, e o professor escolhe para que
 ///      lado a gravidade puxa - cada lado com o seu desafio;
 ///   3. as regras (RegrasTrocadas): a nota (acertar tira, os tiros dao), o campo (o tiro que erra
-///      volta), o tempo (o lag) e o estado (o save que foge ou persegue, e o quick load);
+///      volta), o tempo (o FPS: o que foi feito sem deltaTime corre com ele) e o estado (o save que
+///      foge ou persegue, e o quick load);
 ///   4. o lancamento (Lancamento, a repescagem): a hitbox descola, o jogo trava, os bugs marcham, os
 ///      creditos sobem.
 /// Aqui ficam as contas; quem poe os tiros no campo e Ferreira.cpp.
 namespace JogosDigitais {
 
-    /// Toda fase dele dura isto: o dobro das dos outros professores (Fase::kDuracao).
+    /// As fases dele duram isto, o dobro das dos outros professores (Fase::kDuracao) - menos a das
+    /// regras, que tem a etapa do FPS e dura RegrasTrocadas::kDuracaoDaFase (DuracaoDa).
     constexpr float kDuracaoDaFase = 40.0f;
+    /// Quanto dura a fase de nome 'fase' (StateOne, StateTwo, StateThree, StateFinal).
+    float DuracaoDa(const std::string& fase);
     /// O que cada acerto nele paga do ganho de sempre (Boss::FatorDoGanho): com o dobro do tempo, o
     /// aluno acerta o dobro, e a nota andaria o dobro. Assim ela anda no ritmo das outras materias -
     /// e o perigo dura o dobro.
@@ -198,9 +203,12 @@ namespace HudHostil {
 
 namespace IaDoInimigo {
 
-    /// O primeiro inimigo do jogo, gigante: um bloco de textura que faltou - o xadrez magenta e preto
-    /// que o motor poe no lugar da arte que nao carregou -, com dois olhos. Ele persegue o aluno, e a
-    /// IA dele e uma maquina de estados que se ve (o placar diz o estado, e cada troca tem o seu aviso):
+    /// O primeiro inimigo do jogo, gigante: um fantasma de fliperama - a cupula, os olhos e a barra
+    /// ondulando embaixo - feito de blocos da textura que faltou (o xadrez magenta e preto que o motor
+    /// poe no lugar da arte que nao carregou). Ele persegue o aluno, e a IA dele e uma maquina de
+    /// estados que se ve (o placar diz o estado, e cada troca tem o seu aviso). Ele aparece no fim da
+    /// fase 1 e volta na das regras, nas tres primeiras etapas: na inversao vira moeda e foge, e no
+    /// FPS anda sem deltaTime (RegrasTrocadas::SemDeltaTime). O diagrama:
     ///   NASCENDO -> PATRULHA: ele ronda os cantos do campo; o circulo e o raio de visao dele;
     ///   PATRULHA -> ALERTA: o aluno entrou no raio (ou a ronda cansou): um "!", e ele treme parado;
     ///   ALERTA -> PERSEGUE: vai atras do aluno mais perto, cada vez mais rapido;
@@ -217,10 +225,12 @@ namespace IaDoInimigo {
     /// O nome que o placar e a etiqueta em cima dele mostram.
     const char* Nome(Estado e);
 
-    /// O corpo, de cima para baixo: '#' e um bloco, 'O' um olho, '.' nada.
+    /// O corpo, de cima para baixo: '#' e um bloco, 'O' um olho, '.' nada. A ultima linha e a barra do
+    /// fantasma: quatro pes, que ondulam (Onda).
     constexpr int kColunas = 7;
-    constexpr int kLinhas = 6;
-    constexpr std::array<const char*, kLinhas> kCorpo = {".#####.", "#######", "#O###O#", "#######", "#######", ".##.##."};
+    constexpr int kLinhas = 7;
+    constexpr std::array<const char*, kLinhas> kCorpo = {"..###..", ".#####.", "#O###O#", "#######",
+                                                        "#######", "#######", "#.#.#.#"};
     /// O lado de um bloco, em px (o sprite e desse tamanho).
     constexpr float kBloco = 24.0f;
     constexpr float kMeiaLargura = kBloco * static_cast<float>(kColunas) / 2.0f;
@@ -228,6 +238,16 @@ namespace IaDoInimigo {
     /// O lugar de cada bloco e de cada olho, em relacao ao centro dele.
     std::vector<Vector2> LugaresDosBlocos();
     std::vector<Vector2> LugaresDosOlhos();
+    /// Se o bloco em 'lugar' (de LugaresDosBlocos) e um pe da barra.
+    bool NaBarra(Vector2 lugar);
+    /// O fantasma flutua: a barra ondula - o pe da coluna 'coluna' sobe ou desce kOnda px, e os pes
+    /// vizinhos andam ao contrario - e o corpo inteiro sobe e desce kFlutua px, devagar.
+    constexpr float kOnda = 4.0f;
+    constexpr float kFlutua = 3.0f;
+    float Onda(int coluna, float relogio);
+    float Flutua(float relogio);
+    /// A coluna (0 a kColunas - 1) do bloco em 'lugar'.
+    int Coluna(Vector2 lugar);
 
     /// Os tempos (segundos).
     constexpr float kNascendo = 0.9f;     ///< os blocos se juntam no lugar, sem machucar
@@ -268,6 +288,8 @@ namespace IaDoInimigo {
         bool olhoAtingido = false;
         bool acertouOAluno = false;   ///< o corpo dele acabou de acertar o aluno
         int blocos = 0;           ///< os que sobram no corpo
+        /// Quanto o susto dura, se nao e o do power-up: a inversao das regras manda o dela.
+        float susto = 0.0f;
     };
     struct Ia {
         Estado estado = Estado::Nascendo;
@@ -441,12 +463,24 @@ namespace Gravidade {
 namespace RegrasTrocadas {
 
     constexpr const char* kFase = "StateThree";
-    constexpr std::array<const char*, 4> kEtapas = {"Inversao", "FogoAmigo", "Lag", "SaveLoad"};
-    constexpr std::array<float, 4> kDuracoes = {10.0f, 10.0f, 10.0f, 10.0f};
+    constexpr std::array<const char*, 4> kEtapas = {"Inversao", "FogoAmigo", "Fps", "SaveLoad"};
+    /// A fase das regras e a mais longa: o FPS pede tempo para ser entendido, e o save, para ser pego.
+    constexpr std::array<float, 4> kDuracoes = {10.0f, 10.0f, 16.0f, 12.0f};
+    constexpr float kDuracaoDaFase = 48.0f;
+    constexpr int kEtapaDaInversao = 0;
+    constexpr int kEtapaDoFogoAmigo = 1;
+    constexpr int kEtapaDoFps = 2;
+    constexpr int kEtapaDoSave = 3;
+    /// O primeiro inimigo volta nas etapas antes desta (o save fica sem ele).
+    constexpr int kInimigoAte = kEtapaDoSave;
     constexpr const char* kGatilhoDoAnel = "anel";
     constexpr const char* kGatilhoDoTiro = "tiro";
     constexpr const char* kGatilhoDoRetorno = "retorno";
     constexpr const char* kGatilhoDoDisquete = "disquete";
+    /// O FPS: o tiro vermelho, feito sem deltaTime, e o azul, com ele. O primeiro inimigo, que volta
+    /// nesta fase, usa os gatilhos da fase 1 (HudHostil::kGatilhoDoInimigo e kGatilhoDoOlho).
+    constexpr const char* kGatilhoDoVermelho = "vermelho";
+    constexpr const char* kGatilhoDoAzul = "azul";
 
     // ---- A inversao: a regra da nota ----
 
@@ -480,14 +514,49 @@ namespace RegrasTrocadas {
     bool SaiuPorBaixo(float y, float fundo);
     Vector2 OndeVolta(float x, float fundo);
 
-    // ---- O lag: a regra do tempo ----
+    // ---- O FPS: a regra do tempo ----
 
-    /// Os tiros so andam de kQuadroDoLag em kQuadroDoLag segundos, aos saltos: um circulo mostra onde
-    /// cada um vai estar no proximo quadro.
-    constexpr float kQuadroDoLag = 0.4f;
-    int QuadroEm(float t);
-    /// Onde esta, 'quadros' quadros depois, o tiro que estava em 'p0' com a velocidade 'v'.
-    Vector2 NoQuadro(Vector2 p0, Vector2 v, int quadros);
+    /// O jogo perde o limite de FPS, e o professor atira de dois jeitos. O VERMELHO foi programado sem
+    /// deltaTime: anda tantos px por quadro, gira tantos graus por quadro, dispara a cada tantos
+    /// quadros - e entao corre com o FPS (o dobro de quadros, o dobro da velocidade: o desenho e o
+    /// mesmo, so o tempo dele muda). O AZUL usa o deltaTime: tantos px por segundo, em qualquer FPS. O
+    /// FPS e do aluno: segurar o foco liga o modo economia, e o jogo cai para kFpsMinimo - o vermelho
+    /// em camera lenta, mas o aluno devagar (o foco) para as paredes azuis; solto, o FPS sobe ate o
+    /// teto do degrau, e o vermelho dispara. O primeiro inimigo, que volta nesta fase, tambem anda
+    /// sem deltaTime.
+    constexpr float kFpsDeReferencia = 60.0f;   ///< o FPS em que o vermelho anda o que esta escrito nele
+    constexpr float kFpsMinimo = 30.0f;
+    /// Os segundos para o FPS ir de um extremo ao outro (na escala log): cai rapido, sobe devagar.
+    constexpr float kQuedaDoFps = 0.35f;
+    constexpr float kSubidaDoFps = 1.1f;
+    /// O aviso do comeco: o contador aparece, e o vermelho so comeca depois.
+    constexpr float kComecaOFps = 1.4f;
+    /// O FPS que o jogo procura com 'focados' (de 0 a 1) dos alunos segurando o foco: ninguem, o
+    /// 'teto'; todos, kFpsMinimo; no meio, a media geometrica.
+    float FpsAlvo(float focados, float teto);
+    /// O FPS 'fps' um passo de 'dt' segundos mais perto de 'alvo'.
+    float PassoDoFps(float fps, float alvo, float teto, float dt);
+    /// O quanto anda, neste FPS, quem foi feito sem deltaTime: 1 a kFpsDeReferencia.
+    float SemDeltaTime(float fps);
+    /// A altura de 'fps' no grafico do contador: 0 em kFpsMinimo, 1 no 'teto' (escala log).
+    float NoGrafico(float fps, float teto);
+    /// O contador e de sete segmentos - a (o de cima), b (cima a direita), c (baixo a direita), d (o
+    /// de baixo), e (baixo a esquerda), f (cima a esquerda) e g (o do meio) -, e escreve os digitos e
+    /// as letras F, P e S; o resto fica apagado.
+    std::array<bool, 7> Segmentos(char c);
+    /// A parede azul: uma fileira de tiros de borda a borda com um vao de kVaoDaParede px, que desce
+    /// com deltaTime. Os tiros ficam juntos o bastante para o aluno nao passar entre dois (so pelo
+    /// vao). O vao novo fica a pelo menos 'longe' do anterior - focado, nao se chega a tempo: e
+    /// preciso soltar o foco e correr -, e a no maximo 'perto', o que o aluno sem foco alcanca antes
+    /// de a parede chegar nele (VaoAlcancavel).
+    constexpr float kVaoDaParede = 120.0f;
+    constexpr float kEntreTirosDaParede = 26.0f;
+    float VaoDaParede(Variacao::Sorteio& s, float anterior, float de, float ate, float longe, float perto);
+    /// A distancia maxima entre dois vaos seguidos: o que o aluno anda a 'velocidade' em 85% do
+    /// intervalo entre as paredes (nunca menos que 'longe' e um pouco).
+    float VaoAlcancavel(float velocidade, float entreParedes, float longe);
+    /// A velocidade do aluno sem o foco (Player::kVelocidade); com ele, a metade.
+    constexpr float kAlunoSemFoco = 300.0f;
 
     // ---- O quick save: a regra do estado ----
 
@@ -499,12 +568,40 @@ namespace RegrasTrocadas {
     /// Ate esta diferenca de nota, ele fica parado.
     constexpr float kEmpate = 0.5f;
     Humor HumorDoSave(float salva, float agora);
-    /// A que velocidade ele anda: quanto maior a diferenca, mais rapido - ate o teto, que fica abaixo
-    /// da do aluno (fugindo, ele e alcancavel; perseguindo, da para escapar).
+    /// A que velocidade ele anda: quanto maior a diferenca, mais rapido - ate o teto, que fica bem
+    /// abaixo da do aluno (fugindo, ele e alcancavel; perseguindo, da para escapar).
     float RapidezDoSave(float salva, float agora);
     constexpr float kSaveDevagar = 90.0f;
     constexpr float kSavePorPonto = 14.0f;   ///< px/s a mais por ponto de diferenca
-    constexpr float kSaveRapido = 245.0f;
+    constexpr float kSaveRapido = 215.0f;
+    /// E a fuga e vencivel: o disquete encurralado - num canto da area (a kNoCanto das duas paredes),
+    /// com o aluno a menos de kPertoDoCanto - trava por kEncurralado, tremendo, antes de escorregar
+    /// pela parede, e o canto so volta a prende-lo kRecargaDoCanto depois. E o tiro do aluno o faz
+    /// engasgar (o drive lendo): cada tiro que o acerta o para por kEngasgo mais, ate kEngasgoMaximo
+    /// desde o comeco do engasgo - fugindo ou perseguindo -, e depois de um engasgo ele anda
+    /// kImuneAoTiro sem parar: atirar sem parar faz o save andar aos trancos, e o aluno ganha terreno.
+    constexpr float kNoCanto = 48.0f;
+    constexpr float kPertoDoCanto = 200.0f;
+    constexpr float kEncurralado = 1.0f;
+    constexpr float kRecargaDoCanto = 1.6f;
+    constexpr float kEngasgo = 0.15f;
+    constexpr float kEngasgoMaximo = 0.45f;
+    constexpr float kImuneAoTiro = 0.5f;
+    /// Se 'eu' esta num canto de 'area' com o aluno em 'aluno' perto.
+    bool Encurralado(Vector2 eu, Vector2 aluno, const JogosDigitais::Campo& area);
+    struct Fuga {
+        float travado = 0.0f;   ///< o que falta do canto
+        float recarga = 0.0f;   ///< o que falta para o canto prender de novo
+        float engasgo = 0.0f;   ///< o que falta do engasgo
+        float engasgado = 0.0f; ///< quanto o engasgo de agora ja durou
+        float imune = 0.0f;     ///< o que falta para o tiro voltar a engasga-lo
+    };
+    /// O passo do save: parado se engasgado ou encurralado; senao foge pela parede, ou vai atras do
+    /// aluno. 'tiros': os tiros do aluno que o acertaram neste quadro. Devolve o deslocamento.
+    Vector2 PassoDoSave(Fuga& f, Humor h, Vector2 eu, Vector2 aluno, const JogosDigitais::Campo& area, float rapidez,
+                        int tiros, float dt);
+    /// Se o save treme agora (engasgado ou encurralado): o aviso de que e a hora de pega-lo.
+    bool Treme(const Fuga& f);
     /// O raio do disquete (o sprite tem 34 px): encostar e ficar a menos disto mais o raio do aluno.
     constexpr float kRaioDoSave = 17.0f;
     bool Encostou(Vector2 save, Vector2 aluno, float raioDoAluno);
@@ -525,12 +622,19 @@ namespace RegrasTrocadas {
         float entreLeques = 1.5f;
         int tirosDoLeque = 5;
         float entreTiros = 0.85f;   ///< no fogo amigo: os leques que dao a volta
-        // O lag e o save/load.
+        // O save/load.
         float entreAneisDoMotor = 1.15f;
         int tirosDoAnelDoMotor = 12;
         float velocidadeDoMotor = 175.0f;
         float entreLequesDoMotor = 1.6f;
         int tirosDoLequeDoMotor = 3;
+        // O FPS: a espiral vermelha (sem deltaTime, em quadros de kFpsDeReferencia) e as paredes azuis.
+        float fpsMaximo = 144.0f;          ///< sem foco, o FPS sobe ate aqui
+        float entreEspirais = 0.12f;       ///< um par de tiros a cada (a 60 FPS)
+        float giroDaEspiral = 17.0f;       ///< graus a cada par
+        float velocidadeVermelha = 120.0f; ///< px/s a 60 FPS
+        float entreParedes = 2.3f;
+        float velocidadeAzul = 205.0f;     ///< px/s, em qualquer FPS
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 }

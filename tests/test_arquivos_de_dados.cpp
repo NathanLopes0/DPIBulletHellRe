@@ -1867,9 +1867,9 @@ TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDo
             CAPTURE(chefe);
             CAPTURE(f.nome);
             // As excecoes declaradas: o TCC (Fase::kDuracaoDoTcc) e o Lucas Ferreira, cujas fases
-            // duram o dobro (JogosDigitais::kDuracaoDaFase).
+            // duram o dobro - e a das regras, mais (JogosDigitais::DuracaoDa).
             const float duracao = chefe == "hugo" ? Fase::kDuracaoDoTcc
-                                                  : (chefe == "ferreira" ? JogosDigitais::kDuracaoDaFase : Fase::kDuracao);
+                                                  : (chefe == "ferreira" ? JogosDigitais::DuracaoDa(f.nome) : Fase::kDuracao);
             CHECK(f.duracao == doctest::Approx(duracao));
             if (f.etapas.empty()) continue;
             float soma = 0.0f;
@@ -2625,6 +2625,9 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
         {Gravidade::kFase, Gravidade::kGatilhoDoTiro},
         {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoTiro},
         {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoRetorno}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoDisquete},
+        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoVermelho}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAzul},
+        // O fantasma da fase 1 volta nas regras, com os gatilhos dele.
+        {RegrasTrocadas::kFase, HudHostil::kGatilhoDoInimigo}, {RegrasTrocadas::kFase, HudHostil::kGatilhoDoOlho},
         {Lancamento::kFase, Lancamento::kGatilhoDoAnel}, {Lancamento::kFase, Lancamento::kGatilhoDoTiro},
         {Lancamento::kFase, Lancamento::kGatilhoDoSprite}, {Lancamento::kFase, Lancamento::kGatilhoDoColisor},
         {Lancamento::kFase, Lancamento::kGatilhoDoBotao}, {Lancamento::kFase, Lancamento::kGatilhoDoEstilhaco},
@@ -2659,7 +2662,7 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
         const DescricaoDeFase* d = nullptr;
         for (const auto& f : lidas.fases) if (f.nome == fase) d = &f;
         REQUIRE(d != nullptr);
-        CHECK(d->duracao == doctest::Approx(JogosDigitais::kDuracaoDaFase));
+        CHECK(d->duracao == doctest::Approx(JogosDigitais::DuracaoDa(fase)));
         REQUIRE(d->etapas.size() == nomes.size());
         for (size_t k = 0; k < nomes.size(); ++k) {
             CHECK(d->etapas[k].nome == nomes[k]);
@@ -2679,10 +2682,17 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
         CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDoOlho)).count(c) == 1);
     }
     CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDoPoder)).count("Poder") == 1);
-    // O tiro de sempre e as caras que ele ganha quando o jogo muda.
-    for (const char* c : {"Tiro", "Moeda", "Seu", "Vazio", "Fragmento"}) {
+    // O tiro de sempre e as caras que ele ganha quando o jogo muda - e as duas do FPS: o vermelho sem
+    // deltaTime e o azul com ele.
+    for (const char* c : {"Tiro", "Moeda", "Seu", "Vazio", "Fragmento", "SemDt", "ComDt"}) {
         CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel)).count(c) == 1);
     }
+    CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoVermelho)).count("SemDt") == 1);
+    CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAzul)).count("ComDt") == 1);
+    // O fantasma nas regras e o mesmo da fase 1: vira moeda, e o olho cai com o tiro.
+    for (const char* c : {"Textura", "Moeda"}) CHECK(caras(de(RegrasTrocadas::kFase, HudHostil::kGatilhoDoInimigo)).count(c) == 1);
+    CHECK(tipos.at(de(RegrasTrocadas::kFase, HudHostil::kGatilhoDoOlho)).derrubavel);
+    CHECK_FALSE(tipos.at(de(RegrasTrocadas::kFase, HudHostil::kGatilhoDoInimigo)).derrubavel);
     // O disquete do save: o de sempre, o que foge (vale mais) e o que persegue (vale menos).
     for (const char* c : {"Save", "Foge", "Persegue"}) CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoDisquete)).count(c) == 1);
     CHECK(caras(de(Gravidade::kFase, Gravidade::kGatilhoDaMoeda)).count("Moeda") == 1);
