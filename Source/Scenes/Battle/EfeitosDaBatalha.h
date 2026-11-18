@@ -32,6 +32,10 @@ public:
     /// Anda as ondas; cada projetil do chefe que uma alcanca se dissolve, faisca e vira moeda.
     void AvancarOndas(float deltaTime, const std::vector<std::unique_ptr<BossProjectile>>& projeteis);
 
+    /// Se a onda dissolveu 'p' no ultimo AvancarOndas: o chefe que guarda o ponteiro sabe que foi o
+    /// Ponto Extra, e nao ele, quem o tirou de campo (a barra da nota do Lucas Ferreira).
+    [[nodiscard]] bool DissolvidoPelaOnda(const BossProjectile* p) const;
+
     /// Redesenha as faiscas, as ondas e as moedas, que voam ate 'pontaDaBarra'.
     void Desenhar(float deltaTime, const Vector2& pontaDaBarra);
 
@@ -53,6 +57,7 @@ private:
 
     std::vector<Faisca> mFaiscas;
     std::vector<Onda> mOndas;
+    std::vector<const BossProjectile*> mDissolvidos;
     std::vector<Moeda> mMoedas;
     DrawLinhasComponent* mLinhas = nullptr;
 

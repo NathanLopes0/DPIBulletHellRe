@@ -83,6 +83,14 @@ public:
     /// dele no TCC.
     void DefinirNota(const float nota) { if (EmCombate()) mConta.Definir(nota); }
 
+    /// A nota foi destruida (o Ponto Extra do aluno na barra do Lucas Ferreira): ela e zero, a luta
+    /// acaba sem pagar a fase limpa, e 'frase' vai na tela do resultado, no lugar da devolutiva
+    /// (Resultado::Resumo::fraseDoFim).
+    void DestruirANota(std::string frase);
+
+    /// Se a onda do Ponto Extra dissolveu 'p' no ultimo quadro (EfeitosDaBatalha::DissolvidoPelaOnda).
+    [[nodiscard]] bool DissolvidoPelaOnda(const BossProjectile* p) const;
+
     /// Uma faisca que o chefe pede: o que a fase dele faz brilhar (a base que encaixa no aluno, na
     /// Sabrina).
     void Faiscar(const Vector2& onde, Hud::Faisca tipo);
@@ -333,6 +341,8 @@ private:
     /// A fase de que o relogio e. Trocar de fase zera o relogio: o periodo
     /// conta do comeco de cada fase, e nao da batalha.
     std::string mFaseDoIntercambio;
+    std::string mFraseDoFim;
+    bool mNotaDestruida = false;
 
     /// Um marcador por aluno, no lugar onde ele vai cair. So aparecem durante
     /// o aviso, e andam junto com o destino - que muda quando os alunos andam.

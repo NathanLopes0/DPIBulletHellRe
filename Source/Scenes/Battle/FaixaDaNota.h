@@ -51,6 +51,11 @@ public:
     [[nodiscard]] float Mostrada() const;
     /// O numero da placa some (o Lucas Ferreira o tirou dali para reescreve-lo), e a placa fica vazia.
     void EsconderNumero(bool esconder);
+    /// A barra se quebrou (o Ponto Extra do aluno no golpe do Lucas Ferreira): ela some, e o rodape
+    /// fica so com o lugar vazio dela e o numero.
+    void Quebrar();
+    /// A cor do cheio da barra agora.
+    [[nodiscard]] SDL_Color CorDoCheio() const;
     /// Onde o numero fica: o meio da placa.
     [[nodiscard]] Vector2 LugarDoNumero() const;
     /// A espessura da barra.

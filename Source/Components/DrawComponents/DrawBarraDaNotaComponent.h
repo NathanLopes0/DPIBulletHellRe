@@ -25,6 +25,8 @@ public:
     /// A nota deste quadro e a cor dela (Battle escolhe a cor da faixa). 'perigo' acende a moldura
     /// vermelha; 'cheia', a dourada.
     void SetNota(float nota, SDL_Color cor, bool perigo, bool cheia);
+    /// A cor do cheio agora (a da nota): a dos cacos, quando a barra se quebra (FaixaDaNota::Quebrar).
+    [[nodiscard]] SDL_Color GetCor() const { return mCor; }
 
     /// A barra fora do rodape (o Lucas Ferreira a usa de golpe): 'largura' de comprimento, girada
     /// 'angulo' graus (horario, como o SDL) em volta do proprio centro, e espelhada - enche do outro

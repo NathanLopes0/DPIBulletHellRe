@@ -193,6 +193,38 @@ namespace HudHostil {
                      const Degrau& g);
     /// O centro do segmento 'k' de 'segmentos' numa barra nesta pose.
     Vector2 CentroDoSegmento(const PoseDaBarra& p, int k, int segmentos);
+
+    // ---- A brincadeira: o Ponto Extra que limpa a tela leva a barra junto ----
+
+    /// A onda do Ponto Extra dissolve o que e do chefe, e a barra em campo e um golpe dele: ela se
+    /// quebra, os cacos voam por kQuebraDaBarra segundos enquanto a nota escorre, e no fim a nota e
+    /// zero e a luta acaba - com kFraseDaNotaDestruida na tela do resultado.
+    constexpr float kQuebraDaBarra = 1.6f;
+    inline constexpr const char* kFraseDaNotaDestruida = "Voc\xc3\xaa destruiu a sua pr\xc3\xb3pria nota.";
+    /// Os cacos de cada segmento, e a gravidade que os derruba (px/s^2).
+    constexpr int kCacosPorSegmento = 3;
+    constexpr float kGravidadeDosCacos = 520.0f;
+    /// A nota escorre na primeira parte da quebra; no resto, os cacos terminam de cair.
+    constexpr float kEscorreAte = 0.6f;
+
+    struct Caco {
+        Vector2 onde;
+        Vector2 velocidade;
+        /// Graus por segundo.
+        float giro = 0.0f;
+        float lado = 0.0f;
+        /// Do pedaco cheio da barra (a cor da nota), ou do vazio.
+        bool cheio = false;
+    };
+    /// Os cacos da barra nesta pose, com 'segmentos' segmentos e 'mostrada' de nota: espalhados ao
+    /// longo dela, saindo dos dois lados e para longe do meio. Sem sorteio: a mesma barra quebra igual.
+    std::vector<Caco> Cacos(const PoseDaBarra& p, int segmentos, float mostrada);
+    /// Onde o caco esta 't' segundos depois da quebra.
+    Vector2 OndeDoCaco(const Caco& c, float t);
+    /// A nota 't' segundos depois da quebra, de 'antes' ate quase zero: so no fim (QuebraAcabou) ela
+    /// e zero, para a luta nao acabar antes de os cacos cairem.
+    float NotaNaQuebra(float antes, float t);
+    [[nodiscard]] inline bool QuebraAcabou(const float t) { return t >= kQuebraDaBarra; }
 }
 
 // ---- Fase 1, a ultima etapa: a IA do inimigo ----

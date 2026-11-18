@@ -73,6 +73,7 @@ void TelaDoResultado::Mostrar(const Resultado::Resumo& resumo, Boss* chefe) {
     if (Resultado::LinhaDasMencoes(resumo) >= 0) mPainel->ColorirLinha(Resultado::LinhaDasMencoes(resumo), Color::Gold);
     if (Resultado::LinhaDasHoras(resumo) >= 0) mPainel->ColorirLinha(Resultado::LinhaDasHoras(resumo), Color::Gold);
     if (Resultado::LinhaDoRival(resumo) >= 0) mPainel->ColorirLinha(Resultado::LinhaDoRival(resumo), Color::LightGreen);
+    if (Resultado::LinhaDaFraseDoFim(resumo) >= 0) mPainel->ColorirLinha(Resultado::LinhaDaFraseDoFim(resumo), Color::LightPink);
     if (formou || duplaAprovada) MostrarAlunos();
     // A justica: cada aluno na cor dele, com o titulo e os numeros.
     for (size_t i = 0; i < resumo.partes.size(); ++i) {

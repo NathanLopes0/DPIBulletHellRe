@@ -892,7 +892,11 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   fica de pé e é jogada de um lado ao outro; a cada passada espelha — quem
   passou por um lado tem de passar pelo outro na volta —, e no fim ela volta
   para o rodapé. O pedaço vazio fica marcado em verde, e uma linha mostra onde
-  o cheio acaba. Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
+  o cheio acaba. *Cuidado com o Ponto Extra aqui:* a onda dele limpa tudo o
+  que é golpe do professor — e a barra em campo é um golpe dele. Se a onda a
+  alcança, a barra **se quebra** em cacos, a nota escorre até **0** e a luta
+  acaba; a tela de tentar de novo avisa, em vermelho: *"Você destruiu a sua
+  própria nota."* Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
   fliperama** grande (o dobro de você), feito de blocos de **textura que faltou** — o xadrez
   magenta e preto que o motor põe no lugar da arte que não carregou —: a cúpula,
   dois olhos que seguem você e, embaixo, a barra de quatro pés que ondula

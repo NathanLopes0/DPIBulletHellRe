@@ -261,6 +261,46 @@ namespace HudHostil {
         return p.centro + p.eixo * ao;
     }
 
+    std::vector<Caco> Cacos(const PoseDaBarra& p, const int segmentos, const float mostrada) {
+        std::vector<Caco> cacos;
+        const int n = std::max(1, segmentos);
+        const int cheios = Cheios(mostrada, n);
+        const Vector2 normal(-p.eixo.y, p.eixo.x);
+        for (int k = 0; k < n; ++k) {
+            const bool cheio = Cheio(k, n, mostrada, p.espelhada) && cheios > 0;
+            const Vector2 centro = CentroDoSegmento(p, k, n);
+            // Do meio da barra para as pontas: -1 a 1.
+            const float aoLongo = n > 1 ? 2.0f * static_cast<float>(k) / static_cast<float>(n - 1) - 1.0f : 0.0f;
+            for (int j = 0; j < kCacosPorSegmento; ++j) {
+                const int i = k * kCacosPorSegmento + j;
+                // Um passo fixo e primo entre os cacos: parece sorteado, e nao e.
+                const float h = static_cast<float>((i * 37 + 11) % 23) / 22.0f;
+                const float lado = (i % 2 == 0) ? 1.0f : -1.0f;
+                Caco c;
+                c.onde = centro + p.eixo * ((static_cast<float>(j) - 1.0f) * kSegmento / 3.0f);
+                c.velocidade = normal * (lado * (90.0f + 150.0f * h)) + p.eixo * (aoLongo * 160.0f + (h - 0.5f) * 80.0f) +
+                               Vector2(0.0f, -120.0f);
+                c.giro = lado * (240.0f + 480.0f * h);
+                c.lado = 6.0f + 6.0f * h;
+                c.cheio = cheio;
+                cacos.push_back(c);
+            }
+        }
+        return cacos;
+    }
+
+    Vector2 OndeDoCaco(const Caco& c, const float t) {
+        return c.onde + c.velocidade * t + Vector2(0.0f, 0.5f * kGravidadeDosCacos * t * t);
+    }
+
+    float NotaNaQuebra(const float antes, const float t) {
+        if (QuebraAcabou(t)) return 0.0f;
+        // Escorre devagar e despenca, e chega a quase nada antes do fim: a faixa, que anda atras da
+        // nota, ja mostra zero quando a luta acaba.
+        const float u = std::clamp(t / (kQuebraDaBarra * kEscorreAte), 0.0f, 1.0f);
+        return std::max(0.01f, antes * (1.0f - u * u));
+    }
+
 }
 
 // ---- Fase 1, a ultima etapa: a IA do inimigo ----

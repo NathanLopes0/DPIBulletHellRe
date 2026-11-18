@@ -44,6 +44,13 @@ namespace Resultado {
         return Formou(r) ? "FORMADE!" : Titulo(r.aprovado);
     }
 
+    namespace {
+        /// A linha logo antes das causas: a fase em que a nota mais caiu, ou a frase do chefe.
+        bool TemLinhaDaFase(const Resumo& r) {
+            return !r.aprovado && (r.piorFase || !r.fraseDoFim.empty());
+        }
+    }
+
     bool NovoRecorde(const Resumo& r) {
         return r.temFicha && r.nota >= r.recordeAntes + 0.01f;
     }
@@ -72,7 +79,9 @@ namespace Resultado {
         if (LinhaDasHoras(r) >= 0) linhas.push_back(r.horas);
         if (LinhaDoRival(r) >= 0) linhas.push_back(r.rival);
         // A devolutiva: so de quem reprovou.
-        if (!r.aprovado && r.piorFase) linhas.push_back(Devolutiva::LinhaDaFase(*r.piorFase));
+        if (TemLinhaDaFase(r)) {
+            linhas.push_back(!r.fraseDoFim.empty() ? r.fraseDoFim : Devolutiva::LinhaDaFase(*r.piorFase));
+        }
         if (LinhaDasCausas(r) >= 0) linhas.emplace_back("");
         for (size_t i = 0; i < r.partes.size(); ++i) {
             const Devolutiva::Parte& p = r.partes[i];
@@ -94,13 +103,18 @@ namespace Resultado {
         if (r.aprovado || r.causas.empty()) return -1;
         // Depois das de sempre (tres sem ficha, quatro com) e da fase.
         const int base = r.temFicha ? 4 : 3;
-        return base + (LinhaDoRival(r) >= 0 ? 1 : 0) + (r.piorFase ? 1 : 0);
+        return base + (LinhaDoRival(r) >= 0 ? 1 : 0) + (TemLinhaDaFase(r) ? 1 : 0);
+    }
+
+    int LinhaDaFraseDoFim(const Resumo& r) {
+        if (r.aprovado || r.fraseDoFim.empty()) return -1;
+        return (r.temFicha ? 4 : 3) + (LinhaDoRival(r) >= 0 ? 1 : 0);
     }
 
     int LinhaDaParte(const Resumo& r, const size_t quem) {
         if (quem >= r.partes.size()) return -1;
         const int causas = LinhaDasCausas(r);
-        const int antes = (r.temFicha ? 4 : 3) + (!r.aprovado && r.piorFase ? 1 : 0) + (causas >= 0 ? 1 : 0) +
+        const int antes = (r.temFicha ? 4 : 3) + (TemLinhaDaFase(r) ? 1 : 0) + (causas >= 0 ? 1 : 0) +
                           (Formou(r) ? 1 : 0) + (LinhaDasMencoes(r) >= 0 ? 1 : 0) + (LinhaDasHoras(r) >= 0 ? 1 : 0) +
                           (LinhaDoRival(r) >= 0 ? 1 : 0);
         return antes + static_cast<int>(quem) * LinhasPorParte(r);

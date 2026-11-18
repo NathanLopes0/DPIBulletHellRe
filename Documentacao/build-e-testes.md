@@ -349,6 +349,17 @@ A abertura não machuca: o professor reescreve a nota para 15
 era um golpe de três anéis que pegava quase todo mundo; sem ele, a fase 1 custa
 ao `esquiva` 3 ou 4 acertos, e ele chega às fases 2 e 3 com 14 a 18.
 
+A brincadeira da barra: a onda do Ponto Extra que dissolve um segmento da barra
+em campo (`EfeitosDaBatalha::DissolvidoPelaOnda`, que o `Ferreira::Sanear`
+consulta antes de esquecer o segmento morto) a quebra. Os cacos
+(`HudHostil::Cacos`, sem sorteio) caem por `kQuebraDaBarra` (1,6 s) enquanto a
+nota escorre (`NotaNaQuebra`, que só é zero no fim), os acertos não contam, e
+então `Battle::DestruirANota` zera a nota sem pagar a fase limpa, encerra a luta
+reprovada e põe a frase (`Resultado::Resumo::fraseDoFim`) no lugar da devolutiva.
+Para ver: `--batalha 16 --semente 101 --piloto esquiva --atira --teclas "B@560"`
+termina com `FIM nota=0.0000`. Os pilotos não usam o Ponto Extra, e as linhas
+de base não mudam.
+
 Na fase 3, a inversão: cada dúvida que chega ao professor custa 1,3, e os dois
 pilotos atiram sem parar. Quem lê o placar ("INVERTIDO: pegue as moedas e NÃO
 atire") para de atirar e cata as moedas. O `esquiva` também não pega as moedas

@@ -28,6 +28,7 @@ void EfeitosDaBatalha::SoltarOnda(const Vector2& centro) {
 }
 
 void EfeitosDaBatalha::AvancarOndas(const float deltaTime, const std::vector<std::unique_ptr<BossProjectile>>& projeteis) {
+    mDissolvidos.clear();
     for (Onda& o : mOndas) {
         o.t += deltaTime;
         const float raio = PontoExtra::RaioDaOnda(o.t);
@@ -39,6 +40,7 @@ void EfeitosDaBatalha::AvancarOndas(const float deltaTime, const std::vector<std
             if ((p->GetPosition() - o.centro).Length() > raio) continue;
             const Vector2 onde = p->GetPosition();
             p->Kill();
+            mDissolvidos.push_back(p.get());
             Faiscar(onde, Hud::Faisca::Dissolvido);
             if (mMoedas.size() < kMaximoDeMoedas) mMoedas.push_back(Moeda{onde, 0.0f});
         }
@@ -50,6 +52,10 @@ void EfeitosDaBatalha::AvancarOndas(const float deltaTime, const std::vector<std
     mMoedas.erase(std::remove_if(mMoedas.begin(), mMoedas.end(),
                                  [](const Moeda& m) { return m.t >= kVooDaMoeda; }),
                   mMoedas.end());
+}
+
+bool EfeitosDaBatalha::DissolvidoPelaOnda(const BossProjectile* p) const {
+    return p && std::find(mDissolvidos.begin(), mDissolvidos.end(), p) != mDissolvidos.end();
 }
 
 void EfeitosDaBatalha::Desenhar(const float deltaTime, const Vector2& pontaDaBarra) {

@@ -269,6 +269,15 @@ void Ferreira::Sanear() {
     // As listas soltas encolhem; as que tem lugar marcado (a barra, as pilhas, a frota, os botoes) so
     // esquecem.
     Sanear(mTiros, true);
+    // Quem tira um segmento da barra e o proprio professor (Matar ja o esquece); morto e ainda
+    // guardado, so a onda do Ponto Extra o levou.
+    if (mQuebrada < 0.0f) {
+        if (const Battle* b = Batalha()) {
+            for (const BossProjectile* p : mBarra) {
+                if (p && !Vivo(p) && b->DissolvidoPelaOnda(p)) mBarraAcertada = true;
+            }
+        }
+    }
     Sanear(mBarra, false);
     Sanear(mCorpo, false);
     for (BossProjectile*& o : mOlhos) {
@@ -558,7 +567,9 @@ void Ferreira::OnUpdate(const float deltaTime) {
     if (mLinhasDoChao) mLinhasDoChao->Limpar();
     if (mLinhasDoContador) mLinhasDoContador->Limpar();
 
-    if (fase == HudHostil::kFase) AtualizarHud(t, deltaTime);
+    if (mBarraAcertada && mQuebrada < 0.0f) QuebrarABarra();
+    if (mQuebrada >= 0.0f) AtualizarQuebra(deltaTime);
+    else if (fase == HudHostil::kFase) AtualizarHud(t, deltaTime);
     else if (fase == Gravidade::kFase) AtualizarFisica(t, deltaTime);
     else if (fase == RegrasTrocadas::kFase) AtualizarRegras(t, deltaTime);
     else if (fase == Lancamento::kFase) AtualizarLancamento(t, deltaTime);
@@ -690,6 +701,7 @@ void Ferreira::AtualizarBarra(const int etapa, const float te) {
         return;
     }
     faixa->Pousar(pose.centro, pose.comprimento, pose.angulo, pose.espelhada);
+    mPoseDaBarra = pose;
 
     // O que machuca: um segmento sem cara embaixo de cada pedaco cheio do que a barra MOSTRA - a
     // nota que se ve, e nao a que ela ainda vai alcancar.
@@ -699,6 +711,7 @@ void Ferreira::AtualizarBarra(const int etapa, const float te) {
         MatarTodos(mBarra);
         mBarra.assign(static_cast<size_t>(n), nullptr);
     }
+    mSegmentosDaBarra = n;
     for (int k = 0; k < n; ++k) {
         BossProjectile*& p = mBarra[static_cast<size_t>(k)];
         if (!pose.perigo || !Cheio(k, n, mostrada, pose.espelhada)) {
@@ -735,6 +748,64 @@ void Ferreira::AtualizarBarra(const int etapa, const float te) {
     } else {
         Preencher(Vector2(c.x, a.y), Vector2(c.x + c.w, b.y), kSeguro);
         Tracejada(Vector2(c.x, corte.y), Vector2(c.x + c.w, corte.y), kGuia, 10.0f);
+    }
+}
+
+void Ferreira::QuebrarABarra() {
+    using namespace HudHostil;
+    mBarraAcertada = false;
+    mQuebrada = 0.0f;
+    Battle* b = Batalha();
+    FaixaDaNota* faixa = Faixa();
+    const float mostrada = faixa ? faixa->Mostrada() : Nota();
+    mCacos = Cacos(mPoseDaBarra, mSegmentosDaBarra, mostrada);
+    mNotaAntesDaQuebra = Nota();
+    // A barra sai de campo, e com ela o que o professor tinha atirado: agora so os cacos caem.
+    MatarTodos(mBarra);
+    for (BossProjectile*& p : mTiros) Matar(p);
+    mTiros.clear();
+    if (faixa) {
+        mCorDosCacos = faixa->CorDoCheio();
+        faixa->Quebrar();
+    }
+    if (b) {
+        for (int k = 0; k < mSegmentosDaBarra; k += 2) {
+            b->Faiscar(CentroDoSegmento(mPoseDaBarra, k, mSegmentosDaBarra), Hud::Faisca::Acerto);
+        }
+        // Os cacos nao machucam: o que sobrar no campo tambem nao, ate a luta acabar.
+        b->CapturarAcertos(kQuebraDaBarra + 0.5f, [](Player&) {});
+    }
+    mClarao = 0.3f;
+    mCorDoClarao = SDL_Color{255, 40, 60, 255};
+    Avisar("hud.nota.destruir(): voc\xc3\xaa quebrou a sua pr\xc3\xb3pria nota!", kQuebraDaBarra + 1.0f);
+    SomDoDisparo();
+}
+
+void Ferreira::AtualizarQuebra(const float deltaTime) {
+    using namespace HudHostil;
+    mQuebrada += deltaTime;
+    const SDL_Color cheio = mCorDosCacos;
+    const SDL_Color vazio{120, 120, 150, 255};
+    for (const Caco& c : mCacos) {
+        const Vector2 centro = OndeDoCaco(c, mQuebrada);
+        if (!NoCampo(centro, 40.0f)) continue;
+        const float a = Math::ToRadians(c.giro * mQuebrada);
+        const Vector2 u = Vector2(Math::Cos(a), Math::Sin(a)) * (c.lado / 2.0f);
+        const Vector2 v(-u.y, u.x);
+        const SDL_Color cor = c.cheio ? cheio : vazio;
+        Linha(centro - u - v, centro + u - v, cor);
+        Linha(centro + u - v, centro + u + v, cor);
+        Linha(centro + u + v, centro - u + v, cor);
+        Linha(centro - u + v, centro - u - v, cor);
+        Linha(centro - u - v, centro + u + v, cor);
+    }
+    Placar(kFase, static_cast<size_t>(std::max(0, mEtapaAnterior)), "hud.nota = null");
+    Battle* b = Batalha();
+    if (!b || !b->EmCombate()) return;
+    if (QuebraAcabou(mQuebrada)) {
+        b->DestruirANota(kFraseDaNotaDestruida);
+    } else {
+        b->DefinirNota(NotaNaQuebra(mNotaAntesDaQuebra, mQuebrada));
     }
 }
 

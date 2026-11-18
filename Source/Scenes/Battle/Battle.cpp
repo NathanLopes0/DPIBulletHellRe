@@ -942,12 +942,26 @@ void Battle::SoltarPontoExtra(Vector2 position) {
     AddActor(std::move(item));
 }
 
+void Battle::DestruirANota(std::string frase) {
+    if (!EmCombate()) return;
+    mFraseDoFim = std::move(frase);
+    mNotaDestruida = true;
+    mConta.Definir(0.0f);
+    // A faixa para de andar com a luta: o zero tem de estar nela antes.
+    if (mFaixa) mFaixa->Atualizar(0.0f, false);
+    EncerrarBatalha(false);
+}
+
+bool Battle::DissolvidoPelaOnda(const BossProjectile* p) const {
+    return mEfeitos && mEfeitos->DissolvidoPelaOnda(p);
+}
+
 void Battle::EncerrarBatalha(bool aprovado) {
     if (mAcabando) return; // Já está acabando, ignora chamadas duplicadas
     Avisar([&](OuvinteDaBatalha& o) { o.AoDecidir(*this, aprovado); });
 
-    // A ultima fase tambem paga.
-    EncerrarFase();
+    // A ultima fase tambem paga - menos a nota que se destruiu (DestruirANota).
+    if (!mNotaDestruida) EncerrarFase();
 
     mAcabando = true;
 
@@ -959,6 +973,7 @@ void Battle::EncerrarBatalha(bool aprovado) {
     resumo.recordeAntes = mGame->RecordeDaPartida(mMateria);
     resumo.fasesLimpas = mConta.FasesLimpas();
     resumo.acertosSofridos = mConta.AcertosSofridos();
+    resumo.fraseDoFim = mFraseDoFim;
     // A devolutiva, para quem reprovou: onde a nota mais caiu e o que mais acertou.
     if (!aprovado && mCondicao.Ligada(Experimento::Mecanica::Devolutiva)) {
         resumo.piorFase = mDevolutiva->Caderno().PiorFase();

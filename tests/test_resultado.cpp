@@ -294,3 +294,34 @@ TEST_CASE("Resultado: quem reprovou ve o rival antes da devolutiva") {
     CHECK(LinhaDoRival(r) == -1);
     CHECK(LinhaDasCausas(r) == 5);
 }
+
+TEST_CASE("Resultado: a frase do chefe toma o lugar da devolutiva, com ou sem a fase") {
+    Resumo r;
+    r.nota = 0.0f;
+    r.temFicha = true;
+    r.piorFase = Devolutiva::Fase{};
+    r.causas = {Devolutiva::Causa{}};
+    r.fraseDoFim = "Voc\xc3\xaa destruiu a sua pr\xc3\xb3pria nota.";
+    auto l = Linhas(r);
+    CHECK(LinhaDaFraseDoFim(r) == 4);
+    CHECK(l[4] == r.fraseDoFim);
+    CHECK(LinhaDasCausas(r) == 5);
+    CHECK(l[5].empty());
+    // Sem a devolutiva ligada (Experimento.h), a frase vem do mesmo jeito.
+    r.piorFase.reset();
+    r.causas.clear();
+    l = Linhas(r);
+    CHECK(LinhaDaFraseDoFim(r) == 4);
+    CHECK(l.size() == 5u);
+    CHECK(l.back() == r.fraseDoFim);
+    // Com o rival, ela desce uma.
+    r.rival = "Faltaram 60.00 para passar 88001";
+    CHECK(LinhaDaFraseDoFim(r) == 5);
+    CHECK(Linhas(r)[5] == r.fraseDoFim);
+    // Na dupla, a parte de cada um vem depois dela.
+    r.partes = {Devolutiva::Parte{}, Devolutiva::Parte{}};
+    CHECK(LinhaDaParte(r, 0) == 6);
+    // E quem passou nunca a ve.
+    r.aprovado = true;
+    CHECK(LinhaDaFraseDoFim(r) == -1);
+}

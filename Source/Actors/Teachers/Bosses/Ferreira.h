@@ -194,6 +194,18 @@ private:
     /// A barra volta para o rodape, e os segmentos embaixo dela somem.
     void DevolverABarra();
     std::vector<BossProjectile*> mBarra;
+    /// A pose da barra no ultimo quadro, e quantos segmentos ela tinha: de onde saem os cacos.
+    HudHostil::PoseDaBarra mPoseDaBarra;
+    int mSegmentosDaBarra = 0;
+    /// A brincadeira (HudHostil::Cacos): a onda do Ponto Extra dissolveu um segmento da barra. A
+    /// quebra comeca no quadro seguinte, e dali em diante e so ela: 'mQuebrada' conta os segundos.
+    bool mBarraAcertada = false;
+    float mQuebrada = -1.0f;
+    float mNotaAntesDaQuebra = 0.0f;
+    std::vector<HudHostil::Caco> mCacos;
+    SDL_Color mCorDosCacos{200, 150, 0, 255};
+    void QuebrarABarra();
+    void AtualizarQuebra(float deltaTime);
     /// O inimigo gigante (IaDoInimigo): a maquina de estados decide, e aqui o corpo anda. Na fase 1 ele
     /// tem o power-up e o placar dele; nas regras, nao - a inversao o assusta, e no FPS ele anda sem
     /// deltaTime.

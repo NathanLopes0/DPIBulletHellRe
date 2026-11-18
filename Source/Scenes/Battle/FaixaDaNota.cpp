@@ -174,6 +174,15 @@ void FaixaDaNota::EsconderNumero(const bool esconder) {
     if (auto* texto = mTexto ? mTexto->GetComponent<DrawTextComponent>() : nullptr) texto->SetIsVisible(!esconder);
 }
 
+void FaixaDaNota::Quebrar() {
+    if (auto* barra = mBarra ? mBarra->GetComponent<DrawBarraDaNotaComponent>() : nullptr) barra->SetIsVisible(false);
+}
+
+SDL_Color FaixaDaNota::CorDoCheio() const {
+    const auto* barra = mBarra ? mBarra->GetComponent<DrawBarraDaNotaComponent>() : nullptr;
+    return barra ? barra->GetCor() : SDL_Color{200, 150, 0, 255};
+}
+
 Vector2 FaixaDaNota::LugarDoNumero() const {
     return mTexto ? mTexto->GetPosition() : CentroDoEncaixe();
 }

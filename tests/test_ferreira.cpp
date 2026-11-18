@@ -225,6 +225,51 @@ TEST_CASE("HudHostil: a barra sai do rodape, varre o campo deitada, gira, varre 
     }
 }
 
+TEST_CASE("HudHostil: a barra quebrada vira cacos que caem, e a nota so e zero no fim da quebra") {
+    using namespace HudHostil;
+    const Degrau g = DegrauDo(Dificuldade::Nivel::Normal);
+    const Vector2 encaixe(600.0f, 760.0f);
+    const PoseDaBarra deitada = Pose(kEtapaDaBarraDeitada, kTremorDaBarra + kArrancadaDaBarra + 1.0f, kCampo, encaixe, 1120.0f, g);
+    REQUIRE(deitada.perigo);
+    const int n = static_cast<int>(deitada.comprimento / kSegmento);
+    const float nota = 37.0f;
+    const std::vector<Caco> cacos = Cacos(deitada, n, nota);
+    REQUIRE(cacos.size() == static_cast<size_t>(n * kCacosPorSegmento));
+    // Os cheios sao os do pedaco cheio da barra; nascem em cima dela e saem para os dois lados.
+    int cheios = 0, paraCima = 0, paraBaixo = 0;
+    for (const Caco& c : cacos) {
+        cheios += c.cheio ? 1 : 0;
+        CHECK(std::fabs(c.onde.y - deitada.centro.y) < kSegmento);
+        CHECK(c.lado > 0.0f);
+        (c.velocidade.y < 0.0f ? paraCima : paraBaixo) += 1;
+    }
+    CHECK(cheios == Cheios(nota, n) * kCacosPorSegmento);
+    CHECK(paraCima > 0);
+    CHECK(paraBaixo > 0);
+    // A mesma barra quebra igual.
+    CHECK(Cacos(deitada, n, nota)[5].velocidade.x == doctest::Approx(cacos[5].velocidade.x));
+    // E todos caem: no fim da quebra, cada um esta mais baixo do que nasceu.
+    for (const Caco& c : cacos) CHECK(OndeDoCaco(c, kQuebraDaBarra).y > c.onde.y);
+    CHECK(OndeDoCaco(cacos[0], 0.0f).x == doctest::Approx(cacos[0].onde.x));
+
+    // A nota escorre sem chegar a zero, e chega a zero so quando a quebra acaba.
+    float antes = NotaNaQuebra(nota, 0.0f);
+    CHECK(antes == doctest::Approx(nota));
+    for (float t = 0.016f; t < kQuebraDaBarra; t += 0.016f) {
+        const float agora = NotaNaQuebra(nota, t);
+        CAPTURE(t);
+        CHECK(agora > 0.0f);
+        CHECK(agora <= antes);
+        CHECK_FALSE(QuebraAcabou(t));
+        antes = agora;
+    }
+    // Antes do fim ela ja e quase nada, para a faixa mostrar o zero.
+    CHECK(NotaNaQuebra(nota, kQuebraDaBarra * kEscorreAte) < 0.05f);
+    CHECK(QuebraAcabou(kQuebraDaBarra));
+    CHECK(NotaNaQuebra(nota, kQuebraDaBarra) == 0.0f);
+    CHECK(std::string(kFraseDaNotaDestruida).find("destruiu") != std::string::npos);
+}
+
 TEST_CASE("HudHostil: os segmentos cobrem a barra de ponta a ponta, e de pe ela enche de baixo") {
     using namespace HudHostil;
     const Degrau g = DegrauDo(Dificuldade::Nivel::Normal);

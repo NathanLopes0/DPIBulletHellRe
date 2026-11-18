@@ -66,6 +66,10 @@ namespace Resultado {
         /// O rival da turma (Rival::FraseDoResultado): quem esta nota passou no ranking da materia, ou
         /// quanto faltou para o mais perto. Vazia quando nao ha o que dizer.
         std::string rival;
+
+        /// O que o chefe quis dizer no fim (Battle::DefinirFraseDoFim): toma o lugar da linha da
+        /// devolutiva, em quem reprovou. Vazia, a devolutiva de sempre.
+        std::string fraseDoFim;
     };
 
     /// O titulo: "APROVADE!" ou "REPROVADE".
@@ -106,6 +110,9 @@ namespace Resultado {
     int LinhaDasHoras(const Resumo& r);
     /// A linha do rival da turma, dourada, depois das horas (e antes da devolutiva); -1 sem ela.
     int LinhaDoRival(const Resumo& r);
+
+    /// A linha da frase do chefe (Resumo::fraseDoFim), que vai vermelha no lugar da da fase; -1 sem ela.
+    int LinhaDaFraseDoFim(const Resumo& r);
 
     /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
     int LinhaDasCausas(const Resumo& r);
