@@ -268,9 +268,9 @@ tabela: uma linha por parte, com o **objeto** numa coluna e a **cor** na do lado
 (com a amostra dela). O manche para cima e para baixo escolhe a linha, para os
 lados percorre as opções da coluna em foco — a célula diz em qual delas você
 está ("3 de 15") —, e o **Botão 3** passa do objeto para a cor e de volta.
-Para terminar, há o botão **CONFIRMAR** depois da última linha: o manche chega
-nele, e o **Botão 1** numa linha só leva o foco até ele — a personagem só é
-gravada quando se aperta o Botão 1 com o CONFIRMAR aceso.
+Para terminar, há o botão **CONFIRMAR** depois da última linha: o manche desce até
+ele passando por todas as linhas, e o **Botão 1** só vale nele — a personagem
+só é gravada quando se aperta o Botão 1 com o CONFIRMAR aceso.
 Quem já tem perfil troca a personagem quando quiser: na tela de dificuldade,
 com o **Botão 3** do próprio painel, ou no boletim, com o **manche para cima**.
 

@@ -180,10 +180,10 @@ void CriacaoDePersonagem::Load() {
     }
 
     // Uma linha so para o manche, e o rodape saindo dos botoes.
-    Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam - CONFIRMAR fica no fim",
+    Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam",
           largura / 2.0f, altura * 0.88f, 22, 1100);
     Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "objeto / cor"},
-                          {PainelDaVez(), Painel::Botao::Um,   "ir ao CONFIRMAR / confirmar"},
+                          {PainelDaVez(), Painel::Botao::Um,   "confirmar"},
                           {PainelDaVez(), Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.92f, 22, 1000);
@@ -306,7 +306,8 @@ void CriacaoDePersonagem::Trocar(const int passo) {
 
 void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
-    // As linhas e, depois da ultima, o botao CONFIRMAR: o manche da a volta passando por ele.
+    // As linhas e, depois da ultima, o botao CONFIRMAR. O manche para nas pontas, sem dar a volta:
+    // do topo, para cima nao pula para o botao.
     const int quantas = static_cast<int>(mLinhas.size()) + 1;
 
     // O painel da vez: quem monta a personagem do jogador 2 e o jogador 2, no manche dele.
@@ -325,12 +326,12 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool trocouDeColuna = mBordaColuna.Bateu(Painel::Apertado(keyState, kQuem, Painel::Botao::Tres));
     {
         if (subiu) {
-            mLinhaEmFoco = (mLinhaEmFoco - 1 + quantas) % quantas;
+            mLinhaEmFoco = std::max(0, mLinhaEmFoco - 1);
             AjustarColuna();
             Redesenhar();
         }
         if (desceu) {
-            mLinhaEmFoco = (mLinhaEmFoco + 1) % quantas;
+            mLinhaEmFoco = std::min(quantas - 1, mLinhaEmFoco + 1);
             AjustarColuna();
             Redesenhar();
         }
@@ -350,13 +351,8 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool confirmar = Painel::Apertado(keyState, kQuem, Painel::Botao::Um)
                         || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (mBordaConfirmar.Bateu(confirmar)) {
-        // Numa linha, o Botao 1 so leva ao CONFIRMAR; nele, grava.
-        if (!NoBotao()) {
-            mLinhaEmFoco = static_cast<int>(mLinhas.size());
-            Redesenhar();
-            return;
-        }
-        Confirmar();
+        // So no CONFIRMAR: para chegar nele, o aluno passa por todas as linhas da personagem.
+        if (NoBotao()) Confirmar();
         return;
     }
 
