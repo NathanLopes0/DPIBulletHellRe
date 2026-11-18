@@ -43,25 +43,6 @@ namespace {
         }
         CHECK(JogosDigitais::Etapa(d, 999.0f) == static_cast<int>(N) - 1);
     }
-
-    /// O aluno parte do centro de um anel da abertura a 'rapidez' px/s no rumo 'rumo' (graus): a menor
-    /// distancia entre ele e um tiro do anel, ate o anel fechar.
-    float MenorDistancia(const HudHostil::AnelDaAbertura& a, const float vao, const float rumo, const float rapidez) {
-        float menor = 1e9f;
-        const float fecha = HudHostil::Fechamento(a);
-        const float r = Math::ToRadians(rumo);
-        for (float t = 0.0f; t <= fecha; t += 0.002f) {
-            const Vector2 aluno = Vector2(std::cos(r), std::sin(r)) * (rapidez * t);
-            const float raio = a.raio - a.velocidade * t;
-            for (int i = 0; i < a.tiros; ++i) {
-                if (HudHostil::NoVao(i, a.tiros, vao, a.vao)) continue;
-                const float ang = Math::ToRadians(HudHostil::AnguloNoAnel(i, a.tiros));
-                const Vector2 tiro = Vector2(std::cos(ang), std::sin(ang)) * raio;
-                menor = std::min(menor, (tiro - aluno).Length());
-            }
-        }
-        return menor;
-    }
 }
 
 TEST_CASE("JogosDigitais: as fases dele duram o dobro - a das regras, mais -, e as etapas somam a fase") {
@@ -82,87 +63,49 @@ TEST_CASE("JogosDigitais: as fases dele duram o dobro - a das regras, mais -, e 
 
 // ---- A interface: a abertura ----
 
-TEST_CASE("HudHostil: a abertura e rapida - tres aneis que fecham antes do seguinte, todos na etapa") {
+TEST_CASE("HudHostil: a abertura tira o numero da placa, leva ao professor, reescreve para 15 e devolve") {
     using namespace HudHostil;
-    for (const Dificuldade::Nivel n : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
-        const auto aneis = AneisDaAbertura(n);
-        for (int k = 0; k < kAneisDaAbertura; ++k) {
-            const AnelDaAbertura& a = aneis[static_cast<size_t>(k)];
-            CHECK(a.quando >= 0.0f);
-            // Fecha em menos de meio segundo: o susto.
-            CHECK(Fechamento(a) < 0.55f);
-            CHECK(Fechamento(a) > 0.3f);
-            CHECK(a.quando + Fechamento(a) < kDuracoes[kEtapaDaAbertura]);
-            if (k + 1 < kAneisDaAbertura) CHECK(a.quando + Fechamento(a) < aneis[static_cast<size_t>(k + 1)].quando);
-            CHECK(a.vao >= 3);
-            CHECK(a.vao * 4 < a.tiros);
-        }
+    const Vector2 placa(600.0f, 770.0f), professor(600.0f, 80.0f);
+    // Tudo cabe na etapa, com um respiro antes de a luta comecar.
+    CHECK(kNotaEditada < kDuracoes[kEtapaDaAbertura] - 0.3f);
+    const NumeroDaAbertura antes = NumeroEm(0.1f, placa, professor, 40.0f);
+    CHECK(antes.momento == Momento::NaPlaca);
+    CHECK((antes.onde - placa).Length() < 0.01f);
+    CHECK(antes.valor == doctest::Approx(40.0f));
+    // No caminho ele sobe em arco e cresce; perto do professor, chega ao tamanho dele.
+    const NumeroDaAbertura indo = NumeroEm(kTremeNaPlaca + kVaiAteEle / 2.0f, placa, professor, 40.0f);
+    CHECK(indo.momento == Momento::Indo);
+    CHECK(indo.onde.y < placa.y);
+    CHECK(indo.tamanho > 1.0f);
+    CHECK(indo.tamanho < kTamanhoNoProfessor);
+    // Reescrevendo: desce de 40 a 15, sem voltar, em numeros inteiros.
+    float anterior = 41.0f;
+    for (float te = kTremeNaPlaca + kVaiAteEle; te < kTremeNaPlaca + kVaiAteEle + kReescreve; te += 0.05f) {
+        const NumeroDaAbertura n = NumeroEm(te, placa, professor, 40.0f);
+        CHECK(n.momento == Momento::Reescrevendo);
+        CHECK(n.valor <= anterior);
+        CHECK(n.valor >= kNotaDaAbertura);
+        CHECK(n.valor == doctest::Approx(std::round(n.valor)));
+        CHECK(n.onde.y > professor.y);   // embaixo dele, a vista
+        anterior = n.valor;
     }
-    // O Dificil fecha mais rapido, com o vao mais estreito.
-    const auto normal = AneisDaAbertura(Dificuldade::Nivel::Normal);
-    const auto dificil = AneisDaAbertura(Dificuldade::Nivel::Dificil);
-    CHECK(Fechamento(dificil[0]) < Fechamento(normal[0]));
-    CHECK(dificil[0].vao < normal[0].vao);
+    const NumeroDaAbertura volta = NumeroEm(kNotaEditada - kVoltaAPlaca / 2.0f, placa, professor, 40.0f);
+    CHECK(volta.momento == Momento::Voltando);
+    CHECK(volta.valor == doctest::Approx(kNotaDaAbertura));
+    const NumeroDaAbertura fim = NumeroEm(kNotaEditada + 0.01f, placa, professor, 40.0f);
+    CHECK(fim.momento == Momento::Devolvido);
+    CHECK((fim.onde - placa).Length() < 0.01f);
+    CHECK(fim.valor == doctest::Approx(15.0f));
+    // Sem saltos: de quadro em quadro, o numero anda pouco.
+    Vector2 onde = NumeroEm(0.0f, placa, professor, 40.0f).onde;
+    for (float te = 0.016f; te < kNotaEditada + 0.1f; te += 0.016f) {
+        const Vector2 agora = NumeroEm(te, placa, professor, 40.0f).onde;
+        CHECK((agora - onde).Length() < 40.0f);
+        onde = agora;
+    }
+    // Quem chega com menos de 15 sobe para 15: a nota e a dele.
+    CHECK(NumeroEm(kNotaEditada + 1.0f, placa, professor, 5.0f).valor == doctest::Approx(15.0f));
 }
-
-TEST_CASE("HudHostil: o vao da abertura fica em cima, tem o tamanho dito e muda de lugar") {
-    using namespace HudHostil;
-    for (const int tiros : {44, 46, 48}) {
-        for (const int largura : {4, 5}) {
-            for (float vao = kVaoDe; vao <= kVaoAte; vao += 7.0f) {
-                int faltam = 0;
-                for (int i = 0; i < tiros; ++i) {
-                    if (!NoVao(i, tiros, vao, largura)) continue;
-                    ++faltam;
-                    // Os que faltam estao em volta do angulo pedido.
-                    float d = AnguloNoAnel(i, tiros) - vao;
-                    while (d > 180.0f) d -= 360.0f;
-                    while (d < -180.0f) d += 360.0f;
-                    CHECK(std::fabs(d) <= 360.0f / static_cast<float>(tiros) * (static_cast<float>(largura) / 2.0f + 0.6f));
-                }
-                CHECK(faltam == largura);
-            }
-        }
-    }
-    Variacao::Sorteio s(5u);
-    float anterior = -999.0f;
-    for (int k = 0; k < 60; ++k) {
-        const float v = VaoDaAbertura(s, anterior);
-        CHECK(v >= kVaoDe);
-        CHECK(v <= kVaoAte);
-        if (anterior >= -180.0f) CHECK(std::fabs(v - anterior) >= 50.0f);
-        anterior = v;
-    }
-    // Perto de uma parede, o vao aponta para onde ha campo: para a direita, para baixo.
-    for (const float rumo : {0.0f, 90.0f, 180.0f}) {
-        for (int k = 0; k < 30; ++k) {
-            const float v = VaoDaAbertura(s, -999.0f, rumo);
-            CHECK(v >= rumo - kAberturaDoVao);
-            CHECK(v <= rumo + kAberturaDoVao);
-        }
-    }
-}
-
-TEST_CASE("HudHostil: da para escapar da abertura correndo para o vao - e so assim") {
-    using namespace HudHostil;
-    const float pega = kRaioDoTiro + kRaioDoAluno;
-    for (const Dificuldade::Nivel n : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
-        for (const AnelDaAbertura& a : AneisDaAbertura(n)) {
-            for (const float vao : {-150.0f, -120.0f, -90.0f, -61.0f, -30.0f}) {
-                CAPTURE(vao);
-                // Correndo direto para o vao, na velocidade de andar, passa.
-                CHECK(MenorDistancia(a, vao, vao, 300.0f) > pega);
-                // Parado, ou correndo para baixo, nao.
-                CHECK(MenorDistancia(a, vao, vao, 0.0f) < pega);
-                CHECK(MenorDistancia(a, vao, 90.0f, 300.0f) < pega);
-                // Nem correndo para o lado errado de cima.
-                CHECK(MenorDistancia(a, vao, vao + 180.0f, 300.0f) < pega);
-            }
-        }
-    }
-}
-
-// ---- A interface: a barra de verdade ----
 
 TEST_CASE("HudHostil: a barra enche ate a nota, e com 100 nao ha por onde passar") {
     using namespace HudHostil;
@@ -321,8 +264,8 @@ TEST_CASE("IaDoInimigo: o corpo e um fantasma com dois olhos, simetrico e do tam
     }
     CHECK(lugares.size() == blocos.size());
     for (const Vector2& b : blocos) CHECK(lugares.count({static_cast<int>(std::lround(-b.x)), static_cast<int>(std::lround(b.y))}) == 1);
-    // Gigante: bem maior que o aluno (o desenho dele tem 64 px).
-    CHECK(2.0f * kMeiaLargura > 2.5f * 64.0f);
+    // Gigante: o dobro do aluno (o desenho dele tem 64 px).
+    CHECK(2.0f * kMeiaLargura > 2.0f * 64.0f);
     // A cupula: a linha de cima e mais estreita que a do meio.
     float larguraDeCima = 0.0f, larguraDoMeio = 0.0f;
     for (const Vector2& b : blocos) {

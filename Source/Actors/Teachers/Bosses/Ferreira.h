@@ -24,7 +24,8 @@ class Player;
 
 /// O professor de jogos digitais (INF 216, a optativa secreta), o mais dificil de todos. Ele nao
 /// ensina materia: pega o jogo que o aluno ja conhece e mexe nos sistemas dele.
-///   1. a interface - o golpe do primeiro quadro, para assustar; a barra da nota, a da HUD de
+///   1. a interface - a abertura: ele tira o numero da sua nota da HUD, reescreve para 15 e o
+///      devolve (a materia comeca com 15); a barra da nota, a da HUD de
 ///      verdade, arrancada do rodape para varrer o campo (cheia ate a nota do aluno: deitada sobe e
 ///      desce, de pe vai de um lado ao outro, e volta para o lugar); e o primeiro inimigo, um
 ///      fantasma de fliperama gigante e sem textura, com a IA a mostra - ele persegue, o power-up o
@@ -181,15 +182,9 @@ private:
 
     void AtualizarHud(float t, float deltaTime);
     void AtualizarAbertura(float te);
-    struct AnelVivo {
-        std::vector<BossProjectile*> tiros;
-        float some = 0.0f;
-    };
-    std::vector<AnelVivo> mAneis;
-    int mAneisFeitos = 0;
-    float mVaoAnterior = -999.0f;
-    /// O susto e um so: o aluno que a abertura pegou fica protegido ate o fim dela.
-    std::array<bool, 2> mPoupado{};
+    /// A abertura reescreve a nota uma vez por luta; a de antes e a que o numero mostra saindo.
+    bool mNotaEditada = false;
+    float mNotaAntesDaEdicao = -1.0f;
     void AtualizarBarra(int etapa, float te);
     /// A barra volta para o rodape, e os segmentos embaixo dela somem.
     void DevolverABarra();

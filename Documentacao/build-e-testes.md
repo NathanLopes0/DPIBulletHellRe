@@ -319,7 +319,7 @@ longe. Sozinho, com as sementes 101 a 103:
 | Piloto | Normal | Difícil |
 |---|---|---|
 | `segue` | 0 (zera na fase 2) | 0 (zera na fase 1) |
-| `esquiva` | 0 a 22 (reprova nas três) | 0 (zera na fase 3 nas três) |
+| `esquiva` | 0 (zera na fase 3 nas três) | 0 (zera na fase 3 nas três) |
 
 Na fase 2 o jogo vira de plataforma, e os dois pilotos andam nela. O `segue`
 vai pelo chão atrás do professor, sem pular, e as pilhas de caixas e as lanças
@@ -329,17 +329,17 @@ aluno (`Plataforma::Passo`), e fica com a mais segura (`Simulacao::Saltar`).
 É a fase em que ele vai melhor: no Normal, sobe de 10 a 21 pontos e apanha de
 0 a 2 vezes.
 
-A fase 1 é a que mais cobra, com 5 acertos no Normal: a barra varre o campo
+A fase 1 cobra 3 acertos no Normal: a barra varre o campo
 mais rápido do que o `esquiva` enxerga, e o inimigo gigante o pega uma vez. Ele
 não pega o power-up nem mira no olho — o que vira o jogo contra o gigante —,
 então o número dele é o de quem só foge. Sem o recuo depois do acerto
 (`IaDoInimigo::kRecuo`), o gigante prendia o `esquiva` na parede e o acertava
 a cada fim de invencibilidade: quatro acertos seguidos, e o Difícil zerava na
 fase 2 nas três sementes.
-O golpe de abertura pega quase todo mundo, mas uma vez só: quem é pego fica
-protegido até o fim dele (o aluno pisca em azul). Sem esse limite, no Difícil,
-a abertura chegou a custar três acertos sozinha, e o `esquiva` zerava na fase 1
-em duas das três sementes.
+A abertura não machuca: o professor reescreve a nota para 15
+(`HudHostil::NumeroEm`, `kNotaDaAbertura`) e só então a luta começa. Antes ela
+era um golpe de três anéis que pegava quase todo mundo; sem ele, a fase 1 custa
+ao `esquiva` 3 ou 4 acertos, e ele chega às fases 2 e 3 com 14 a 18.
 
 Na fase 3, a inversão: cada dúvida que chega ao professor custa 1,3, e os dois
 pilotos atiram sem parar. Quem lê o placar ("INVERTIDO: pegue as moedas e NÃO
@@ -356,7 +356,7 @@ o jogo fica no teto — 144 FPS no Normal, 240 no Difícil —, e a espiral verm
 e o fantasma, feitos sem deltaTime, andam 2,4 vezes (ou 4 vezes) o que está
 escrito neles. O `esquiva` apanha ali de 5 a 9 vezes, quase sempre do
 fantasma, e foi isso que o levou de 0 a 71 para 0 a 22 no Normal e de 32 a 38
-para 0 no Difícil. Segurando o foco, o vermelho e o fantasma andam à metade, e
+para 0 no Difícil; começando com 15 (a abertura), ele zera na fase 3 nos dois. Segurando o foco, o vermelho e o fantasma andam à metade, e
 só a parede azul — com deltaTime — pede para soltá-lo (e soltar tem um respiro
 de 0,4 s, `RegrasTrocadas::kFolgaAoSoltar`, antes de o FPS voltar a subir, e um
 impulso de velocidade, `kImpulso`, para quem segurou o foco ao menos 0,3 s): o vão novo fica longe o

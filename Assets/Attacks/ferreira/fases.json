@@ -6,8 +6,9 @@
 
   // ==========================================================================
 
-  // Fase 1 - a interface | gesto: o professor anda no alto. Antes de qualquer aviso, o golpe do
-  // primeiro quadro: tres aneis rapidos fecham sobre o aluno, cada um com um vao. Depois o professor
+  // Fase 1 - a interface | gesto: o professor anda no alto. Antes de qualquer tiro, ele tira o
+  // numero da nota da placa da HUD, leva ate ele, reescreve para 15 e o devolve: a materia comeca
+  // com 15, e o jogo e dele. Depois o professor
   // arranca a barra da nota da HUD - a de verdade - e varre o campo com ela, cheia ate a nota do
   // aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio). Primeiro deitada, sobe e desce;
   // depois, de pe, vai de um lado ao outro, e volta para o rodape. Por fim o primeiro inimigo do
@@ -18,15 +19,13 @@
     "proximo": "StateTwo",
     "anuncio": "A interface ataca: nada na tela esta a salvo",
     "etapas": [
-      { "nome": "Abertura",  "duracao": 3.0,  "anuncio": "quadro 1: bem-vindo à INF 216" },
-      { "nome": "BarraSobe", "duracao": 11.5, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
-      { "nome": "BarraJoga", "duracao": 11.5, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
-      { "nome": "Inimigo",   "duracao": 14.0, "anuncio": "new Inimigo(): a IA dele é uma máquina de estados" }
+      { "nome": "Abertura",  "duracao": 4.5,  "anuncio": "hud.nota: este número é meu" },
+      { "nome": "BarraSobe", "duracao": 11.0, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
+      { "nome": "BarraJoga", "duracao": 11.0, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
+      { "nome": "Inimigo",   "duracao": 13.5, "anuncio": "new Inimigo(): a IA dele é uma máquina de estados" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
-      { "som": false, "gatilho": "abertura", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Barra",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Tiro",

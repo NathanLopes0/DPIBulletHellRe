@@ -49,6 +49,10 @@ public:
     void Pousar(Vector2 centro, float comprimento, float angulo, bool espelhada);
     /// A nota que a barra mostra agora (a que persegue a de verdade).
     [[nodiscard]] float Mostrada() const;
+    /// O numero da placa some (o Lucas Ferreira o tirou dali para reescreve-lo), e a placa fica vazia.
+    void EsconderNumero(bool esconder);
+    /// Onde o numero fica: o meio da placa.
+    [[nodiscard]] Vector2 LugarDoNumero() const;
     /// A espessura da barra.
     static constexpr int kEspessura = 28;
 

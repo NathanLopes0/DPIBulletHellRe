@@ -16,7 +16,7 @@
 
 /// A optativa secreta nao tem materia para ensinar: o professor de Projeto e Implementacao de Jogos
 /// Digitais pega o jogo que o aluno ja conhece e mexe nele. Cada prova e um sistema:
-///   1. a interface (HudHostil): um golpe no primeiro quadro, para assustar; depois a barra da nota -
+///   1. a interface (HudHostil): o professor reescreve a sua nota para 15; depois a barra da nota -
 ///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; e por fim
 ///      o primeiro inimigo, um fantasma de fliperama gigante, com a IA dele a mostra (IaDoInimigo) -
 ///      ele volta na fase das regras;
@@ -85,12 +85,11 @@ namespace HudHostil {
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
     constexpr const char* kFase = "StateOne";
     constexpr std::array<const char*, 4> kEtapas = {"Abertura", "BarraSobe", "BarraJoga", "Inimigo"};
-    constexpr std::array<float, 4> kDuracoes = {3.0f, 11.5f, 11.5f, 14.0f};
+    constexpr std::array<float, 4> kDuracoes = {4.5f, 11.0f, 11.0f, 13.5f};
     constexpr int kEtapaDaAbertura = 0;
     constexpr int kEtapaDaBarraDeitada = 1;
     constexpr int kEtapaDaBarraDePe = 2;
     constexpr int kEtapaDoInimigo = 3;
-    constexpr const char* kGatilhoDaAbertura = "abertura";
     constexpr const char* kGatilhoDaBarra = "barra";
     constexpr const char* kGatilhoDoLeque = "leque";
     /// O inimigo (IaDoInimigo): cada bloco do corpo, cada olho e o power-up.
@@ -98,33 +97,30 @@ namespace HudHostil {
     constexpr const char* kGatilhoDoOlho = "olho";
     constexpr const char* kGatilhoDoPoder = "poder";
 
-    // ---- A abertura: o susto ----
+    // ---- A abertura: a nota editada ----
 
-    /// Antes de qualquer aviso, o golpe do primeiro quadro: tres aneis rapidos fecham sobre o aluno,
-    /// cada um com um vao so - sempre do lado de cima, porque embaixo e o fim do campo. Quem nao corre
-    /// para o vao na hora e pego. O anel some quando fecha: ninguem e pego pela volta dele.
-    struct AnelDaAbertura {
-        float quando = 0.0f;       ///< segundos depois do comeco da prova
-        float raio = 0.0f;
-        float velocidade = 0.0f;   ///< px/s, para dentro
-        int tiros = 0;
-        int vao = 0;               ///< quantos tiros faltam, juntos
+    /// Antes de qualquer tiro, o professor mostra quem manda no jogo: tira o numero da sua nota da
+    /// placa da HUD, leva ate ele, reescreve - o numero desce ate kNotaDaAbertura - e o devolve. A
+    /// materia comeca com 15, e so entao a luta comeca. Nada machuca na abertura.
+    constexpr float kNotaDaAbertura = 15.0f;
+    constexpr float kTremeNaPlaca = 0.6f;   ///< o numero treme na placa: ele vai sair
+    constexpr float kVaiAteEle = 0.9f;
+    constexpr float kReescreve = 1.5f;
+    constexpr float kVoltaAPlaca = 0.8f;
+    /// Quando o numero chega de volta a placa: dali em diante a nota e a nova.
+    constexpr float kNotaEditada = kTremeNaPlaca + kVaiAteEle + kReescreve + kVoltaAPlaca;
+    /// Perto do professor o numero fica deste tamanho (na placa, 1).
+    constexpr float kTamanhoNoProfessor = 2.4f;
+    enum class Momento { NaPlaca, Indo, Reescrevendo, Voltando, Devolvido };
+    struct NumeroDaAbertura {
+        Momento momento = Momento::NaPlaca;
+        Vector2 onde;
+        float valor = 0.0f;     ///< o que o numero mostra agora
+        float tamanho = 1.0f;
     };
-    constexpr int kAneisDaAbertura = 3;
-    std::array<AnelDaAbertura, kAneisDaAbertura> AneisDaAbertura(Dificuldade::Nivel n);
-    /// O angulo do tiro 'i' de um anel de 'tiros', em graus: 0 e a direita, -90 e para cima.
-    float AnguloNoAnel(int i, int tiros);
-    /// O meio do vao, em graus: ate kAberturaDoVao de 'rumo' - o lado em que ha campo, do aluno ao
-    /// meio dele; no comeco, para cima (entre kVaoDe e kVaoAte) -, e longe do vao do anel anterior
-    /// ('anterior' abaixo de -900: nenhum).
-    constexpr float kAberturaDoVao = 60.0f;
-    constexpr float kVaoDe = -90.0f - kAberturaDoVao;
-    constexpr float kVaoAte = -90.0f + kAberturaDoVao;
-    float VaoDaAbertura(Variacao::Sorteio& s, float anterior, float rumo = -90.0f);
-    /// Se o tiro 'i' falta: os 'largura' tiros mais perto de 'vao' graus.
-    bool NoVao(int i, int tiros, float vao, int largura);
-    /// Em quantos segundos o anel fecha (chega ao centro).
-    float Fechamento(const AnelDaAbertura& a);
+    /// O numero 'te' segundos depois do comeco da prova: sai da 'placa', vai ate 'professor' (para
+    /// baixo dele) por um arco, desce de 'nota' a kNotaDaAbertura e volta.
+    NumeroDaAbertura NumeroEm(float te, Vector2 placa, Vector2 professor, float nota);
 
     // ---- A barra da nota: a de verdade ----
 
@@ -232,7 +228,7 @@ namespace IaDoInimigo {
     constexpr std::array<const char*, kLinhas> kCorpo = {"..###..", ".#####.", "#O###O#", "#######",
                                                         "#######", "#######", "#.#.#.#"};
     /// O lado de um bloco, em px (o sprite e desse tamanho).
-    constexpr float kBloco = 24.0f;
+    constexpr float kBloco = 20.0f;
     constexpr float kMeiaLargura = kBloco * static_cast<float>(kColunas) / 2.0f;
     constexpr float kMeiaAltura = kBloco * static_cast<float>(kLinhas) / 2.0f;
     /// O lugar de cada bloco e de cada olho, em relacao ao centro dele.

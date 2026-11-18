@@ -878,10 +878,12 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   nele vale um pouco mais que a metade, para a nota andar no ritmo de sempre
   enquanto o perigo dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**,
   nas peças que até ali eram só a interface e as regras de sempre.
-  A prova começa com um **susto**: no primeiro quadro, sem aviso, três anéis
-  rápidos fecham sobre você, cada um com um vão só — do lado em que há campo —,
-  e quem não corre para o vão na hora é pego (uma vez só: quem é pego fica
-  protegido até o fim do susto). Depois, na **interface**, ele
+  A prova começa com ele mostrando **quem manda no jogo**: antes de qualquer
+  tiro, o número da sua nota treme na placa da HUD e sai dela — a placa fica
+  vazia —, puxado por um fio até o professor; na frente dele, o número é
+  **reescrito**, dígito a dígito, de 40 até **15**, com o cursor piscando, e
+  volta para a placa. A INF 216 começa com 15 de nota, e só então a luta
+  começa. Depois, na **interface**, ele
   **arranca a barra da nota da HUD**: a barra de verdade treme no rodapé, voa
   campo acima (o lugar dela fica vazio, só o contorno) e varre o campo cheia
   até a **sua** nota, com o número junto. Ela continua sendo a nota — acertar o
@@ -891,7 +893,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   passou por um lado tem de passar pelo outro na volta —, e no fim ela volta
   para o rodapé. O pedaço vazio fica marcado em verde, e uma linha mostra onde
   o cheio acaba. Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
-  fliperama** gigante, feito de blocos de **textura que faltou** — o xadrez
+  fliperama** grande (o dobro de você), feito de blocos de **textura que faltou** — o xadrez
   magenta e preto que o motor põe no lugar da arte que não carregou —: a cúpula,
   dois olhos que seguem você e, embaixo, a barra de quatro pés que ondula
   enquanto ele flutua. E a

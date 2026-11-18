@@ -269,7 +269,6 @@ void Ferreira::Sanear() {
     // As listas soltas encolhem; as que tem lugar marcado (a barra, as pilhas, a frota, os botoes) so
     // esquecem.
     Sanear(mTiros, true);
-    for (AnelVivo& a : mAneis) Sanear(a.tiros, true);
     Sanear(mBarra, false);
     Sanear(mCorpo, false);
     for (BossProjectile*& o : mOlhos) {
@@ -320,9 +319,8 @@ void Ferreira::LimparClasses() {
 void Ferreira::DesmontarEtapa() {
     // Os tiros soltos seguem o caminho deles; o que a etapa montou sai com ela.
     mTiros.clear();
-    for (AnelVivo& a : mAneis) MatarTodos(a.tiros);
-    mAneis.clear();
-    mPoupado = {};
+    if (FaixaDaNota* faixa = Faixa()) faixa->EsconderNumero(false);
+    mNotaAntesDaEdicao = -1.0f;
     DevolverABarra();
     // Nas regras, o inimigo passa de uma etapa para a outra (mInimigoFica).
     if (!mInimigoFica) DesmontarOInimigo();
@@ -604,51 +602,68 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
 
 void Ferreira::AtualizarAbertura(const float te) {
     using namespace HudHostil;
-    const auto aneis = AneisDaAbertura(NivelDeDificuldade());
-    const SDL_FRect c = Campo();
-    const Vector2 meioDoCampo(c.x + c.w / 2.0f, c.y + c.h / 2.0f);
+    FaixaDaNota* faixa = Faixa();
+    const Vector2 placa = faixa ? faixa->LugarDoNumero() : Vector2(Campo().x + Campo().w / 2.0f, Campo().y + Campo().h);
+    // Uma vez por luta: se a fase 1 voltar (o ciclo das fases), a nota ja foi reescrita.
+    if (mNotaEditada) {
+        if (faixa) faixa->EsconderNumero(false);
+        Placar(kFase, kEtapaDaAbertura, "nota = 15: agora a luta e de verdade");
+        return;
+    }
+    if (mNotaAntesDaEdicao < 0.0f) mNotaAntesDaEdicao = Nota();
+    const NumeroDaAbertura n = NumeroEm(te, placa, GetPosition(), mNotaAntesDaEdicao);
 
-    // Cada anel nasce em volta de onde o aluno esta agora - sem aviso: e o susto.
-    while (mAneisFeitos < kAneisDaAbertura && te >= aneis[static_cast<size_t>(mAneisFeitos)].quando) {
-        const AnelDaAbertura& a = aneis[static_cast<size_t>(mAneisFeitos)];
-        const Vector2 centro = PosicaoDoAluno();
-        // O vao fica do lado em que ha campo: do aluno para o meio dele (no comeco, para cima).
-        const Vector2 livre = meioDoCampo - centro;
-        const float rumo = livre.Length() > 40.0f ? Math::ToDegrees(Math::Atan2(livre.y, livre.x)) : -90.0f;
-        const float vao = VaoDaAbertura(mSorteio, mVaoAnterior, rumo);
-        mVaoAnterior = vao;
-        AnelVivo vivo;
-        vivo.some = a.quando + Fechamento(a) - 0.02f;
-        for (int i = 0; i < a.tiros; ++i) {
-            if (NoVao(i, a.tiros, vao, a.vao)) continue;
-            const float angulo = Math::ToRadians(AnguloNoAnel(i, a.tiros));
-            const Vector2 dir(Math::Cos(angulo), Math::Sin(angulo));
-            if (BossProjectile* p = Um(kGatilhoDaAbertura, centro + dir * a.raio, "Tiro", dir * -a.velocidade)) {
-                // O anel inteiro, ate a parte que nasce fora do campo: perto da parede nao se foge por ela.
-                p->DefinirMargemDeSaida(2.0f, 1.0f);
-                vivo.tiros.push_back(p);
-            }
+    if (n.momento == Momento::Devolvido) {
+        // O numero novo encaixa na placa: dali em diante, a nota e 15.
+        mNotaEditada = true;
+        if (Battle* b = Batalha()) {
+            b->DefinirNota(kNotaDaAbertura);
+            b->Faiscar(placa, Hud::Faisca::Coleta);
         }
-        mAneis.push_back(std::move(vivo));
-        ++mAneisFeitos;
-        mClarao = 0.12f;
-        mCorDoClarao = SDL_Color{255, 60, 70, 255};
+        if (faixa) faixa->EsconderNumero(false);
+        mClarao = 0.2f;
+        mCorDoClarao = kMagenta;
+        Avisar("hud.nota = 15. Agora sim: bem-vindo a INF 216", 1.8f);
         SomDoDisparo();
+        return;
     }
-    // O anel que fechou some no meio.
-    for (AnelVivo& a : mAneis) {
-        if (te >= a.some) MatarTodos(a.tiros);
+    if (faixa) faixa->EsconderNumero(n.momento != Momento::NaPlaca || Aceso(te, 0.08f));
+
+    // O numero vai na camada de cima, como o contador do FPS: o jogo inteiro e dele.
+    DrawLinhasComponent* doCampo = mLinhas;
+    if (mLinhasDoContador) mLinhas = mLinhasDoContador;
+    char texto[16];
+    std::snprintf(texto, sizeof(texto), "%.2f", static_cast<double>(n.valor));
+    const float altura = 22.0f * n.tamanho;
+    // A largura de um caractere e a do ponto, como SeteSegmentos as escreve, para centrar o numero.
+    float largura = 0.0f;
+    for (const char* ch = texto; *ch; ++ch) largura += *ch == '.' ? altura / 4.0f : altura * 0.5f + std::max(2.0f, altura / 8.0f) * 1.6f;
+    Vector2 canto = n.onde - Vector2(largura / 2.0f, altura / 2.0f);
+    if (n.momento == Momento::NaPlaca) canto = canto + Vector2(3.0f * Math::Sin(mRelogio * 70.0f), 0.0f);
+    const bool piscando = n.momento == Momento::Reescrevendo && Aceso(te, 0.09f);
+    const SDL_Color cor = n.momento == Momento::Reescrevendo ? (piscando ? SDL_Color{255, 60, 230, 255} : SDL_Color{255, 240, 255, 255})
+                                                             : SDL_Color{240, 244, 255, 255};
+    if (n.momento != Momento::NaPlaca) {
+        Preencher(canto - Vector2(10.0f, 8.0f), canto + Vector2(largura + 10.0f, altura + 8.0f), SDL_Color{8, 10, 20, 225});
+        Retangulo(canto - Vector2(10.0f, 8.0f), canto + Vector2(largura + 10.0f, altura + 8.0f), kMagenta);
     }
-    // O golpe e para assustar, e nao para acabar a prova: quem foi pego uma vez fica protegido ate o
-    // fim dele.
-    const std::vector<Player*> alunos = Jogadores();
-    for (size_t i = 0; i < alunos.size() && i < mPoupado.size(); ++i) {
-        if (mPoupado[i] || !alunos[i]->AcabouDeApanhar()) continue;
-        mPoupado[i] = true;
-        alunos[i]->Proteger(kDuracoes[kEtapaDaAbertura] - te + 0.3f);
+    SeteSegmentos(texto, canto, altura, cor);
+    if (n.momento == Momento::Reescrevendo) {
+        // O cursor de quem edita, piscando depois do numero.
+        if (Aceso(te, 0.25f)) Preencher(canto + Vector2(largura + 4.0f, 0.0f), canto + Vector2(largura + 8.0f, altura), kMagenta);
     }
-    Placar(kFase, kEtapaDaAbertura, mAneisFeitos < kAneisDaAbertura || !mAneis.empty() ? "quadro 1: CORRA para o v\xc3\xa3o!"
-                                                                                      : "Bem-vindo \xc3\xa0 INF 216. Isso era o tutorial.");
+    mLinhas = doCampo;
+    // O fio: o professor puxa o numero da HUD ate ele, e o empurra de volta.
+    if (n.momento == Momento::Indo || n.momento == Momento::Voltando || n.momento == Momento::NaPlaca) {
+        Tracejada(GetPosition() + Vector2(0.0f, 40.0f), n.onde, kMagenta, 10.0f);
+    }
+    switch (n.momento) {
+        case Momento::NaPlaca:      Placar(kFase, kEtapaDaAbertura, "hud.nota: este n\xc3\xbamero \xc3\xa9 meu"); break;
+        case Momento::Indo:         Placar(kFase, kEtapaDaAbertura, "hud.nota.pegar()"); break;
+        case Momento::Reescrevendo: Placar(kFase, kEtapaDaAbertura, "nota = " + Inteiro(mNotaAntesDaEdicao) + " -> nota = " + Inteiro(n.valor)); break;
+        case Momento::Voltando:     Placar(kFase, kEtapaDaAbertura, "hud.nota.devolver(15)"); break;
+        case Momento::Devolvido:    break;
+    }
 }
 
 void Ferreira::DevolverABarra() {
@@ -1551,6 +1566,11 @@ float Ferreira::SeteSegmentos(const std::string& texto, const Vector2 canto, con
     for (const char ch : texto) {
         if (ch == ' ') {
             x += w * 0.6f;
+            continue;
+        }
+        if (ch == '.') {
+            Preencher(Vector2(x, y + altura - e), Vector2(x + e, y + altura), cor);
+            x += altura / 4.0f;
             continue;
         }
         const auto s = RegrasTrocadas::Segmentos(ch);

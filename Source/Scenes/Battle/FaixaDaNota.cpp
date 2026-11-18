@@ -170,6 +170,14 @@ void FaixaDaNota::AtualizarTexto(const float nota, const bool faseLimpa) {
     }
 }
 
+void FaixaDaNota::EsconderNumero(const bool esconder) {
+    if (auto* texto = mTexto ? mTexto->GetComponent<DrawTextComponent>() : nullptr) texto->SetIsVisible(!esconder);
+}
+
+Vector2 FaixaDaNota::LugarDoNumero() const {
+    return mTexto ? mTexto->GetPosition() : CentroDoEncaixe();
+}
+
 Vector2 FaixaDaNota::CentroDoEncaixe() const {
     return Vector2(static_cast<float>(mLarguraDaTela) / 2.0f, static_cast<float>(mAlturaDaTela - kDoFundo + kAltura / 2));
 }

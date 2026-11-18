@@ -2616,7 +2616,7 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
 
     // A fase de cada gatilho, como o C++ os puxa (Ferreira.cpp).
     const std::vector<std::pair<std::string, const char*>> gatilhos = {
-        {HudHostil::kFase, HudHostil::kGatilhoDaAbertura}, {HudHostil::kFase, HudHostil::kGatilhoDaBarra},
+        {HudHostil::kFase, HudHostil::kGatilhoDaBarra},
         {HudHostil::kFase, HudHostil::kGatilhoDoLeque}, {HudHostil::kFase, HudHostil::kGatilhoDoInimigo},
         {HudHostil::kFase, HudHostil::kGatilhoDoOlho}, {HudHostil::kFase, HudHostil::kGatilhoDoPoder},
         {Gravidade::kFase, Gravidade::kGatilhoDaCaixa}, {Gravidade::kFase, Gravidade::kGatilhoDoEspinho},

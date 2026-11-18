@@ -5,174 +5,174 @@
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 1.placeholder",
    "frame": {
-    "x": 24,
+    "x": 20,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 2.placeholder",
    "frame": {
-    "x": 48,
+    "x": 40,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 3.placeholder",
    "frame": {
-    "x": 72,
+    "x": 60,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 4.placeholder",
    "frame": {
-    "x": 96,
+    "x": 80,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 5.placeholder",
    "frame": {
-    "x": 120,
+    "x": 100,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 6.placeholder",
    "frame": {
-    "x": 144,
+    "x": 120,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   },
   {
    "filename": "DPIBHFerreiraInimigo 7.placeholder",
    "frame": {
-    "x": 168,
+    "x": 140,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "sourceSize": {
-    "w": 24,
-    "h": 24
+    "w": 20,
+    "h": 20
    },
    "duration": 120
   }
@@ -183,8 +183,8 @@
   "image": "DPIBHFerreiraInimigo.png",
   "format": "RGBA8888",
   "size": {
-   "w": 192,
-   "h": 24
+   "w": 160,
+   "h": 20
   },
   "scale": "1"
  }

@@ -81,45 +81,49 @@ namespace JogosDigitais {
 
 namespace HudHostil {
 
-    std::array<AnelDaAbertura, kAneisDaAbertura> AneisDaAbertura(const Dificuldade::Nivel n) {
-        if (n == Dificuldade::Nivel::Dificil) {
-            return {{{0.15f, 300.0f, 720.0f, 44, 4}, {0.85f, 320.0f, 770.0f, 46, 4}, {1.55f, 340.0f, 820.0f, 48, 4}}};
-        }
-        return {{{0.15f, 300.0f, 620.0f, 44, 5}, {0.95f, 320.0f, 660.0f, 46, 5}, {1.75f, 340.0f, 700.0f, 48, 5}}};
-    }
-
-    float AnguloNoAnel(const int i, const int tiros) {
-        if (tiros <= 0) return 0.0f;
-        return -180.0f + 360.0f * static_cast<float>(i) / static_cast<float>(tiros);
-    }
-
-    float VaoDaAbertura(Variacao::Sorteio& s, const float anterior, const float rumo) {
-        // A distancia entre dois angulos, dando a volta.
-        const auto longe = [](const float a, const float b) {
-            float d = std::fmod(a - b + 540.0f, 360.0f);
-            if (d < 0.0f) d += 360.0f;
-            return std::fabs(d - 180.0f);
+    NumeroDaAbertura NumeroEm(const float te, const Vector2 placa, const Vector2 professor, const float nota) {
+        NumeroDaAbertura n;
+        const Vector2 destino = professor + Vector2(0.0f, 120.0f);
+        const auto suave = [](const float u) {
+            const float k = std::clamp(u, 0.0f, 1.0f);
+            return k * k * (3.0f - 2.0f * k);
         };
-        float v = rumo + s.Real(-kAberturaDoVao, kAberturaDoVao);
-        if (anterior < -900.0f) return v;
-        for (int k = 0; k < 12 && longe(v, anterior) < 50.0f; ++k) v = rumo + s.Real(-kAberturaDoVao, kAberturaDoVao);
-        // Sem sorte: a ponta do leque que fica mais longe do anterior.
-        if (longe(v, anterior) < 50.0f) v = rumo + (longe(rumo + 55.0f, anterior) > longe(rumo - 55.0f, anterior) ? 55.0f : -55.0f);
-        return v;
-    }
-
-    bool NoVao(const int i, const int tiros, const float vao, const int largura) {
-        if (tiros <= 0 || largura <= 0) return false;
-        const float passo = 360.0f / static_cast<float>(tiros);
-        const int centro = ((static_cast<int>(std::lround((vao + 180.0f) / passo)) % tiros) + tiros) % tiros;
-        int d = ((i - centro) % tiros + tiros) % tiros;
-        if (d > tiros / 2) d -= tiros;
-        const int de = -(largura - 1) / 2;
-        return d >= de && d < de + largura;
-    }
-
-    float Fechamento(const AnelDaAbertura& a) {
-        return a.velocidade > 0.0f ? a.raio / a.velocidade : 0.0f;
+        // O arco: o meio do caminho sobe, como quem puxa o numero por um fio.
+        const auto arco = [&](const Vector2 de, const Vector2 para, const float u) {
+            const Vector2 meio = (de + para) * 0.5f + Vector2(0.0f, -160.0f);
+            const float v = 1.0f - u;
+            return de * (v * v) + meio * (2.0f * v * u) + para * (u * u);
+        };
+        const float t1 = kTremeNaPlaca, t2 = t1 + kVaiAteEle, t3 = t2 + kReescreve;
+        if (te < t1) {
+            n.momento = Momento::NaPlaca;
+            n.onde = placa;
+            n.valor = nota;
+        } else if (te < t2) {
+            const float u = suave((te - t1) / kVaiAteEle);
+            n.momento = Momento::Indo;
+            n.onde = arco(placa, destino, u);
+            n.valor = nota;
+            n.tamanho = 1.0f + (kTamanhoNoProfessor - 1.0f) * u;
+        } else if (te < t3) {
+            // Ele apaga digito a digito: a descida comeca devagar e acaba de vez.
+            const float u = std::clamp((te - t2) / kReescreve, 0.0f, 1.0f);
+            n.momento = Momento::Reescrevendo;
+            n.onde = destino;
+            n.valor = std::round(nota + (kNotaDaAbertura - nota) * (u * u));
+            n.tamanho = kTamanhoNoProfessor;
+        } else if (te < kNotaEditada) {
+            const float u = suave((te - t3) / kVoltaAPlaca);
+            n.momento = Momento::Voltando;
+            n.onde = arco(destino, placa, u);
+            n.valor = kNotaDaAbertura;
+            n.tamanho = kTamanhoNoProfessor + (1.0f - kTamanhoNoProfessor) * u;
+        } else {
+            n.momento = Momento::Devolvido;
+            n.onde = placa;
+            n.valor = kNotaDaAbertura;
+        }
+        return n;
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {

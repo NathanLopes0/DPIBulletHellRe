@@ -201,7 +201,7 @@ def fisica(nome):
 
 # ---- O inimigo gigante (24 x 24) ------------------------------------------------------
 
-IW = 24
+IW = 20
 INIMIGO = ["Textura", "Moeda", "Olho", "OlhoEsquerda", "OlhoDireita", "Assustado", "Poder0", "Poder1"]
 MAGENTA = (255, 0, 220, 255)
 PRETO_DA_TEXTURA = (58, 12, 72, 255)
@@ -233,9 +233,9 @@ def inimigo(nome):
         d.line([(m + 1, m + 1), (IW - 3, m + 1)], fill=(255, 150, 245, 255))
     elif nome == "Moeda":
         d.ellipse([1, 1, IW - 2, IW - 2], fill=cheia(AMARELO), outline=escuro(AMARELO, 0.5), width=2)
-        d.ellipse([5, 5, IW - 6, IW - 6], outline=claro(AMARELO, 0.6))
-        d.rectangle([m - 1, 7, m, IW - 8], fill=escuro(AMARELO, 0.45))
-        d.rectangle([7, m - 1, IW - 8, m], fill=escuro(AMARELO, 0.45))
+        d.ellipse([4, 4, IW - 5, IW - 5], outline=claro(AMARELO, 0.6))
+        d.rectangle([m - 1, 6, m, IW - 7], fill=escuro(AMARELO, 0.45))
+        d.rectangle([6, m - 1, IW - 7, m], fill=escuro(AMARELO, 0.45))
     elif nome.startswith("Olho") or nome == "Assustado":
         # O olho e um bloco tambem: o branco ocupa o bloco inteiro, e a pupila olha para o aluno.
         d.rectangle([0, 0, IW - 1, IW - 1], fill=(250, 250, 255, 255), outline=PRETO_DA_TEXTURA, width=2)
@@ -244,16 +244,16 @@ def inimigo(nome):
             d.line([(4, 6), (m - 2, 3)], fill=TRACO, width=2)
             d.line([(m + 1, 3), (IW - 5, 6)], fill=TRACO, width=2)
         else:
-            dx = {"Olho": 0, "OlhoEsquerda": -5, "OlhoDireita": 5}[nome]
-            d.rectangle([m - 4 + dx, m - 3, m + 3 + dx, m + 5], fill=TRACO)
+            dx = {"Olho": 0, "OlhoEsquerda": -4, "OlhoDireita": 4}[nome]
+            d.rectangle([m - 3 + dx, m - 3, m + 2 + dx, m + 4], fill=TRACO)
             d.rectangle([m - 3 + dx, m - 2, m - 2 + dx, m - 1], fill=(250, 250, 255, 255))
     elif nome in ("Poder0", "Poder1"):
         # O power-up: uma estrela de pixel, que pulsa entre os dois quadros.
         grande = nome == "Poder1"
         if grande:
             d.ellipse([0, 0, IW - 1, IW - 1], fill=(255, 230, 120, 90))
-        estrela(d, m, m + 1, 11 if grande else 10, 4.5, cheia(AMARELO), escuro(AMARELO, 0.4))
-        estrela(d, m, m + 1, 5, 2.2, claro(AMARELO, 0.7), None)
+        estrela(d, m, m, m if grande else m - 1, 4.0, cheia(AMARELO), escuro(AMARELO, 0.4))
+        estrela(d, m, m, 4.5, 2.0, claro(AMARELO, 0.7), None)
     return im
 
 
