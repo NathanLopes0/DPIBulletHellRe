@@ -360,6 +360,16 @@ Para ver: `--batalha 16 --semente 101 --piloto esquiva --atira --teclas "B@560"`
 termina com `FIM nota=0.0000`. Os pilotos não usam o Ponto Extra, e as linhas
 de base não mudam.
 
+O modo deus do Lucas Ferreira no TCC (`Poder::Tipo::ModoDeus`) não crava mais a
+nota em 100: a cada `kEntreRaios` (0,06 s) um raio apaga o tiro do Hugo mais
+perto de um aluno (`Poder::MaisPerto`, um aluno por vez na dupla) e paga
+`kNotaPorRaio` (0,30) por `Battle::Conquistar`. O rastro é o
+`DrawAnimatedComponent::DefinirRastro` (cópias do desenho somadas na cor de
+`Hud::ArcoIris`), e o acerto não carrega o poder em curso
+(`Poder::CarregaDuranteOPoder`). Na linha de base `tcc_INF216` (semente 11,
+`segue`), o primeiro modo deus leva a nota de 44 a 91, e a luta termina em
+87,99 (antes, 99,74 com a nota cravada).
+
 Na fase 3, a inversão: cada dúvida que chega ao professor custa 1,3, e os dois
 pilotos atiram sem parar. Quem lê o placar ("INVERTIDO: pegue as moedas e NÃO
 atire") para de atirar e cata as moedas. O `esquiva` também não pega as moedas

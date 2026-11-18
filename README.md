@@ -1075,10 +1075,14 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     orienta sem sentar na banca; o objetivo dela pergunta "Cadê o controle
     negativo?".
   - **Lucas Ferreira — modo deus.** Quem faz jogos conhece os códigos deles, e
-    o TCC vira trapaça: a nota **sobe até 100** em 1,6 s, você fica
-    **invencível por 18 segundos**, e uma bolha dourada em volta de você empurra
-    para longe todo tiro do Hugo que chega nela — ele atira, e os tiros fogem.
-    É o poder que trivializa o TCC: o prêmio de quem passou na optativa secreta.
+    o TCC vira trapaça: você fica **invencível por 18 segundos**, deixa um
+    **rastro de sombras suas em arco-íris** e as bordas do campo brilham, para
+    não haver dúvida de que é o god mode. A cada 0,06 s sai de você um **raio**
+    que apaga o tiro do Hugo mais perto — na dupla, um aluno de cada vez —, e
+    **cada tiro apagado vale nota**: a chuva do Hugo é grossa, são 300 raios, e
+    a nota vai lá para cima (no TCC medido, de 44 para 91 num modo deus só).
+    Enquanto ele dura, acertar o Hugo não carrega o próximo. É o poder que
+    trivializa o TCC: o prêmio de quem passou na optativa secreta.
     Também orienta sem sentar na banca; o objetivo dele pergunta "Cadê o
     playtest?".
 

@@ -42,7 +42,30 @@ public:
     /// na dupla, o do projetil que vai num aluno (Battle::MarcarOCaminhoDosAlunos).
     void DefinirBrilho(bool ligado, SDL_Color cor = SDL_Color{0, 0, 0, 0}, int alcance = 0);
 
+    /// O rastro do modo deus (Poder::Tipo::ModoDeus): a cada kEntreEcos uma copia do desenho fica para
+    /// tras, tingida da cor seguinte do arco-iris (Hud::ArcoIris), e some em kVidaDoEco. Desligado, as
+    /// copias que ja estao no campo terminam de sumir.
+    void DefinirRastro(bool ligado);
+
 private:
+    /// O quadro da folha e o retangulo na tela do desenho de agora; false sem desenho.
+    bool QuadroAtual(SDL_Rect& quadro, SDL_Rect& destino) const;
+    void DesenharEcos(SDL_Renderer* renderer);
+
+    struct Eco {
+        SDL_Rect quadro;
+        SDL_Rect destino;
+        double angulo = 0.0;
+        float idade = 0.0f;
+        float matiz = 0.0f;
+    };
+    static constexpr float kEntreEcos = 0.035f;
+    static constexpr float kVidaDoEco = 0.32f;
+    std::vector<Eco> mEcos;
+    bool mRastro = false;
+    float mProximoEco = 0.0f;
+    float mMatiz = 0.0f;
+
     /// A silhueta da folha deslocada 'distancia' pixels nas oito direcoes, na cor 'cor': e do que o
     /// contorno e o brilho sao feitos.
     void DesenharSilhueta(SDL_Renderer* renderer, const SDL_Rect& quadro, const SDL_Rect& destino,

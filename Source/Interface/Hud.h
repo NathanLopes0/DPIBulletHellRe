@@ -83,6 +83,10 @@ namespace Hud {
     /// A cor do aluno 'quem' (0 ou 1): azul o primeiro, laranja o segundo.
     Rgb CorDoAluno(std::size_t quem);
 
+    /// O arco-iris do modo deus (Poder::Tipo::ModoDeus): 'matiz' de 0 a 1 da a volta inteira -
+    /// vermelho, amarelo, verde, ciano, azul, magenta e vermelho de novo -, e repete fora dela.
+    Rgb ArcoIris(float matiz);
+
     /// O balao que o escudo barra murcha e fica cinza, em vez de sumir: a pergunta que nao foi
     /// ouvida. Dura isto.
     constexpr float kMurcha = 0.3f;

@@ -274,6 +274,8 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
 
 void Orientador::Carregar() {
     if (mPoder.tipo == Poder::Tipo::Nenhum) return;
+    // No modo deus em curso, nao: cada raio ja paga nota.
+    if (mTempo < mPoderAte && !Poder::CarregaDuranteOPoder(mPoder.tipo)) return;
     mCarga = std::min(Poder::kCarga, mCarga + 1.0f);
     AvisarSePronto();
 }

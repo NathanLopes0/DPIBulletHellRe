@@ -62,6 +62,9 @@ public:
     /// Protege este aluno por um tempo, as custas do Ponto Extra do parceiro. Renova, nao acumula.
     void Proteger(float segundos);
 
+    /// O rastro de sombras coloridas do modo deus (DrawAnimatedComponent::DefinirRastro).
+    void LigarRastro(bool ligado);
+
     /// Prende o aluno: ele anda a uma fracao da velocidade por um tempo. E o efeito das correntes
     /// do Vitor - a piada de "concorrentes".
     void Acorrentar(float segundos, float fatorDeVelocidade);

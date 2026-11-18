@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 
+#include "../Source/Interface/Hud.h"
 #include "../Source/Regras/Poder.h"
 
 using namespace Poder;
@@ -54,41 +55,65 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Ferreira) == kQuadroDoFerreira);
 }
 
-TEST_CASE("Poder: o modo deus do Lucas Ferreira - nota 100, invencivel, e os tiros fogem") {
+TEST_CASE("Poder: o modo deus do Lucas Ferreira - invencivel, e raios que apagam o tiro mais perto") {
     const Descricao d = Da(Golpe::Materia::Ferreira);
     CHECK(d.tipo == Tipo::ModoDeus);
     CHECK_FALSE(Ataca(Tipo::ModoDeus));   // sai assim que fica pronto: nao espera o escudo do Hugo
     CHECK(d.duracao == doctest::Approx(kDuracaoDoModoDeus));
-    CHECK(d.raio == doctest::Approx(kRaioDoModoDeus));
+    CHECK(d.intervalo == doctest::Approx(kEntreRaios));
+    CHECK(d.tiros == RaiosDoModoDeus());
     // Ele trivializa o TCC: dura mais que qualquer outro poder.
     for (const Golpe::Materia m : {Golpe::Materia::Andre, Golpe::Materia::Salles, Golpe::Materia::Thiago,
                                    Golpe::Materia::Julio, Golpe::Materia::Vitor, Golpe::Materia::Goulart,
                                    Golpe::Materia::Michel, Golpe::Materia::Sabrina}) {
         CHECK(Da(m).duracao < d.duracao);
     }
-    // A nota sobe em linha ate 100, de onde estiver, e la fica.
-    CHECK(NotaNoModoDeus(30.0f, 0.0f) == doctest::Approx(30.0f));
-    CHECK(NotaNoModoDeus(30.0f, kSubidaDoModoDeus / 2.0f) == doctest::Approx(65.0f));
-    CHECK(NotaNoModoDeus(30.0f, kSubidaDoModoDeus) == doctest::Approx(100.0f));
-    CHECK(NotaNoModoDeus(30.0f, 99.0f) == doctest::Approx(100.0f));
-    CHECK(NotaNoModoDeus(100.0f, 0.5f) == doctest::Approx(100.0f));
-    // O empurrao: para longe do aluno, nunca devagar, e mantendo a rapidez de quem ja vinha rapido.
+    // Os raios: o primeiro na hora, um a cada kEntreRaios, e nenhum depois do fim - muitos, e a nota
+    // que eles pagam juntos vai bem longe.
+    CHECK(RaiosAte(-0.1f) == 0);
+    CHECK(RaiosAte(0.0f) == 1);
+    CHECK(RaiosAte(kEntreRaios * 0.99f) == 1);
+    CHECK(RaiosAte(kEntreRaios * 1.01f) == 2);
+    CHECK(RaiosAte(kDuracaoDoModoDeus + 5.0f) == RaiosDoModoDeus());
+    CHECK(RaiosDoModoDeus() >= 250);
+    CHECK(static_cast<float>(RaiosDoModoDeus()) * kNotaPorRaio >= 60.0f);
+    CHECK(kVidaDoRaio > kEntreRaios);   // sempre ha raio aceso: o efeito nao pisca
+    // O mais perto, de verdade, e -1 sem nenhum.
     const Vector2 aluno(600.0f, 700.0f);
-    const Vector2 v = Empurrado(Vector2(600.0f, 600.0f), aluno, Vector2(0.0f, 200.0f));
-    CHECK(v.y < 0.0f);
-    CHECK(std::fabs(v.x) < 1e-3f);
-    CHECK(v.Length() == doctest::Approx(kEmpurraoDoModoDeus));
-    const Vector2 lado = Empurrado(Vector2(700.0f, 700.0f), aluno, Vector2(-900.0f, 0.0f));
-    CHECK(lado.x > 0.0f);
-    CHECK(lado.Length() == doctest::Approx(900.0f));
-    CHECK(Empurrado(aluno, aluno, Vector2(0.0f, 0.0f)).y < 0.0f);   // em cima dele: para cima
-    // A previa: a bolha aparece, e nenhum tiro do Hugo fica dentro dela.
+    CHECK(MaisPerto({}, aluno) == -1);
+    CHECK(MaisPerto({Vector2(600.0f, 100.0f), Vector2(640.0f, 690.0f), Vector2(100.0f, 700.0f)}, aluno) == 1);
+    // O acerto nao carrega o modo deus em curso; os outros poderes continuam como eram.
+    CHECK_FALSE(CarregaDuranteOPoder(Tipo::ModoDeus));
+    CHECK(CarregaDuranteOPoder(Tipo::Helice));
+    CHECK(CarregaDuranteOPoder(Tipo::Pilha));
+    // A previa: a borda acende, e o raio sai do aluno ate uma gota, que se apaga.
+    const Quadro antes = Previa(Tipo::ModoDeus, 0.2f);
+    CHECK(antes.tracos.empty());
     const Quadro q = Previa(Tipo::ModoDeus, 2.0f);
-    CHECK_FALSE(q.tracos.empty());
-    for (const Ponto& p : q.pontos) {
-        if (p.marca != Marca::TiroDoHugo) continue;
-        CHECK(std::hypot(p.x - 0.5f, (p.y - 0.88f)) > 0.05f);
-    }
+    CHECK(q.tracos.size() >= 4);
+    bool raio = false;
+    for (const Traco& tr : q.tracos) raio = raio || (tr.x0 == doctest::Approx(0.5f) && tr.y0 > 0.8f);
+    CHECK(raio);
+    bool apagada = false;
+    for (const Ponto& p : q.pontos) apagada = apagada || p.marca == Marca::Apagado;
+    CHECK(apagada);
+}
+
+TEST_CASE("Hud: o arco-iris do modo deus da a volta e repete") {
+    const Hud::Rgb vermelho = Hud::ArcoIris(0.0f);
+    CHECK(vermelho.r == 255);
+    CHECK(vermelho.g < 100);
+    CHECK(vermelho.b < 100);
+    const Hud::Rgb verde = Hud::ArcoIris(1.0f / 3.0f);
+    CHECK(verde.g == 255);
+    CHECK(verde.r < 100);
+    const Hud::Rgb azul = Hud::ArcoIris(2.0f / 3.0f);
+    CHECK(azul.b == 255);
+    CHECK(azul.g < 100);
+    const Hud::Rgb deNovo = Hud::ArcoIris(1.0f);
+    CHECK(deNovo.r == vermelho.r);
+    CHECK(deNovo.g == vermelho.g);
+    CHECK(Hud::ArcoIris(-0.25f).b == Hud::ArcoIris(0.75f).b);
 }
 
 TEST_CASE("Poder: a dupla helice da Sabrina sobe girando, as fitas em lados opostos, A-T e C-G") {

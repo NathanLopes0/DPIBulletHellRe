@@ -101,6 +101,19 @@ namespace Hud {
         return {255, 255, 255};
     }
 
+    Rgb ArcoIris(const float matiz) {
+        const float h = (matiz - std::floor(matiz)) * 6.0f;
+        // Saturado mas nao puro: o branco do campo escuro nao estoura.
+        constexpr float kAlto = 255.0f, kBaixo = 60.0f;
+        const auto canal = [&](const float centro) {
+            float d = std::fabs(h - centro);
+            d = std::min(d, 6.0f - d);
+            const float u = std::clamp(2.0f - d, 0.0f, 1.0f);
+            return static_cast<unsigned char>(kBaixo + (kAlto - kBaixo) * u);
+        };
+        return {canal(0.0f), canal(2.0f), canal(4.0f)};
+    }
+
     float Murcho(const float idade) {
         const float u = std::clamp(idade / kMurcha, 0.0f, 1.0f);
         return 1.0f - 0.7f * (1.0f - (1.0f - u) * (1.0f - u));

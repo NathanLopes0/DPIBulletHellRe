@@ -329,6 +329,10 @@ void Player::AtualizarCorDoEstado() {
 
 // ---- Os efeitos de fora ----
 
+void Player::LigarRastro(const bool ligado) {
+    if (mDesenho) mDesenho->DefinirRastro(ligado);
+}
+
 void Player::Proteger(const float segundos) {
     // O maior dos dois, e nao a soma.
     mTempoDeImunidade = std::max(mTempoDeImunidade, segundos);

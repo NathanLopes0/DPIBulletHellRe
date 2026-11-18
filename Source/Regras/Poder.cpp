@@ -71,8 +71,8 @@ namespace Poder {
                      2 * static_cast<int>(std::ceil(kDuracaoDaHelice / kEntrePares)), kEntrePares};
                 break;
             case Golpe::Materia::Ferreira:
-                d = {Tipo::ModoDeus, "modo deus", "nota 100, invenc\xc3\xadvel - e os tiros fogem de voc\xc3\xaa",
-                     kDuracaoDoModoDeus, kRaioDoModoDeus, 0, 0.0f};
+                d = {Tipo::ModoDeus, "modo deus", "invenc\xc3\xadvel: raios apagam os tiros, e cada um vira nota",
+                     kDuracaoDoModoDeus, 0.0f, RaiosDoModoDeus(), kEntreRaios};
                 break;
             case Golpe::Materia::Daniel:
                 // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
@@ -150,16 +150,30 @@ namespace Poder {
         return 2 + static_cast<int>(m);
     }
 
-    float NotaNoModoDeus(const float antes, const float t) {
-        const float u = std::clamp(t / kSubidaDoModoDeus, 0.0f, 1.0f);
-        return antes + (100.0f - antes) * u;
+    int RaiosDoModoDeus() {
+        return static_cast<int>(std::ceil(kDuracaoDoModoDeus / kEntreRaios - 1e-4f));
     }
 
-    Vector2 Empurrado(const Vector2& tiro, const Vector2& aluno, const Vector2& v) {
-        Vector2 fora = tiro - aluno;
-        const float d = fora.Length();
-        fora = d > 1e-3f ? fora * (1.0f / d) : Vector2(0.0f, -1.0f);
-        return fora * std::max(kEmpurraoDoModoDeus, v.Length());
+    int RaiosAte(const float t) {
+        if (t < 0.0f) return 0;
+        return std::min(RaiosDoModoDeus(), static_cast<int>(std::floor(t / kEntreRaios)) + 1);
+    }
+
+    int MaisPerto(const std::vector<Vector2>& tiros, const Vector2& de) {
+        int melhor = -1;
+        float menor = std::numeric_limits<float>::max();
+        for (size_t k = 0; k < tiros.size(); ++k) {
+            const float d = (tiros[k] - de).LengthSq();
+            if (d < menor) {
+                menor = d;
+                melhor = static_cast<int>(k);
+            }
+        }
+        return melhor;
+    }
+
+    bool CarregaDuranteOPoder(const Tipo t) {
+        return t != Tipo::ModoDeus;
     }
 
     NaHelice Base(const int fita, const float idade) {
@@ -592,26 +606,32 @@ namespace Poder {
                 break;
             }
             case Tipo::ModoDeus: {
-                // A chuva do Hugo; o aluno ganha a bolha dourada, e o tiro que chega nela e jogado
-                // para fora, pela borda.
-                constexpr float kSai = 0.5f, kRaio = 0.17f;
+                // A chuva do Hugo; ligado, a borda do campo acende e, a cada passo, um raio sai do
+                // aluno e apaga a gota mais perto - que vira nota.
+                constexpr float kSai = 0.5f, kPasso = 0.25f, kAceso = 0.12f, kBorda = 0.02f;
                 const bool ligado = t >= kSai;
-                for (Ponto p : Chuva(t, 12)) {
-                    const float dx = p.x - kAlunoX, dy = (p.y - kAlunoY) / kAspecto;
-                    const float d = std::hypot(dx, dy);
-                    if (ligado && d < kRaio && d > 1e-4f) {
-                        p.x = kAlunoX + dx / d * kRaio;
-                        p.y = kAlunoY + dy / d * kRaio * kAspecto;
-                    }
-                    q.pontos.push_back(p);
-                }
+                std::vector<Ponto> chuva = Chuva(t, 12);
                 if (ligado) {
-                    Anel(q, Marca::Figura, kAlunoX, kAlunoY, kRaio + 0.01f * std::sin(t * 9.0f));
-                    Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, 0.05f);
+                    std::vector<Vector2> onde;
+                    for (const Ponto& p : chuva) onde.emplace_back(p.x, p.y);
+                    const int alvo = MaisPerto(onde, Vector2(kAlunoX, kAlunoY));
+                    const float noPasso = std::fmod(t - kSai, kPasso);
+                    if (alvo >= 0 && noPasso < kAceso) {
+                        Ponto& p = chuva[static_cast<size_t>(alvo)];
+                        q.tracos.push_back({Marca::Figura, kAlunoX, kAlunoY - 0.03f, p.x, p.y});
+                        p.marca = Marca::Apagado;
+                    }
+                    // A borda que brilha.
+                    const float a = kBorda, b = 1.0f - kBorda;
+                    q.tracos.push_back({Marca::Figura, a, a, b, a});
+                    q.tracos.push_back({Marca::Figura, b, a, b, b});
+                    q.tracos.push_back({Marca::Figura, b, b, a, b});
+                    q.tracos.push_back({Marca::Figura, a, b, a, a});
                 }
-                // \xc3\xad e o i agudo.
+                for (const Ponto& p : chuva) q.pontos.push_back(p);
+                // \xc3\xad e o i agudo, \xc3\xb3 o o agudo.
                 q.legenda = !ligado ? "modo deus: os c\xc3\xb3" "digos do jogo"
-                                    : (t < kSai + 1.4f ? "nota = 100" : "invenc\xc3\xadvel: os tiros fogem de voc\xc3\xaa");
+                                    : (t < kSai + 1.6f ? "godMode = true" : "cada tiro apagado vira nota");
                 break;
             }
             case Tipo::Helice: {

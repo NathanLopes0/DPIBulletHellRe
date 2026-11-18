@@ -2,7 +2,10 @@
 // Created by nslop on 27/08/2024.
 //
 
+#include <algorithm>
+
 #include "../../Motor/Game.h"
+#include "../../Interface/Hud.h"
 #include "../../Actors/Actor.h"
 #include "../../Regras/Destrutivel.h"
 #include "DrawAnimatedComponent.h"
@@ -54,6 +57,9 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
 }
 
 void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
+
+    // O rastro vem antes, por baixo, e nao pisca com o desenho (o aluno protegido pisca).
+    if (!mEcos.empty() && mSpriteSheetSurface) DesenharEcos(renderer);
 
     if (!mIsVisible || !mSpriteSheetSurface) return;
 
@@ -113,6 +119,49 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
     }
 }
 
+void DrawAnimatedComponent::DefinirRastro(const bool ligado) {
+    mRastro = ligado;
+    mProximoEco = 0.0f;
+}
+
+bool DrawAnimatedComponent::QuadroAtual(SDL_Rect& quadro, SDL_Rect& destino) const {
+    const auto animIt = mAnimations.find(mAnimName);
+    if (animIt == mAnimations.end() || animIt->second.empty()) return false;
+    const auto& frames = animIt->second;
+    auto frameIdx = static_cast<size_t>(mAnimTimer);
+    if (frameIdx >= frames.size()) frameIdx = frames.size() - 1;
+    const int spriteIdx = mUsingFallbackSheet ? 0 : frames[frameIdx];
+    if (spriteIdx < 0 || static_cast<size_t>(spriteIdx) >= mSpriteSheetData.size()) return false;
+    // As mesmas contas do Draw.
+    const Vector2 pos = mOwner->GetPosition();
+    const float scale = mOwner->GetScale() * mEscalaPropria;
+    quadro = mSpriteSheetData[spriteIdx];
+    const int w = static_cast<int>(quadro.w * scale);
+    const int h = static_cast<int>(quadro.h * scale);
+    destino = {static_cast<int>(pos.x - w / 2.0f), static_cast<int>(pos.y - h / 2.0f), w, h};
+    return true;
+}
+
+void DrawAnimatedComponent::DesenharEcos(SDL_Renderer* renderer) {
+    // Somando a luz, e nao por cima: a copia de um desenho escuro ainda brilha na cor dela.
+    SDL_BlendMode antes = SDL_BLENDMODE_BLEND;
+    SDL_GetTextureBlendMode(mSpriteSheetSurface, &antes);
+    SDL_SetTextureBlendMode(mSpriteSheetSurface, SDL_BLENDMODE_ADD);
+    for (const Eco& e : mEcos) {
+        const Hud::Rgb c = Hud::ArcoIris(e.matiz);
+        const float u = 1.0f - e.idade / kVidaDoEco;
+        SDL_SetTextureColorMod(mSpriteSheetSurface, c.r, c.g, c.b);
+        SDL_SetTextureAlphaMod(mSpriteSheetSurface, static_cast<Uint8>(std::clamp(u * 230.0f, 0.0f, 255.0f)));
+        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
+        // Duas vezes no comeco da vida: o eco novo e quase branco de tanta luz.
+        if (u > 0.6f) SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
+    }
+    // A folha volta como estava: a mistura, a cor do componente e opaca.
+    SDL_SetTextureBlendMode(mSpriteSheetSurface, antes);
+    SDL_SetTextureAlphaMod(mSpriteSheetSurface, 255);
+    ApplyColorMod();
+}
+
 void DrawAnimatedComponent::DefinirContorno(const bool ligado, const SDL_Color cor) {
     mContorno = ligado;
     mCorDoContorno = cor;
@@ -152,6 +201,22 @@ void DrawAnimatedComponent::DesenharSilhueta(SDL_Renderer* renderer, const SDL_R
 
 void DrawAnimatedComponent::Update(float deltaTime)
 {
+    // O rastro anda com o relogio, e nao com a animacao.
+    for (Eco& e : mEcos) e.idade += deltaTime;
+    mEcos.erase(std::remove_if(mEcos.begin(), mEcos.end(), [](const Eco& e) { return e.idade >= kVidaDoEco; }),
+                mEcos.end());
+    if (mRastro) {
+        mProximoEco -= deltaTime;
+        Eco e;
+        if (mProximoEco <= 0.0f && QuadroAtual(e.quadro, e.destino)) {
+            mProximoEco = kEntreEcos;
+            e.angulo = -Math::ToDegrees(mOwner->GetRotation());
+            e.matiz = mMatiz;
+            mMatiz += 0.06f;
+            mEcos.push_back(e);
+        }
+    }
+
     if(mIsPaused) return;
 
     // Mesma protecao do Draw.

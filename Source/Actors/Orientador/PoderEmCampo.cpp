@@ -675,52 +675,127 @@ namespace {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
             mInicio = o.Tempo();
-            mNotaAntes = batalha.NotaAtual();
+            mRaios = 0;
             mAtivo = true;
             for (Player* a : batalha.Jogadores()) {
-                if (a) a->Proteger(Poder::kDuracaoDoModoDeus);
+                if (!a) continue;
+                a->Proteger(Poder::kDuracaoDoModoDeus);
+                a->LigarRastro(true);
             }
             o.AbrirAnel();
         }
-        void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
-            if (!mAtivo) return;
-            if (!ativo) {
+        void Atualizar(Orientador& o, Battle& batalha, const float deltaTime, const bool ativo) override {
+            // Os raios ja soltos terminam de se apagar, mesmo depois do fim.
+            for (Raio& r : mAcesos) r.idade += deltaTime;
+            mAcesos.erase(std::remove_if(mAcesos.begin(), mAcesos.end(),
+                                         [](const Raio& r) { return r.idade >= Poder::kVidaDoRaio; }),
+                          mAcesos.end());
+            if (mAtivo && !ativo) {
                 mAtivo = false;
-                return;
-            }
-            // A nota sobe ate 100; depois a conta segue sozinha (invencivel, o aluno nao a perde).
-            const float t = o.Tempo() - mInicio;
-            if (t <= Poder::kSubidaDoModoDeus + 0.05f) batalha.DefinirNota(Poder::NotaNoModoDeus(mNotaAntes, t));
-            // Os tiros do Hugo fogem de cada aluno: o que entra na bolha sai empurrado.
-            const std::vector<Player*>& alunos = batalha.Jogadores();
-            for (BossProjectile* p : o.TirosSoltos(batalha)) {
-                auto* rb = p->GetComponent<RigidBodyComponent>();
-                if (!rb) continue;
-                for (const Player* a : alunos) {
-                    if (!a || (p->GetPosition() - a->GetPosition()).Length() > Poder::kRaioDoModoDeus) continue;
-                    rb->SetVelocity(Poder::Empurrado(p->GetPosition(), a->GetPosition(), rb->GetVelocity()));
+                for (Player* a : batalha.Jogadores()) {
+                    if (a) a->LigarRastro(false);
                 }
             }
-            // A bolha dourada, que pulsa, e o anel de dentro, que gira.
-            for (const Player* a : alunos) {
-                if (!a) continue;
-                const Vector2 c = a->GetPosition();
-                const float r = Poder::kRaioDoModoDeus * (0.96f + 0.04f * std::sin(o.Tempo() * 7.0f));
-                constexpr int kLados = 36;
-                for (int k = 0; k < kLados; ++k) {
-                    const float a0 = Math::TwoPi * static_cast<float>(k) / kLados, a1 = Math::TwoPi * static_cast<float>(k + 1) / kLados;
-                    o.Tracar(c + Vector2(std::cos(a0), std::sin(a0)) * r, c + Vector2(std::cos(a1), std::sin(a1)) * r, kOuro);
-                    if (k % 3 == 0) {
-                        const float g = a0 + o.Tempo() * 2.0f;
-                        o.Tracar(c + Vector2(std::cos(g), std::sin(g)) * 30.0f, c + Vector2(std::cos(g + 0.15f), std::sin(g + 0.15f)) * 30.0f, kOuro);
+            if (mAtivo) {
+                const float t = o.Tempo() - mInicio;
+                Disparar(o, batalha, Poder::RaiosAte(t));
+                DesenharABorda(o, batalha, t);
+            }
+            for (const Raio& r : mAcesos) DesenharRaio(o, r);
+        }
+    private:
+        struct Raio {
+            Vector2 de;
+            Vector2 ate;
+            float idade = 0.0f;
+            float matiz = 0.0f;
+        };
+
+        /// Os raios que faltam ate 'devidos': um de cada aluno por vez, no tiro do Hugo mais perto dele.
+        void Disparar(Orientador& o, Battle& batalha, const int devidos) {
+            std::vector<const Player*> alunos;
+            for (const Player* a : batalha.Jogadores()) {
+                if (a) alunos.push_back(a);
+            }
+            if (alunos.empty()) {
+                mRaios = devidos;
+                return;
+            }
+            while (mRaios < devidos) {
+                const Player* a = alunos[static_cast<size_t>(mRaios) % alunos.size()];
+                ++mRaios;
+                // O que o raio anterior apagou ja nao esta Active: TirosSoltos nao o devolve.
+                const std::vector<BossProjectile*> tiros = o.TirosSoltos(batalha);
+                std::vector<Vector2> onde;
+                onde.reserve(tiros.size());
+                for (const BossProjectile* p : tiros) onde.push_back(p->GetPosition());
+                const int k = Poder::MaisPerto(onde, a->GetPosition());
+                if (k < 0) continue;
+                const Vector2 alvo = onde[static_cast<size_t>(k)];
+                tiros[static_cast<size_t>(k)]->Kill();
+                batalha.Faiscar(alvo, Hud::Faisca::Dissolvido);
+                batalha.Conquistar(Poder::kNotaPorRaio);
+                mAcesos.push_back({a->GetPosition(), alvo, 0.0f, static_cast<float>(mRaios) * 0.083f});
+            }
+        }
+
+        /// O raio: um nucleo branco e duas linhas na cor dele, um pouco tortas, que se apagam.
+        static void DesenharRaio(Orientador& o, const Raio& r) {
+            const float u = 1.0f - r.idade / Poder::kVidaDoRaio;
+            const Hud::Rgb c = Hud::ArcoIris(r.matiz);
+            const auto alfa = [u](const float a) { return static_cast<Uint8>(std::clamp(a * u, 0.0f, 255.0f)); };
+            const SDL_Color cor{c.r, c.g, c.b, alfa(235.0f)};
+            const SDL_Color nucleo{255, 255, 255, alfa(255.0f)};
+            const Vector2 d = r.ate - r.de;
+            const float comprimento = d.Length();
+            if (comprimento < 1.0f) return;
+            const Vector2 normal = Vector2(-d.y, d.x) * (1.0f / comprimento);
+            // O zigue-zague: quatro dobras, para o lado e para o outro.
+            constexpr int kDobras = 5;
+            Vector2 antes = r.de;
+            for (int k = 1; k <= kDobras; ++k) {
+                const float f = static_cast<float>(k) / kDobras;
+                const float lado = (k == kDobras) ? 0.0f : ((k % 2 == 0) ? 1.0f : -1.0f) * 6.0f;
+                const Vector2 agora = r.de + d * f + normal * lado;
+                o.Tracar(antes, agora, nucleo);
+                o.Tracar(antes + normal * 2.0f, agora + normal * 2.0f, cor);
+                o.Tracar(antes - normal * 2.0f, agora - normal * 2.0f, cor);
+                antes = agora;
+            }
+        }
+
+        /// As bordas do campo brilham: um arco-iris que corre por elas, em faixas que se apagam para
+        /// dentro, e pulsa.
+        static void DesenharABorda(Orientador& o, Battle& batalha, const float t) {
+            const SDL_FRect c = batalha.GetPlayfieldBounds();
+            const float pulso = 0.75f + 0.25f * std::sin(t * 6.0f);
+            constexpr int kFaixas = 6;
+            constexpr int kPedacosPorLado = 16;
+            const float perimetro = 2.0f * (c.w + c.h);
+            for (int f = 0; f < kFaixas; ++f) {
+                const float dentro = 1.0f + 2.5f * static_cast<float>(f);
+                const Vector2 cantos[4] = {Vector2(c.x + dentro, c.y + dentro), Vector2(c.x + c.w - dentro, c.y + dentro),
+                                           Vector2(c.x + c.w - dentro, c.y + c.h - dentro),
+                                           Vector2(c.x + dentro, c.y + c.h - dentro)};
+                const auto a = static_cast<Uint8>(std::clamp(pulso * (245.0f - 38.0f * static_cast<float>(f)), 0.0f, 255.0f));
+                float andado = 0.0f;
+                for (int lado = 0; lado < 4; ++lado) {
+                    const Vector2 de = cantos[lado], ate = cantos[(lado + 1) % 4];
+                    const float comprimento = (ate - de).Length();
+                    for (int k = 0; k < kPedacosPorLado; ++k) {
+                        const float f0 = static_cast<float>(k) / kPedacosPorLado, f1 = static_cast<float>(k + 1) / kPedacosPorLado;
+                        const float matiz = (andado + comprimento * f0) / perimetro * 2.0f - t * 0.6f;
+                        const Hud::Rgb rgb = Hud::ArcoIris(matiz);
+                        o.Tracar(de + (ate - de) * f0, de + (ate - de) * f1, SDL_Color{rgb.r, rgb.g, rgb.b, a});
                     }
+                    andado += comprimento;
                 }
             }
         }
-    private:
-        static constexpr SDL_Color kOuro{255, 214, 90, 200};
+
+        std::vector<Raio> mAcesos;
         float mInicio = 0.0f;
-        float mNotaAntes = 0.0f;
+        int mRaios = 0;
         bool mAtivo = false;
     };
 

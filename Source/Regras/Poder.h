@@ -192,20 +192,27 @@ namespace Poder {
 
     // ---- Lucas Ferreira: o modo deus ----
 
-    /// O professor de jogos digitais conhece os codigos do jogo, e o TCC vira trapaca: a nota sobe ate
-    /// 100 em kSubidaDoModoDeus segundos, os alunos ficam invenciveis por kDuracaoDoModoDeus, e todo
-    /// tiro do Hugo que chega a kRaioDoModoDeus de um deles e empurrado para longe - o Hugo atira, e os
-    /// tiros fogem.
+    /// O professor de jogos digitais conhece os codigos do jogo, e o TCC vira trapaca: por
+    /// kDuracaoDoModoDeus os alunos ficam invenciveis e deixam um rastro de sombras coloridas, as
+    /// bordas do campo brilham, e a cada kEntreRaios sai de um deles (na dupla, um de cada vez) um raio
+    /// que apaga o tiro do Hugo mais perto - e cada tiro apagado vale kNotaPorRaio. A chuva do Hugo e
+    /// grossa: em 18 s sao 300 raios, e a nota vai la para cima. Enquanto isso o orientador nao carrega
+    /// (CarregaDuranteOPoder).
     constexpr float kDuracaoDoModoDeus = 18.0f;
-    constexpr float kSubidaDoModoDeus = 1.6f;
-    constexpr float kRaioDoModoDeus = 150.0f;
-    /// A rapidez minima do tiro empurrado, para fora da bolha.
-    constexpr float kEmpurraoDoModoDeus = 320.0f;
-    /// A nota 't' segundos depois de o poder sair, quando ela era 'antes': sobe em linha ate 100.
-    float NotaNoModoDeus(float antes, float t);
-    /// A velocidade do tiro em 'tiro', empurrado pelo aluno em 'aluno' quando vinha a 'v': para longe
-    /// dele, a pelo menos kEmpurraoDoModoDeus.
-    Vector2 Empurrado(const Vector2& tiro, const Vector2& aluno, const Vector2& v);
+    constexpr float kEntreRaios = 0.06f;
+    constexpr float kNotaPorRaio = 0.30f;
+    /// Quanto o raio fica aceso depois de sair.
+    constexpr float kVidaDoRaio = 0.18f;
+    /// Quantos raios saem no modo deus inteiro.
+    int RaiosDoModoDeus();
+    /// Os raios que ja sairam 't' segundos depois de o poder sair: o primeiro sai na hora, e nenhum
+    /// depois do fim.
+    int RaiosAte(float t);
+    /// O tiro mais perto de 'de' entre 'tiros' (o indice), ou -1 sem nenhum.
+    int MaisPerto(const std::vector<Vector2>& tiros, const Vector2& de);
+    /// Se o acerto do aluno carrega o poder 't' enquanto ele esta em curso. O tempo de luta nunca
+    /// carrega nesse meio-tempo; o acerto, sim - menos no modo deus, em que cada raio paga nota.
+    bool CarregaDuranteOPoder(Tipo t);
 
     // ---- A cara ----
 
