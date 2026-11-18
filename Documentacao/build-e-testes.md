@@ -309,8 +309,8 @@ longe. Sozinho, com as sementes 101 a 103:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 0 (zera na fase 2) | 0 (zera na fase 1) |
-| `esquiva` | 0 a 70 (aprova em uma, no exame) | 0 a 36 (reprova nas três) |
+| `segue` | 0 (zera no começo da fase 3) | 0 (zera na fase 1) |
+| `esquiva` | 0 a 71 (aprova em uma, no exame) | 32 a 38 (reprova nas três) |
 
 Na fase 2 o jogo vira de plataforma, e os dois pilotos andam nela. O `segue`
 vai pelo chão atrás do professor, sem pular, e as pilhas de caixas e as lanças
@@ -320,8 +320,13 @@ aluno (`Plataforma::Passo`), e fica com a mais segura (`Simulacao::Saltar`).
 É a fase em que ele vai melhor: no Normal, sobe de 10 a 21 pontos e apanha de
 0 a 2 vezes.
 
-A fase 1 é a que mais cobra, com 7 a 9 acertos no Normal: a barra varre o
-campo mais rápido do que o `esquiva` enxerga, e ele não mira o X das janelas.
+A fase 1 é a que mais cobra, com 5 acertos no Normal: a barra varre o campo
+mais rápido do que o `esquiva` enxerga, e o inimigo gigante o pega uma vez. Ele
+não pega o power-up nem mira no olho — o que vira o jogo contra o gigante —,
+então o número dele é o de quem só foge. Sem o recuo depois do acerto
+(`IaDoInimigo::kRecuo`), o gigante prendia o `esquiva` na parede e o acertava
+a cada fim de invencibilidade: quatro acertos seguidos, e o Difícil zerava na
+fase 2 nas três sementes.
 O golpe de abertura pega quase todo mundo, mas uma vez só: quem é pego fica
 protegido até o fim dele (o aluno pisca em azul). Sem esse limite, no Difícil,
 a abertura chegou a custar três acertos sozinha, e o `esquiva` zerava na fase 1

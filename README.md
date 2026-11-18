@@ -865,10 +865,21 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   fica de pé e é jogada de um lado ao outro; a cada passada espelha — quem
   passou por um lado tem de passar pelo outro na volta —, e no fim ela volta
   para o rodapé. O pedaço vazio fica marcado em verde, e uma linha mostra onde
-  o cheio acaba. Por fim as **janelas de dica** ("Aceita os cookies?", "Avalie:
-  5 estrelas?") abrem em volta de você: a moldura machuca, o seu tiro atravessa
-  a barra de título, e só um tiro no **X** fecha a janela (e vale nota); com
-  quatro abertas, a mais velha fecha sozinha — e estoura.
+  o cheio acaba. Por fim vem o **primeiro inimigo do jogo**: um gigante feito
+  de blocos de **textura que faltou** — o xadrez magenta e preto que o motor põe
+  no lugar da arte que não carregou —, com dois olhos que seguem você. E a
+  **IA dele aparece**, como no modo debug de quem faz o jogo: o estado fica
+  escrito em cima dele, e cada troca tem o seu aviso. Ele nasce no canto mais
+  longe de você e **patrulha** os cantos, com o raio de visão desenhado; quem
+  entra no raio leva um **"!"** — ele treme, em **alerta** — e então ele
+  **persegue**, cada vez mais rápido (sempre mais devagar que você). De longe
+  por um tempo, ele desiste ("?") e volta a rondar; e depois de acertar você,
+  recua para o canto mais longe, como todo inimigo justo. Os **olhos** são o
+  **ponto fraco**: dois tiros num olho e ele fica **atordoado** (e vale nota).
+  E um **power-up** — a estrela — aparece longe dele: pegue-o e os papéis se
+  invertem, os blocos viram **moedas** e é **ele que foge**; cada bloco que
+  você encosta é nota, e pegar todos o derrota (com bônus) até o respawn, no
+  canto dele. No fim do power-up os blocos piscam: é a hora de se afastar.
   A **física** é a prova inteira: o jogo vira **de plataforma**, e é ele quem
   escolhe para que lado a gravidade puxa. Uma seta avisa, e a virada arremessa
   você no chão novo — o desenho gira com os pés nele, o seu tiro sai para o
@@ -891,10 +902,15 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   por cima e volta por baixo, no mesmo lugar — quem atira parado acerta a si
   mesmo —, e o tiro dele que sai por baixo reaparece em cima. A do tempo: no
   **lag**, os tiros andam aos saltos, a 2,5 quadros por segundo, e um círculo
-  mostra onde cada um vai estar no próximo quadro. A do estado: no
-  **save/load**, ele salva o jogo (o disquete, o ponto de volta) e segundos
-  depois **carrega** — você volta para onde estava, os tiros voltam para onde
-  estavam, e a **nota** volta à do save, para o bem e para o mal.
+  mostra onde cada um vai estar no próximo quadro. A do estado: o **quick
+  save** guarda a sua nota num disquete — e o disquete fica vivo no campo, com
+  a nota dele em cima, comparando-a com a sua. Se a do save é **maior** (você
+  perdeu nota desde então), ele vale mais e **foge** de você, verde e
+  assustado; se é **menor** (você ganhou), ele fica vermelho e bravo e **te
+  persegue** — quanto maior a diferença, mais rápido. Quando ele **encosta** em
+  você, é o quick load: você volta para onde estava no save, com a **nota do
+  save**, para o bem e para o mal. Pegue o save que vale mais; fuja do que vale
+  menos. Depois de cada load, um save novo.
   O exame é o **lançamento**, e o jogo sai com bugs: primeiro a **hitbox**
   descola — o desenho de cada tiro vira enfeite, e o modo debug mostra o
   círculo verde que machuca de verdade, que se afasta e gira em volta do

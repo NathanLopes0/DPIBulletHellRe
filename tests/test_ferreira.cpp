@@ -8,6 +8,7 @@
 #include <cmath>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../Source/Attacks/Fase.h"
@@ -294,39 +295,230 @@ TEST_CASE("HudHostil: os segmentos cobrem a barra de ponta a ponta, e de pe ela 
     CHECK(CentroDoSegmento(deitada, 0, m).x < CentroDoSegmento(deitada, m - 1, m).x);
 }
 
-// ---- A interface: as janelas ----
+// ---- A interface: o inimigo e a IA dele ----
 
-TEST_CASE("HudHostil: a janela e uma moldura fechada com o X na barra de titulo") {
-    using namespace HudHostil;
-    const Vector2 c(600.0f, 400.0f);
-    const std::vector<Vector2> pecas = Moldura(c);
-    const Vector2 x = BotaoDeFechar(c);
-    CHECK(x.y == doctest::Approx(c.y - kAlturaDaJanela / 2.0f));
-    CHECK(x.x < c.x + kLarguraDaJanela / 2.0f - kPecaDaJanela);
-    CHECK(x.x > c.x);
-    std::set<std::pair<int, int>> vistas;
-    for (const Vector2& p : pecas) {
-        CHECK((p - x).Length() > kPecaDaJanela / 2.0f);
-        const bool naHorizontal = std::fabs(std::fabs(p.y - c.y) - kAlturaDaJanela / 2.0f) < 0.5f;
-        const bool naVertical = std::fabs(std::fabs(p.x - c.x) - kLarguraDaJanela / 2.0f) < 0.5f;
-        CHECK((naHorizontal || naVertical));
-        CHECK(vistas.insert({static_cast<int>(std::lround(p.x)), static_cast<int>(std::lround(p.y))}).second);
+TEST_CASE("IaDoInimigo: o corpo e um bloco com dois olhos, simetrico e do tamanho dito") {
+    using namespace IaDoInimigo;
+    const auto blocos = LugaresDosBlocos();
+    const auto olhos = LugaresDosOlhos();
+    CHECK(blocos.size() == 35u);
+    REQUIRE(olhos.size() == 2u);
+    // Os olhos na mesma altura, um de cada lado do meio, na metade de cima.
+    CHECK(olhos[0].y == doctest::Approx(olhos[1].y));
+    CHECK(olhos[0].x == doctest::Approx(-olhos[1].x));
+    CHECK(olhos[0].y < 0.0f);
+    // Cada bloco dentro do corpo, sem dois no mesmo lugar, e o corpo espelhado.
+    std::set<std::pair<int, int>> lugares;
+    for (const Vector2& b : blocos) {
+        CHECK(std::fabs(b.x) <= kMeiaLargura - kBloco / 2.0f + 0.01f);
+        CHECK(std::fabs(b.y) <= kMeiaAltura - kBloco / 2.0f + 0.01f);
+        lugares.insert({static_cast<int>(std::lround(b.x)), static_cast<int>(std::lround(b.y))});
     }
-    const int porLinha = static_cast<int>(kLarguraDaJanela / kPecaDaJanela) + 1;
-    const int porColuna = static_cast<int>(kAlturaDaJanela / kPecaDaJanela) - 1;
-    CHECK(static_cast<int>(pecas.size()) == 2 * porLinha + 2 * porColuna - 1);
-    CHECK(CentroDaJanela(Vector2(600.0f, 400.0f), 0.0f, 170.0f, 1200.0f, 746.0f).x == doctest::Approx(600.0f));
-    const Vector2 canto = CentroDaJanela(Vector2(5.0f, 740.0f), 0.0f, 170.0f, 1200.0f, 746.0f);
-    CHECK(canto.x - kLarguraDaJanela / 2.0f >= 0.0f);
-    CHECK(canto.y + kAlturaDaJanela / 2.0f <= 746.0f);
-    const Vector2 alto = CentroDaJanela(Vector2(1195.0f, 20.0f), 0.0f, 170.0f, 1200.0f, 746.0f);
-    CHECK(alto.x + kLarguraDaJanela / 2.0f <= 1200.0f);
-    CHECK(alto.y - kAlturaDaJanela / 2.0f >= 170.0f);
-    std::set<std::string> dicas(kDicas.begin(), kDicas.end());
-    CHECK(dicas.size() == kDicas.size());
+    CHECK(lugares.size() == blocos.size());
+    for (const Vector2& b : blocos) CHECK(lugares.count({static_cast<int>(std::lround(-b.x)), static_cast<int>(std::lround(b.y))}) == 1);
+    // Gigante: bem maior que o aluno (o desenho dele tem 64 px).
+    CHECK(2.0f * kMeiaLargura > 2.5f * 64.0f);
 }
 
-// ---- A fisica ----
+TEST_CASE("IaDoInimigo: nasce, patrulha, ve o aluno, avisa, persegue cada vez mais rapido e desiste de longe") {
+    using namespace IaDoInimigo;
+    const Degrau g = DegrauDo(Dificuldade::Nivel::Normal);
+    Ia ia;
+    Percepcao longe;
+    longe.distancia = 900.0f;
+    longe.blocos = 35;
+    CHECK_FALSE(Machuca(ia.estado));   // nascendo, os blocos ainda se juntam
+    CHECK(Rapidez(ia, g) == doctest::Approx(0.0f));
+    for (float t = 0.0f; t < kNascendo + 0.05f; t += 0.05f) Passo(ia, longe, 0.05f, g);
+    CHECK(ia.estado == Estado::Patrulha);
+    CHECK(Machuca(ia.estado));
+    CHECK(Rapidez(ia, g) == doctest::Approx(g.ronda));
+    // O aluno entra no raio de visao: alerta, parado, e entao a perseguicao.
+    Percepcao perto = longe;
+    perto.distancia = g.raioDeVisao - 10.0f;
+    CHECK(Passo(ia, perto, 0.016f, g));
+    CHECK(ia.estado == Estado::Alerta);
+    CHECK(Rapidez(ia, g) == doctest::Approx(0.0f));
+    for (float t = 0.0f; t < kAlerta + 0.05f; t += 0.05f) Passo(ia, perto, 0.05f, g);
+    CHECK(ia.estado == Estado::Persegue);
+    const float comeco = Rapidez(ia, g);
+    CHECK(comeco == doctest::Approx(g.persegue).epsilon(0.02));
+    for (int k = 0; k < 400; ++k) Passo(ia, perto, 0.05f, g);
+    CHECK(Rapidez(ia, g) > comeco);
+    CHECK(Rapidez(ia, g) == doctest::Approx(g.maxima));
+    CHECK(g.maxima < 300.0f);   // o aluno sempre e mais rapido
+    // Longe por pouco tempo nao basta; longe por kParaPerder, ele desiste.
+    Percepcao fora = longe;
+    fora.distancia = g.raioDePerder + 20.0f;
+    Passo(ia, fora, kParaPerder / 2.0f, g);
+    Passo(ia, perto, 0.05f, g);
+    Passo(ia, fora, kParaPerder / 2.0f, g);
+    CHECK(ia.estado == Estado::Persegue);
+    for (float t = 0.0f; t < kParaPerder + 0.1f; t += 0.05f) Passo(ia, fora, 0.05f, g);
+    CHECK(ia.estado == Estado::Patrulha);
+    // Quem acerta o aluno recua para a ronda: nao fica em cima dele.
+    Ia caca;
+    caca.estado = Estado::Persegue;
+    Percepcao acertou = perto;
+    acertou.acertouOAluno = true;
+    CHECK(Passo(caca, acertou, 0.016f, g));
+    CHECK(caca.estado == Estado::Patrulha);
+    // No recuo, ele nao ve o aluno colado nele; passado o recuo, ve.
+    for (float t = 0.0f; t < kRecuo - 0.2f; t += 0.05f) Passo(caca, perto, 0.05f, g);
+    CHECK(caca.estado == Estado::Patrulha);
+    for (float t = 0.0f; t < 0.4f; t += 0.05f) Passo(caca, perto, 0.05f, g);
+    CHECK(caca.estado == Estado::Alerta);
+    CHECK(kRecuo < kRondaCansa);
+    // Fugindo, encostar no aluno nao e acerto (os blocos sao moeda).
+    Ia fugindo;
+    fugindo.estado = Estado::Fugindo;
+    fugindo.susto = g.susto;
+    Passo(fugindo, acertou, 0.016f, g);
+    CHECK(fugindo.estado == Estado::Fugindo);
+    // A ronda que nao ve ninguem cansa e vira alerta assim mesmo: ele nao fica parado para sempre.
+    Ia ronda;
+    ronda.estado = Estado::Patrulha;
+    float quando = -1.0f;
+    for (float t = 0.0f; t < kRondaCansa + 0.5f && quando < 0.0f; t += 0.05f) {
+        Passo(ronda, longe, 0.05f, g);
+        if (ronda.estado == Estado::Alerta) quando = t + 0.05f;
+    }
+    CHECK(quando == doctest::Approx(kRondaCansa).epsilon(0.03));
+}
+
+TEST_CASE("IaDoInimigo: o tiro no olho atordoa, o power-up faz fugir, e pegar o ultimo bloco o derrota") {
+    using namespace IaDoInimigo;
+    const Degrau g = DegrauDo(Dificuldade::Nivel::Normal);
+    Ia ia;
+    ia.estado = Estado::Persegue;
+    Percepcao p;
+    p.distancia = 200.0f;
+    p.blocos = 35;
+    // O olho: atordoado e parado, e depois volta a perseguir.
+    Percepcao olho = p;
+    olho.olhoAtingido = true;
+    CHECK(Passo(ia, olho, 0.016f, g));
+    CHECK(ia.estado == Estado::Atordoado);
+    CHECK(Rapidez(ia, g) == doctest::Approx(0.0f));
+    CHECK(Machuca(ia.estado));   // atordoado, o corpo ainda machuca
+    for (float t = 0.0f; t < g.atordoado + 0.05f; t += 0.05f) Passo(ia, p, 0.05f, g);
+    CHECK(ia.estado == Estado::Persegue);
+    // O power-up: ele foge, os blocos nao machucam, e no fim piscam.
+    Percepcao poder = p;
+    poder.pegouOPoder = true;
+    CHECK(Passo(ia, poder, 0.016f, g));
+    CHECK(ia.estado == Estado::Fugindo);
+    CHECK_FALSE(Machuca(ia.estado));
+    CHECK(Rapidez(ia, g) == doctest::Approx(g.foge));
+    CHECK_FALSE(Pisca(ia, 0.05f));
+    // O olho nao atordoa quem ja foge.
+    Passo(ia, olho, 0.016f, g);
+    CHECK(ia.estado == Estado::Fugindo);
+    for (float t = 0.0f; t < g.susto - kPiscaNoFim + 0.1f; t += 0.05f) Passo(ia, p, 0.05f, g);
+    CHECK(ia.estado == Estado::Fugindo);
+    CHECK((Pisca(ia, 0.05f) || Pisca(ia, 0.15f)));
+    CHECK_FALSE((Pisca(ia, 0.05f) && Pisca(ia, 0.15f)));
+    // Outro power-up renova o susto.
+    Passo(ia, poder, 0.016f, g);
+    CHECK(ia.susto == doctest::Approx(g.susto));
+    // Sem ninguem pegar todos os blocos, o susto acaba e ele volta a perseguir.
+    for (float t = 0.0f; t < g.susto + 0.1f; t += 0.05f) Passo(ia, p, 0.05f, g);
+    CHECK(ia.estado == Estado::Persegue);
+    // Pego o ultimo bloco: derrotado, e o respawn.
+    Passo(ia, poder, 0.016f, g);
+    Percepcao vazio = p;
+    vazio.blocos = 0;
+    CHECK(Passo(ia, vazio, 0.016f, g));
+    CHECK(ia.estado == Estado::Derrotado);
+    CHECK_FALSE(Machuca(ia.estado));
+    // Sem bloco nenhum ele e derrotado em qualquer estado vivo (o Ponto Extra tambem os desfaz).
+    Ia outra;
+    outra.estado = Estado::Persegue;
+    CHECK(Passo(outra, vazio, 0.016f, g));
+    CHECK(outra.estado == Estado::Derrotado);
+    // Derrotado, o power-up nao o acorda.
+    Passo(ia, poder, 0.016f, g);
+    CHECK(ia.estado == Estado::Derrotado);
+    for (float t = 0.0f; t < kRespawn + 0.05f; t += 0.05f) Passo(ia, p, 0.05f, g);
+    CHECK(ia.estado == Estado::Nascendo);
+    // Cada estado tem um nome, e os nomes sao diferentes.
+    std::set<std::string> nomes;
+    for (const Estado e : {Estado::Nascendo, Estado::Patrulha, Estado::Alerta, Estado::Persegue, Estado::Atordoado,
+                           Estado::Fugindo, Estado::Derrotado}) nomes.insert(Nome(e));
+    CHECK(nomes.size() == 7u);
+}
+
+TEST_CASE("IaDoInimigo: ele anda dentro da arena, nasce longe do aluno, e o power-up nasce longe dele") {
+    using namespace IaDoInimigo;
+    // O centro fica onde o corpo cabe, abaixo da faixa do professor.
+    for (const Vector2 p : {Vector2(-500.0f, -500.0f), Vector2(5000.0f, 5000.0f), Vector2(600.0f, 0.0f)}) {
+        const Vector2 c = NaArena(p, kCampo);
+        CHECK(c.x - kMeiaLargura >= kCampo.x);
+        CHECK(c.x + kMeiaLargura <= kCampo.x + kCampo.w);
+        CHECK(c.y - kMeiaAltura >= kCampo.y + kTopoDaArena);
+        CHECK(c.y + kMeiaAltura <= kCampo.y + kCampo.h);
+    }
+    const auto ronda = Ronda(kCampo);
+    for (const Vector2& k : ronda) CHECK((NaArena(k, kCampo) - k).Length() == doctest::Approx(0.0f));
+    // O ninho e o canto mais longe do aluno.
+    const Vector2 aluno(150.0f, 700.0f);
+    const int n = Ninho(kCampo, aluno);
+    for (const Vector2& k : ronda) CHECK((ronda[static_cast<size_t>(n)] - aluno).Length() >= (k - aluno).Length() - 0.01f);
+    // O power-up: dentro do campo, abaixo da faixa do professor, e longe do inimigo.
+    Variacao::Sorteio s(216u);
+    for (int k = 0; k < 200; ++k) {
+        const Vector2 inimigo = NaArena(Vector2(s.Real(0.0f, 1200.0f), s.Real(0.0f, 746.0f)), kCampo);
+        const Vector2 poder = LugarDoPoder(s, kCampo, inimigo);
+        CHECK(poder.x >= kCampo.x + 30.0f);
+        CHECK(poder.x <= kCampo.x + kCampo.w - 30.0f);
+        CHECK(poder.y >= kCampo.y + kTopoDaArena);
+        CHECK(poder.y <= kCampo.y + kCampo.h - 20.0f);
+        CHECK((poder - inimigo).Length() >= 300.0f);
+    }
+    // O Dificil persegue mais rapido, ve mais longe e o power-up dura menos.
+    const Degrau normal = DegrauDo(Dificuldade::Nivel::Normal), dificil = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(dificil.persegue > normal.persegue);
+    CHECK(dificil.maxima > normal.maxima);
+    CHECK(dificil.raioDeVisao > normal.raioDeVisao);
+    CHECK(dificil.susto < normal.susto);
+    CHECK(dificil.maxima < 300.0f);
+    CHECK(dificil.foge < 300.0f);
+}
+
+TEST_CASE("JogosDigitais: quem foge vai para longe, escorrega na parede e sai do canto") {
+    using JogosDigitais::Fugir;
+    const float margem = 30.0f;
+    // No meio do campo: para longe, reto.
+    const Vector2 longe = Fugir(Vector2(600.0f, 400.0f), Vector2(500.0f, 400.0f), kCampo, margem);
+    CHECK(longe.x == doctest::Approx(1.0f));
+    CHECK(longe.y == doctest::Approx(0.0f));
+    // Na parede de baixo, com o perseguidor em cima e um pouco a esquerda: escorrega para a direita.
+    const Vector2 parede = Fugir(Vector2(600.0f, 740.0f), Vector2(590.0f, 500.0f), kCampo, margem);
+    CHECK(parede.y <= 0.0f + 1e-4f);
+    CHECK(parede.x > 0.9f);
+    // No canto de baixo a esquerda, com o perseguidor na diagonal: sai por uma das paredes.
+    const Vector2 canto = Fugir(Vector2(10.0f, 740.0f), Vector2(200.0f, 560.0f), kCampo, margem);
+    CHECK(canto.Length() == doctest::Approx(1.0f));
+    CHECK((canto.x > 0.5f || canto.y < -0.5f));
+    // Na parede da esquerda, com o perseguidor bem a direita: anda pela parede (para cima ou para baixo).
+    const Vector2 lado = Fugir(Vector2(5.0f, 400.0f), Vector2(300.0f, 400.0f), kCampo, margem);
+    CHECK(lado.x == doctest::Approx(0.0f));
+    CHECK(std::fabs(lado.y) == doctest::Approx(1.0f));
+    // Sempre de tamanho 1, e nunca para fora do campo.
+    Variacao::Sorteio s(7u);
+    for (int k = 0; k < 300; ++k) {
+        const Vector2 eu(s.Real(0.0f, 1200.0f), s.Real(0.0f, 746.0f));
+        const Vector2 de(s.Real(0.0f, 1200.0f), s.Real(0.0f, 746.0f));
+        const Vector2 d = Fugir(eu, de, kCampo, margem);
+        CHECK(d.Length() == doctest::Approx(1.0f).epsilon(0.001));
+        if (eu.x <= margem) CHECK(d.x >= -1e-4f);
+        if (eu.x >= kCampo.w - margem) CHECK(d.x <= 1e-4f);
+        if (eu.y <= margem) CHECK(d.y >= -1e-4f);
+        if (eu.y >= kCampo.h - margem) CHECK(d.y <= 1e-4f);
+    }
+    CHECK(JogosDigitais::Rumo(Vector2(0.0f, 0.0f), Vector2(0.0f, 10.0f)).y == doctest::Approx(1.0f));
+    CHECK(JogosDigitais::Rumo(Vector2(5.0f, 5.0f), Vector2(5.0f, 5.0f)).Length() == doctest::Approx(0.0f));
+}
 
 TEST_CASE("Gravidade: o primeiro lado e o chao de sempre, os outros tres sao sorteados, e cada um tem o seu desafio") {
     using namespace Gravidade;
@@ -531,31 +723,32 @@ TEST_CASE("RegrasTrocadas: o lag anda aos saltos") {
     CHECK((NoQuadro(Vector2(7.0f, 9.0f), Vector2(200.0f, 200.0f), 0) - Vector2(7.0f, 9.0f)).Length() < 1e-4f);
 }
 
-TEST_CASE("RegrasTrocadas: cada save tem o load dele, e o load vem depois, dentro da etapa") {
+TEST_CASE("RegrasTrocadas: o save foge quando vale mais, persegue quando vale menos, e o toque e o load") {
     using namespace RegrasTrocadas;
-    REQUIRE(kSaves.size() == kLoads.size());
-    for (size_t k = 0; k < kSaves.size(); ++k) {
-        CHECK(kSaves[k] < kLoads[k]);
-        CHECK(kLoads[k] < kDuracoes[3]);
-        if (k > 0) CHECK(kSaves[k] > kLoads[k - 1]);
-        CHECK(EventoEntre(kSaves[k] - 0.01f, kSaves[k] + 0.01f) == Evento::Salvar);
-        CHECK(EventoEntre(kLoads[k] - 0.01f, kLoads[k] + 0.01f) == Evento::Carregar);
-        CHECK(EventoEntre(kSaves[k] + 0.01f, kSaves[k] + 0.02f) == Evento::Nada);
-        CHECK(RumoAoLoad(kSaves[k]) == doctest::Approx(0.0f));
-        CHECK(RumoAoLoad((kSaves[k] + kLoads[k]) / 2.0f) == doctest::Approx(0.5f));
-        CHECK(RumoAoLoad(kLoads[k] + 0.01f) < 0.0f);
-    }
-    CHECK(RumoAoLoad(0.0f) < 0.0f);
-    int saves = 0, loads = 0;
-    float antes = -1.0f;
-    for (float t = 0.0f; t < kDuracoes[3]; t += 0.016f) {
-        const Evento e = EventoEntre(antes, t);
-        saves += e == Evento::Salvar ? 1 : 0;
-        loads += e == Evento::Carregar ? 1 : 0;
-        antes = t;
-    }
-    CHECK(saves == static_cast<int>(kSaves.size()));
-    CHECK(loads == static_cast<int>(kLoads.size()));
+    // O humor: a nota do save contra a de agora.
+    CHECK(HumorDoSave(70.0f, 60.0f) == Humor::Foge);
+    CHECK(HumorDoSave(50.0f, 60.0f) == Humor::Persegue);
+    CHECK(HumorDoSave(60.2f, 60.0f) == Humor::Parado);
+    CHECK(HumorDoSave(59.8f, 60.0f) == Humor::Parado);
+    // Parado, nao anda; quanto maior a diferenca, mais rapido - e sempre mais devagar que o aluno.
+    CHECK(RapidezDoSave(60.0f, 60.0f) == doctest::Approx(0.0f));
+    CHECK(RapidezDoSave(62.0f, 60.0f) < RapidezDoSave(70.0f, 60.0f));
+    CHECK(RapidezDoSave(58.0f, 60.0f) < RapidezDoSave(50.0f, 60.0f));
+    CHECK(RapidezDoSave(62.0f, 60.0f) == doctest::Approx(RapidezDoSave(58.0f, 60.0f)));
+    CHECK(RapidezDoSave(100.0f, 0.0f) == doctest::Approx(kSaveRapido));
+    CHECK(kSaveRapido < 300.0f);
+    CHECK(RapidezDoSave(61.0f, 60.0f) >= kSaveDevagar);
+    // O toque: o raio do disquete e o do aluno.
+    CHECK(Encostou(Vector2(100.0f, 100.0f), Vector2(100.0f + kRaioDoSave + 5.0f, 100.0f), 6.4f));
+    CHECK_FALSE(Encostou(Vector2(100.0f, 100.0f), Vector2(100.0f + kRaioDoSave + 8.0f, 100.0f), 6.4f));
+    // Quando sai um save: logo no comeco, e de novo um pouco depois de cada load, ate o fim chegar perto.
+    CHECK_FALSE(HoraDeSalvar(kPrimeiroSave - 0.01f, -1.0f));
+    CHECK(HoraDeSalvar(kPrimeiroSave, -1.0f));
+    CHECK_FALSE(HoraDeSalvar(4.0f, 3.5f));
+    CHECK(HoraDeSalvar(3.5f + kEntreSaves, 3.5f));
+    CHECK_FALSE(HoraDeSalvar(kUltimoSave + 0.01f, -1.0f));
+    CHECK(kUltimoSave < kDuracoes[3] - 1.5f);
+    CHECK(kPrimeiroSave + kEntreSaves < kUltimoSave);
 }
 
 // ---- O lancamento ----

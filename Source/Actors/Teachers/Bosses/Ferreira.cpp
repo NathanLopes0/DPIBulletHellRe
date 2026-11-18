@@ -68,6 +68,7 @@ void Ferreira::SortearALuta() {
     mSorteio = SorteioDaFase(HudHostil::kFase);
     const Dificuldade::Nivel n = NivelDeDificuldade();
     mDegrauDoHud = HudHostil::DegrauDo(n);
+    mDegrauDoInimigo = IaDoInimigo::DegrauDo(n);
     mDegrauDaGravidade = Gravidade::DegrauDo(n);
     mDegrauDasRegras = RegrasTrocadas::DegrauDo(n);
     mDegrauDoLancamento = Lancamento::DegrauDo(n);
@@ -270,10 +271,12 @@ void Ferreira::Sanear() {
     Sanear(mTiros, true);
     for (AnelVivo& a : mAneis) Sanear(a.tiros, true);
     Sanear(mBarra, false);
-    for (Janela& j : mJanelas) {
-        Sanear(j.pecas, true);
-        if (!Vivo(j.fechar)) j.fechar = nullptr;
+    Sanear(mCorpo, false);
+    for (BossProjectile*& o : mOlhos) {
+        if (!Vivo(o)) o = nullptr;
     }
+    if (!Vivo(mPoder)) mPoder = nullptr;
+    if (!Vivo(mSave)) mSave = nullptr;
     for (PilhaViva& p : mPilhas) Sanear(p.caixas, false);
     for (LancaViva& l : mLancas) {
         if (!Vivo(l.p)) l.p = nullptr;
@@ -294,7 +297,6 @@ void Ferreira::Sanear() {
         if (!Vivo(d.desenho)) d.desenho = nullptr;
         if (!Vivo(d.colisor)) d.colisor = nullptr;
     }
-    Sanear(mDisquetes, true);
     mTravados.erase(std::remove_if(mTravados.begin(), mTravados.end(), [](const Travado& t) { return !Vivo(t.p); }),
                     mTravados.end());
     for (BossProjectile*& b : mBotoes) {
@@ -322,9 +324,7 @@ void Ferreira::DesmontarEtapa() {
     mAneis.clear();
     mPoupado = {};
     DevolverABarra();
-    while (!mJanelas.empty()) FecharJanela(mJanelas.size() - 1, false);
-    mProximaJanela = 0.0f;
-    mJanelasFeitas = 0;
+    DesmontarOInimigo();
     for (PilhaViva& p : mPilhas) MatarTodos(p.caixas);
     mPilhas.clear();
     mPilhasPorVir.clear();
@@ -361,8 +361,8 @@ void Ferreira::DesmontarEtapa() {
     }
     mDescolados.clear();
     mSalvo = Salvo{};
-    MatarTodos(mDisquetes);
-    mTeAnterior = -1.0f;
+    Matar(mSave);
+    mUltimoLoad = -1.0f;
     for (Travado& t : mTravados) {
         if (Vivo(t.p)) Andar(t.p, t.v);
     }
@@ -380,7 +380,8 @@ void Ferreira::DesmontarEtapa() {
     mCreditos.clear();
     mLinhasFeitas = 0;
     mProximaLinha = 0.0f;
-    Esconder(mEtiquetasDasJanelas);
+    Esconder(mEtiquetasDoInimigo);
+    Esconder(mEtiquetasDoSave);
     Esconder(mEtiquetasDoDialogo);
     Esconder(mEtiquetasDosCreditos);
     mProximoAnel = 0.0f;
@@ -554,7 +555,6 @@ void Ferreira::OnUpdate(const float deltaTime) {
 
 void Ferreira::AtualizarHud(const float t, const float deltaTime) {
     using namespace HudHostil;
-    (void)deltaTime;
     const Degrau& g = mDegrauDoHud;
     const int etapa = JogosDigitais::Etapa(kDuracoes, t);
     const float te = JogosDigitais::NaEtapa(kDuracoes, t);
@@ -565,8 +565,8 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
         AtualizarAbertura(te);
         return;
     }
-    if (etapa == kEtapaDasJanelas) {
-        AtualizarJanelas(te);
+    if (etapa == kEtapaDoInimigo) {
+        AtualizarInimigo(te, deltaTime);
         return;
     }
     AtualizarBarra(etapa, te);
@@ -699,99 +699,324 @@ void Ferreira::AtualizarBarra(const int etapa, const float te) {
     }
 }
 
-void Ferreira::AtualizarJanelas(const float te) {
-    using namespace HudHostil;
-    const Degrau& g = mDegrauDoHud;
-    const SDL_FRect c = Campo();
+// ---- Fase 1, a ultima etapa: o inimigo e a IA dele ----
 
-    // Uma janela nova, em volta de um aluno (na dupla, um de cada vez). Com todas abertas, a mais
-    // velha fecha sozinha - e estoura.
-    if (te >= 0.6f && te >= mProximaJanela) {
-        mProximaJanela = te + g.entreJanelas;
-        if (static_cast<int>(mJanelas.size()) >= kJanelasAbertas) FecharJanela(0, true);
-        const std::vector<Player*> alunos = Jogadores();
-        Vector2 aluno = PosicaoDoAluno();
-        if (!alunos.empty()) aluno = alunos[static_cast<size_t>(mJanelasFeitas) % alunos.size()]->GetPosition();
-        Janela j;
-        j.centro = CentroDaJanela(aluno, c.x, c.y + 170.0f, c.x + c.w, c.y + c.h);
-        for (int tentativa = 0; tentativa < 6; ++tentativa) {
-            bool emCima = false;
-            for (const Janela& outra : mJanelas) emCima = emCima || (outra.centro - j.centro).Length() < 70.0f;
-            if (!emCima) break;
-            const float lado = (tentativa % 2 == 0 ? 1.0f : -1.0f) * kLarguraDaJanela * 0.6f * static_cast<float>(tentativa / 2 + 1);
-            j.centro = CentroDaJanela(aluno + Vector2(lado, -30.0f * static_cast<float>(tentativa / 2 + 1)), c.x, c.y + 170.0f,
-                                      c.x + c.w, c.y + c.h);
+int Ferreira::BlocosVivos() const {
+    int n = 0;
+    for (const BossProjectile* p : mCorpo) n += Vivo(p) ? 1 : 0;
+    return n;
+}
+
+void Ferreira::MontarOInimigo() {
+    using namespace IaDoInimigo;
+    MatarTodos(mCorpo);
+    for (const Vector2& lugar : LugaresDosBlocos()) {
+        BossProjectile* p = Peca(HudHostil::kGatilhoDoInimigo, mCentroDoInimigo + lugar, "Textura");
+        // Nascendo, os blocos ainda se juntam: nao machucam.
+        if (p) p->DefinirEnfeite(true);
+        mCorpo.push_back(p);
+    }
+    for (BossProjectile*& o : mOlhos) Matar(o);
+    PorOsOlhos();
+    mCorpoMontado = true;
+}
+
+void Ferreira::PorOsOlhos() {
+    using namespace IaDoInimigo;
+    const auto lugares = LugaresDosOlhos();
+    for (size_t k = 0; k < mOlhos.size() && k < lugares.size(); ++k) {
+        if (Vivo(mOlhos[k])) continue;
+        mOlhos[k] = Peca(HudHostil::kGatilhoDoOlho, mCentroDoInimigo + lugares[k], "Olho");
+        if (mOlhos[k]) mOlhos[k]->DefinirEnfeite(!Machuca(mIa.estado));
+    }
+}
+
+void Ferreira::DesmontarOInimigo() {
+    // O que ele pagou e ainda nao entrou na nota entra agora.
+    if (mPremioDoInimigo > 0.0f) {
+        if (Battle* b = Batalha()) b->Conquistar(mPremioDoInimigo);
+        mPremioDoInimigo = 0.0f;
+    }
+    MatarTodos(mCorpo);
+    for (BossProjectile*& o : mOlhos) Matar(o);
+    Matar(mPoder);
+    mCorpoMontado = false;
+    mIa = IaDoInimigo::Ia{};
+    mVelocidadeDoInimigo = Vector2::Zero;
+    mOlhoAtingido = false;
+    mApanhava = {};
+    mProximoPoder = -1.0f;
+    mMarca.clear();
+    mMarcaAte = -1.0f;
+}
+
+void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo::Estado para, const float te) {
+    using namespace IaDoInimigo;
+    Battle* b = Batalha();
+    if (para == Estado::Alerta) {
+        mMarca = "!";
+        mMarcaAte = mRelogio + kAlerta;
+        SomDoDisparo();
+    }
+    if (de == Estado::Persegue && para == Estado::Patrulha) {
+        mMarca = "?";
+        mMarcaAte = mRelogio + 1.0f;
+    }
+    if (para == Estado::Atordoado) {
+        mClarao = 0.1f;
+        mCorDoClarao = SDL_Color{255, 230, 120, 255};
+    }
+    // Os olhos voltam quando ele acorda.
+    if (de == Estado::Atordoado) PorOsOlhos();
+    if (para == Estado::Fugindo) {
+        mClarao = 0.15f;
+        mCorDoClarao = SDL_Color{255, 214, 90, 255};
+        Avisar("powerUp.usar(): agora ELE foge de voc\xc3\xaa!", 1.3f);
+        SomDoDisparo();
+    }
+    if (de == Estado::Fugindo) {
+        // O power-up acabou (ou ele foi derrotado): o proximo vem depois de um respiro.
+        mProximoPoder = te + mDegrauDoInimigo.entrePoderes;
+        PorOsOlhos();
+    }
+    if (para == Estado::Derrotado) {
+        if (b) b->Conquistar(mPremioDoInimigo + kPremioPorDerrotar);
+        mPremioDoInimigo = 0.0f;
+        for (BossProjectile*& o : mOlhos) {
+            if (Vivo(o) && b) b->Faiscar(o->GetPosition(), Hud::Faisca::Coleta);
+            Matar(o);
         }
-        j.abre = te + kAvisoDaJanela;
-        j.dica = mJanelasFeitas % static_cast<int>(kDicas.size());
-        for (size_t livre = 0; livre <= mJanelas.size(); ++livre) {
-            bool usada = false;
-            for (const Janela& outra : mJanelas) usada = usada || outra.etiqueta == livre;
-            if (!usada) {
-                j.etiqueta = livre;
+        MatarTodos(mCorpo);
+        mCorpoMontado = false;
+        mClarao = 0.25f;
+        mCorDoClarao = SDL_Color{255, 214, 90, 255};
+        Avisar("inimigo.destruir(): + " + Inteiro(kPremioPorDerrotar) + " de b\xc3\xb4nus", 1.6f);
+        SomDoDisparo();
+    }
+}
+
+void Ferreira::AtualizarInimigo(const float te, const float deltaTime) {
+    using namespace IaDoInimigo;
+    const IaDoInimigo::Degrau& g = mDegrauDoInimigo;
+    const JogosDigitais::Campo campo = CampoPuro();
+    const auto ronda = Ronda(campo);
+    Battle* b = Batalha();
+    const std::vector<Player*> alunos = Jogadores();
+
+    // O alvo da IA: o aluno mais perto.
+    const Player* alvo = nullptr;
+    float distancia = 1e9f;
+    for (const Player* a : alunos) {
+        const float d = (a->GetPosition() - mCentroDoInimigo).Length();
+        if (d < distancia) {
+            distancia = d;
+            alvo = a;
+        }
+    }
+    const Vector2 ondeAluno = alvo ? alvo->GetPosition() : PosicaoDoAluno();
+
+    // Nascendo, o corpo aparece no canto mais longe do aluno.
+    if (mIa.estado == Estado::Nascendo && !mCorpoMontado) {
+        mCantoDaRonda = Ninho(campo, ondeAluno);
+        mCentroDoInimigo = ronda[static_cast<size_t>(mCantoDaRonda)];
+        distancia = alunos.empty() ? 1e9f : (ondeAluno - mCentroDoInimigo).Length();
+        MontarOInimigo();
+        mClarao = 0.08f;
+        mCorDoClarao = SDL_Color{255, 60, 230, 255};
+        SomDoDisparo();
+    }
+    if (mProximoPoder < 0.0f) mProximoPoder = g.primeiroPoder;
+
+    // O power-up: nasce longe dele e espera; quem encosta faz ele fugir. Enquanto ele nasce, ou
+    // depois de derrotado, o power-up espera.
+    bool pegou = false;
+    if (Vivo(mPoder)) {
+        const bool valeAgora = mIa.estado != Estado::Nascendo && mIa.estado != Estado::Derrotado;
+        for (const Player* a : alunos) {
+            if (!valeAgora || (a->GetPosition() - mPoder->GetPosition()).Length() > RaioDe(a) + kToque + 6.0f) continue;
+            pegou = true;
+            if (b) b->Faiscar(mPoder->GetPosition(), Hud::Faisca::Coleta);
+            Matar(mPoder);
+            break;
+        }
+    } else if (te >= mProximoPoder && mIa.estado != Estado::Fugindo && te < HudHostil::kDuracoes[HudHostil::kEtapaDoInimigo] - 1.5f) {
+        mPoder = Peca(HudHostil::kGatilhoDoPoder, LugarDoPoder(mSorteio, campo, mCentroDoInimigo), "Poder");
+        if (mPoder) mPoder->DefinirEnfeite(true);
+        mProximoPoder = 1e9f;
+    }
+
+    // O corpo acabou de acertar alguem: o aluno que comecou a piscar agora, encostado nele.
+    bool acertou = false;
+    for (size_t i = 0; i < alunos.size() && i < mApanhava.size(); ++i) {
+        const bool apanha = alunos[i]->AcabouDeApanhar();
+        const Vector2 d = alunos[i]->GetPosition() - mCentroDoInimigo;
+        if (apanha && !mApanhava[i] && std::fabs(d.x) <= kMeiaLargura + 10.0f && std::fabs(d.y) <= kMeiaAltura + 10.0f) {
+            acertou = true;
+        }
+        mApanhava[i] = apanha;
+    }
+
+    // A IA percebe e decide.
+    Percepcao p;
+    p.distancia = distancia;
+    p.pegouOPoder = pegou;
+    p.olhoAtingido = mOlhoAtingido;
+    p.acertouOAluno = acertou && Machuca(mIa.estado);
+    p.blocos = mCorpoMontado ? BlocosVivos() : 0;
+    mOlhoAtingido = false;
+    const Estado antes = mIa.estado;
+    if (Passo(mIa, p, deltaTime, g)) {
+        AoTrocarDeEstado(antes, mIa.estado, te);
+        // Quem acertou o aluno recua: a ronda segue para o canto mais longe dele.
+        if (p.acertouOAluno && mIa.estado == Estado::Patrulha) {
+            mCantoDaRonda = (Ninho(campo, ondeAluno) + 3) % 4;
+            mMarca.clear();
+        }
+    }
+
+    // Onde ele anda: a ronda pelos cantos, atras do aluno, ou para longe dele.
+    Vector2 rumo = Vector2::Zero;
+    if (mIa.estado == Estado::Patrulha) {
+        const Vector2 proximo = ronda[static_cast<size_t>((mCantoDaRonda + 1) % 4)];
+        if ((proximo - mCentroDoInimigo).Length() < 14.0f) mCantoDaRonda = (mCantoDaRonda + 1) % 4;
+        rumo = JogosDigitais::Rumo(mCentroDoInimigo, ronda[static_cast<size_t>((mCantoDaRonda + 1) % 4)]);
+    } else if (mIa.estado == Estado::Persegue) {
+        rumo = JogosDigitais::Rumo(mCentroDoInimigo, ondeAluno);
+    } else if (mIa.estado == Estado::Fugindo) {
+        const JogosDigitais::Campo arena{ronda[0].x, ronda[0].y, ronda[2].x - ronda[0].x, ronda[2].y - ronda[0].y};
+        rumo = JogosDigitais::Fugir(mCentroDoInimigo, ondeAluno, arena, 10.0f);
+    }
+    mVelocidadeDoInimigo = rumo * Rapidez(mIa, g);
+    if (mCorpoMontado) mCentroDoInimigo = NaArena(mCentroDoInimigo + mVelocidadeDoInimigo * deltaTime, campo);
+
+    // O corpo e os olhos no lugar. Nascendo, os blocos vem do meio para o lugar; no alerta, ele treme.
+    const bool fugindo = mIa.estado == Estado::Fugindo;
+    const bool pisca = Pisca(mIa, mRelogio);
+    const bool machuca = Machuca(mIa.estado);
+    const float junta = mIa.estado == Estado::Nascendo ? std::clamp(mIa.noEstado / kNascendo, 0.0f, 1.0f) : 1.0f;
+    const Vector2 tremor = mIa.estado == Estado::Alerta ? Vector2(4.0f * Math::Sin(mRelogio * 70.0f), 0.0f) : Vector2::Zero;
+    const auto lugares = LugaresDosBlocos();
+    for (size_t k = 0; k < mCorpo.size() && k < lugares.size(); ++k) {
+        BossProjectile* bloco = mCorpo[k];
+        if (!bloco) continue;
+        bloco->SetPosition(mCentroDoInimigo + tremor + lugares[k] * (0.2f + 0.8f * junta));
+        Andar(bloco, mVelocidadeDoInimigo);
+        Cara(bloco, fugindo && !pisca ? "Moeda" : "Textura");
+        bloco->DefinirEnfeite(!machuca);
+    }
+    const auto lugaresDosOlhos = LugaresDosOlhos();
+    for (size_t k = 0; k < mOlhos.size() && k < lugaresDosOlhos.size(); ++k) {
+        BossProjectile* olho = mOlhos[k];
+        if (!olho) continue;
+        olho->SetPosition(mCentroDoInimigo + tremor + lugaresDosOlhos[k] * (0.2f + 0.8f * junta));
+        Andar(olho, mVelocidadeDoInimigo);
+        const float dx = ondeAluno.x - olho->GetPosition().x;
+        const bool tonto = fugindo || mIa.estado == Estado::Atordoado;
+        Cara(olho, tonto ? "Assustado" : (dx < -40.0f ? "OlhoEsquerda" : (dx > 40.0f ? "OlhoDireita" : "Olho")));
+        // Fugindo, o olho e moeda tambem: o tiro passa.
+        olho->DefinirEnfeite(!machuca);
+    }
+
+    // Fugindo, cada bloco que o aluno encosta e dele.
+    if (fugindo) {
+        for (BossProjectile*& bloco : mCorpo) {
+            if (!bloco) continue;
+            for (const Player* a : alunos) {
+                if ((bloco->GetPosition() - a->GetPosition()).Length() > RaioDe(a) + kToque) continue;
+                if (b) b->Faiscar(bloco->GetPosition(), Hud::Faisca::Coleta);
+                mPremioDoInimigo += kPremioPorBloco;
+                Matar(bloco);
                 break;
             }
         }
-        ++mJanelasFeitas;
-        mJanelas.push_back(j);
+        if (mPremioDoInimigo >= 0.75f) {
+            if (b) b->Conquistar(mPremioDoInimigo);
+            mPremioDoInimigo = 0.0f;
+        }
     }
 
-    const Vector2 meia(kLarguraDaJanela / 2.0f, kAlturaDaJanela / 2.0f);
-    for (size_t k = 0; k < mJanelas.size();) {
-        Janela& j = mJanelas[k];
-        if (!j.aberta) {
-            // O aviso: o contorno de onde ela vai abrir.
-            if (Aceso(te, 0.1f)) {
-                const Vector2 a = j.centro - meia, b = j.centro + meia;
-                Tracejada(a, Vector2(b.x, a.y), kPerigo);
-                Tracejada(Vector2(b.x, a.y), b, kPerigo);
-                Tracejada(b, Vector2(a.x, b.y), kPerigo);
-                Tracejada(Vector2(a.x, b.y), a, kPerigo);
-            }
-            if (te >= j.abre) {
-                j.aberta = true;
-                for (const Vector2& lugar : Moldura(j.centro)) {
-                    const bool titulo = lugar.y < j.centro.y - meia.y + 1.0f;
-                    if (BossProjectile* peca = Peca(kGatilhoDaJanela, lugar, titulo ? "Titulo" : "Borda")) j.pecas.push_back(peca);
-                }
-                j.fechar = Peca(kGatilhoDeFechar, BotaoDeFechar(j.centro), "X");
-                Escrever(Etiqueta(mEtiquetasDasJanelas, j.etiqueta, 204, 24), kDicas[static_cast<size_t>(j.dica)],
-                         j.centro + Vector2(0.0f, -meia.y + 28.0f));
-                SomDoDisparo();
-            }
-            ++k;
-            continue;
+    // A IA a mostra, como no modo debug de quem faz o jogo: o raio de visao na ronda, a linha ate o
+    // alvo na perseguicao, o tempo do power-up na fuga, as estrelas do atordoado.
+    const Vector2 eu = mCentroDoInimigo;
+    if (mIa.estado == Estado::Patrulha) {
+        for (int k = 0; k < 40; k += 2) {
+            const float a0 = Math::TwoPi * static_cast<float>(k) / 40.0f, a1 = Math::TwoPi * static_cast<float>(k + 1) / 40.0f;
+            Linha(eu + Vector2(Math::Cos(a0), Math::Sin(a0)) * g.raioDeVisao, eu + Vector2(Math::Cos(a1), Math::Sin(a1)) * g.raioDeVisao,
+                  kMagentaFraco);
         }
-        // Aberta e sem o X (ele morreu por outro caminho): fecha.
-        if (!j.fechar) {
-            FecharJanela(k, false);
-            continue;
+    } else if (mIa.estado == Estado::Persegue && alvo) {
+        Tracejada(eu, ondeAluno, kMagentaFraco, 10.0f);
+    } else if (fugindo) {
+        const float u = std::clamp(mIa.susto / std::max(g.susto, 0.1f), 0.0f, 1.0f);
+        const Vector2 a(eu.x - kMeiaLargura, eu.y + kMeiaAltura + 10.0f), z(eu.x + kMeiaLargura, eu.y + kMeiaAltura + 16.0f);
+        Retangulo(a, z, kOuro);
+        Preencher(a, Vector2(Mistura(a.x, z.x, u), z.y), kOuro);
+        for (const Player* aluno : alunos) Circulo(aluno->GetPosition(), 24.0f + 2.0f * Math::Sin(mRelogio * 10.0f), kOuro, 16);
+    } else if (mIa.estado == Estado::Atordoado) {
+        for (int k = 0; k < 3; ++k) {
+            const float a = mRelogio * 5.0f + Math::TwoPi * static_cast<float>(k) / 3.0f;
+            Circulo(eu + Vector2(Math::Cos(a) * 46.0f, -kMeiaAltura - 8.0f + Math::Sin(a) * 9.0f), 5.0f, kOuro, 6);
         }
-        Preencher(j.centro - meia, j.centro + meia, kJanelaPorDentro);
-        ++k;
+    } else if (mIa.estado == Estado::Derrotado) {
+        // O respawn: o contorno do corpo no canto onde ele vai nascer.
+        const Vector2 ninho = ronda[static_cast<size_t>(Ninho(campo, ondeAluno))];
+        if (Aceso(te, 0.25f)) {
+            const Vector2 a = ninho - Vector2(kMeiaLargura, kMeiaAltura), z = ninho + Vector2(kMeiaLargura, kMeiaAltura);
+            Tracejada(a, Vector2(z.x, a.y), kMagenta);
+            Tracejada(Vector2(z.x, a.y), z, kMagenta);
+            Tracejada(z, Vector2(a.x, z.y), kMagenta);
+            Tracejada(Vector2(a.x, z.y), a, kMagenta);
+        }
+    }
+    if (Vivo(mPoder)) Circulo(mPoder->GetPosition(), 20.0f + 4.0f * Math::Sin(mRelogio * 8.0f), kOuro, 14);
+
+    // O estado em cima dele (ou o "!" e o "?" de um instante), e o rotulo do power-up.
+    const bool comCorpo = mCorpoMontado && mIa.estado != Estado::Derrotado;
+    EtiquetaDeCodigo* estado = Etiqueta(mEtiquetasDoInimigo, 0, 150, 26);
+    if (estado && comCorpo) {
+        const bool marca = mRelogio < mMarcaAte && !mMarca.empty();
+        const SDL_Color tinta = marca || mIa.estado == Estado::Persegue || mIa.estado == Estado::Alerta
+                                    ? SDL_Color{255, 110, 110, 255}
+                                    : (fugindo ? SDL_Color{255, 214, 90, 255}
+                                               : (mIa.estado == Estado::Atordoado ? SDL_Color{255, 240, 150, 255}
+                                                                                   : SDL_Color{150, 255, 170, 255}));
+        estado->Pintar(SDL_Color{255, 60, 230, 160}, SDL_Color{10, 12, 24, 215}, tinta);
+        Escrever(estado, marca ? mMarca : std::string(Nome(mIa.estado)), eu + Vector2(0.0f, -kMeiaAltura - 22.0f));
+    } else if (estado) {
+        estado->Mostrar(false);
+    }
+    EtiquetaDeCodigo* rotulo = Etiqueta(mEtiquetasDoInimigo, 1, 120, 24);
+    if (rotulo && Vivo(mPoder)) {
+        rotulo->Pintar(SDL_Color{255, 214, 90, 160}, SDL_Color{10, 12, 24, 215}, SDL_Color{255, 214, 90, 255});
+        Escrever(rotulo, "POWER-UP", mPoder->GetPosition() + Vector2(0.0f, -34.0f));
+    } else if (rotulo) {
+        rotulo->Mostrar(false);
     }
 
+    // O professor continua: os leques, menos que no resto da prova.
     if (te >= 1.0f && te >= mProximoLeque) {
-        mProximoLeque = te + g.entreLeques * 1.15f;
-        Leque(kGatilhoDoLeque, g.tirosDoLeque, 26.0f, g.velocidade, "Tiro");
+        mProximoLeque = te + mDegrauDoHud.entreLeques * 1.4f;
+        Leque(HudHostil::kGatilhoDoLeque, mDegrauDoHud.tirosDoLeque, 26.0f, mDegrauDoHud.velocidade, "Tiro");
     }
-    Placar(kFase, kEtapaDasJanelas, "Janelas abertas: " + std::to_string(mJanelas.size()) + ". Atire no X para fechar");
-}
 
-void Ferreira::FecharJanela(const size_t k, const bool comEstouro) {
-    if (k >= mJanelas.size()) return;
-    Janela j = mJanelas[k];
-    mJanelas.erase(mJanelas.begin() + static_cast<std::ptrdiff_t>(k));
-    MatarTodos(j.pecas);
-    Matar(j.fechar);
-    if (j.etiqueta < mEtiquetasDasJanelas.size() && mEtiquetasDasJanelas[j.etiqueta]) mEtiquetasDasJanelas[j.etiqueta]->Mostrar(false);
-    if (comEstouro && j.aberta) {
-        const float centro = mSorteio.Real(0.0f, 45.0f);
-        const auto cacos = DispararEm(HudHostil::kGatilhoDoLeque, j.centro, 8, centro, 315.0f, 170.0f);
-        DarVelocidade(cacos, centro, 315.0f, 170.0f);
-        for (BossProjectile* p : cacos) Cara(p, "Tiro");
-        SomDoDisparo();
+    std::string texto;
+    switch (mIa.estado) {
+        case Estado::Nascendo:  texto = "new Inimigo(): a IA dele \xc3\xa9 uma m\xc3\xa1quina de estados"; break;
+        case Estado::Patrulha:  texto = "PATRULHA: fique fora do raio de vis\xc3\xa3o dele"; break;
+        case Estado::Alerta:    texto = "ALERTA (!): ele te viu - CORRA!"; break;
+        case Estado::Persegue:
+            texto = Vivo(mPoder) ? "PERSEGUE: pegue o POWER-UP!" : "PERSEGUE: atire no OLHO dele, o ponto fraco";
+            break;
+        case Estado::Atordoado: texto = "ATORDOADO: o olho era o ponto fraco"; break;
+        case Estado::Fugindo:
+            texto = pisca || mIa.susto <= kPiscaNoFim ? "FUGINDO... o power-up est\xc3\xa1 acabando!"
+                                                      : "FUGINDO: encoste nos blocos - cada um \xc3\xa9 nota!";
+            break;
+        case Estado::Derrotado:
+            texto = "inimigo.destruir(): respawn em " + std::to_string(static_cast<int>(std::ceil(kRespawn - mIa.noEstado)));
+            break;
     }
+    Placar(HudHostil::kFase, HudHostil::kEtapaDoInimigo, texto);
 }
 
 // ---- Fase 2: a fisica ----
@@ -1140,7 +1365,6 @@ void Ferreira::AtualizarEsteira(const float te, const float dt, const Lado l, co
 
 void Ferreira::AtualizarRegras(const float t, const float deltaTime) {
     using namespace RegrasTrocadas;
-    (void)deltaTime;
     const int etapa = JogosDigitais::Etapa(kDuracoes, t);
     const float te = JogosDigitais::NaEtapa(kDuracoes, t);
     TrocouDeEtapa(etapa);
@@ -1148,7 +1372,7 @@ void Ferreira::AtualizarRegras(const float t, const float deltaTime) {
     if (etapa == 0) AtualizarInversao(te);
     else if (etapa == 1) AtualizarFogoAmigo(te);
     else if (etapa == 2) AtualizarLag(te);
-    else AtualizarSaveLoad(te);
+    else AtualizarSaveLoad(te, deltaTime);
 }
 
 void Ferreira::AtualizarInversao(const float te) {
@@ -1317,11 +1541,11 @@ void Ferreira::AtualizarLag(const float te) {
     Placar(kFase, 2, "fps = 2.5: o c\xc3\xadrculo \xc3\xa9 o PR\xc3\x93XIMO quadro");
 }
 
-void Ferreira::AtualizarSaveLoad(const float te) {
+void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
     using namespace RegrasTrocadas;
     const Degrau& g = mDegrauDasRegras;
-    const SDL_FRect c = Campo();
-    Battle* b = Batalha();
+    const JogosDigitais::Campo campo = CampoPuro();
+    const std::vector<Player*> alunos = Jogadores();
 
     if (te >= 0.5f && te >= mProximoAnel) {
         mProximoAnel = te + g.entreAneisDoMotor;
@@ -1332,67 +1556,112 @@ void Ferreira::AtualizarSaveLoad(const float te) {
         for (BossProjectile* p : Leque(kGatilhoDoTiro, g.tirosDoLequeDoMotor, 28.0f, g.velocidadeDoMotor + 70.0f, "Tiro")) mTiros.push_back(p);
     }
 
-    const Evento evento = EventoEntre(mTeAnterior, te);
-    mTeAnterior = te;
-    const std::vector<Player*> alunos = Jogadores();
-    if (evento == Evento::Salvar) {
-        // O save: onde cada aluno esta, cada tiro em campo e a nota.
+    const float agora = Nota();
+    // Onde o disquete anda: o campo sem a faixa do professor, com a folga do raio dele. A fuga conhece
+    // essas bordas, e escorrega por elas.
+    const float folga = kRaioDoSave + 4.0f;
+    const JogosDigitais::Campo area{campo.x + folga, campo.y + 150.0f, campo.w - 2.0f * folga, campo.h - 150.0f - folga};
+    // O save: a nota de agora e onde cada aluno esta. O disquete nasce um pouco acima do aluno.
+    if (!mSalvo.tem && HoraDeSalvar(te, mUltimoLoad)) {
         mSalvo = Salvo{};
         mSalvo.tem = true;
-        mSalvo.nota = Nota();
+        mSalvo.nota = agora;
         for (const Player* a : alunos) mSalvo.alunos.push_back(a->GetPosition());
-        for (const BossProjectile* p : mTiros) {
-            if (p) mSalvo.tiros.push_back({p->GetPosition(), VelocidadeDe(p)});
-        }
-        MatarTodos(mDisquetes);
-        for (const Vector2& onde : mSalvo.alunos) {
-            if (BossProjectile* d = Peca(kGatilhoDoDisquete, onde + Vector2(0.0f, -46.0f), "Disquete")) {
-                d->DefinirEnfeite(true);
-                mDisquetes.push_back(d);
-            }
-        }
+        const Vector2 aluno = alunos.empty() ? PosicaoDoAluno() : alunos.front()->GetPosition();
+        Matar(mSave);
+        mSave = Peca(kGatilhoDoDisquete, JogosDigitais::Prender(aluno + Vector2(0.0f, -110.0f), area, 20.0f, 20.0f), "Save");
+        if (mSave) mSave->DefinirEnfeite(true);
         mClarao = 0.2f;
         mCorDoClarao = kSave;
-        Avisar("quicksave(): salvo com nota " + Inteiro(mSalvo.nota), 1.5f);
-        SomDoDisparo();
-    } else if (evento == Evento::Carregar && mSalvo.tem) {
-        // O load: tudo volta ao que era - o aluno, os tiros e a nota.
-        for (size_t i = 0; i < alunos.size() && i < mSalvo.alunos.size(); ++i) {
-            alunos[i]->SetPosition(mSalvo.alunos[i]);
-            alunos[i]->Proteger(0.4f);
-        }
-        if (b) b->DefinirNota(mSalvo.nota);
-        MatarTodos(mTiros);
-        for (const Salvo::Tiro& s : mSalvo.tiros) {
-            if (BossProjectile* p = Um(kGatilhoDoTiro, s.onde, "Tiro", s.v)) mTiros.push_back(p);
-        }
-        MatarTodos(mDisquetes);
-        mSalvo.tem = false;
-        mClarao = 0.25f;
-        mCorDoClarao = SDL_Color{255, 255, 255, 255};
-        Avisar("quickload(): tudo voltou, a nota tamb\xc3\xa9m", 1.6f);
+        Avisar("quicksave(): o save guardou a nota " + Inteiro(mSalvo.nota), 1.4f);
         SomDoDisparo();
     }
+    if (mSalvo.tem && !mSave) mSalvo.tem = false;   // o disquete sumiu por outro caminho
 
     if (mSalvo.tem) {
-        // O ponto do save, e a barra que enche ate a hora do load.
+        mSalvo.ha += deltaTime;
+        // O aluno mais perto: e dele que o save foge, ou e ele que o save persegue.
+        const Player* alvo = nullptr;
+        float distancia = 1e9f;
+        for (const Player* a : alunos) {
+            const float d = (a->GetPosition() - mSave->GetPosition()).Length();
+            if (d < distancia) {
+                distancia = d;
+                alvo = a;
+            }
+        }
+        const Humor humor = HumorDoSave(mSalvo.nota, agora);
+        const Vector2 eu = mSave->GetPosition();
+        const Vector2 ondeAluno = alvo ? alvo->GetPosition() : PosicaoDoAluno();
+        Vector2 rumo = Vector2::Zero;
+        if (mSalvo.ha >= kGravando) {
+            if (humor == Humor::Foge) rumo = JogosDigitais::Fugir(eu, ondeAluno, area, 12.0f);
+            else if (humor == Humor::Persegue) rumo = JogosDigitais::Rumo(eu, ondeAluno);
+        }
+        mSave->SetPosition(JogosDigitais::Prender(eu + rumo * (RapidezDoSave(mSalvo.nota, agora) * deltaTime), area, 0.0f, 0.0f));
+        Parar(mSave);
+        // Gravando, ele pisca; depois, a cara diz o humor: verde foge (vale mais), vermelho persegue.
+        const bool gravando = mSalvo.ha < kGravando;
+        Cara(mSave, gravando ? (Aceso(mSalvo.ha, 0.1f) ? "Save" : "Foge")
+                             : (humor == Humor::Foge ? "Foge" : (humor == Humor::Persegue ? "Persegue" : "Save")));
+
+        // Onde o load leva: o lugar de cada aluno no save, e a linha ate ele.
         for (size_t i = 0; i < mSalvo.alunos.size(); ++i) {
             const Vector2 onde = mSalvo.alunos[i];
-            Circulo(onde, 22.0f, kSave, 14);
-            Tracejada(onde + Vector2(-16.0f, 0.0f), onde + Vector2(16.0f, 0.0f), kSave, 4.0f);
-            Tracejada(onde + Vector2(0.0f, -16.0f), onde + Vector2(0.0f, 16.0f), kSave, 4.0f);
-            if (i < alunos.size()) Tracejada(alunos[i]->GetPosition(), onde, SDL_Color{110, 170, 255, 70}, 6.0f);
+            Circulo(onde, 18.0f, kSave, 14);
+            Tracejada(onde + Vector2(-12.0f, 0.0f), onde + Vector2(12.0f, 0.0f), kSave, 4.0f);
+            Tracejada(onde + Vector2(0.0f, -12.0f), onde + Vector2(0.0f, 12.0f), kSave, 4.0f);
         }
-        const float u = RumoAoLoad(te);
-        if (u >= 0.0f) {
-            const Vector2 a(c.x + c.w * 0.3f, c.y + 134.0f), z(c.x + c.w * 0.7f, c.y + 144.0f);
-            Retangulo(a, z, kSave);
-            Preencher(a, Vector2(Mistura(a.x, z.x, u), z.y), kSave);
+        const SDL_Color cor = humor == Humor::Foge ? SDL_Color{110, 230, 150, 220}
+                                                   : (humor == Humor::Persegue ? SDL_Color{255, 100, 100, 220} : kSave);
+        Circulo(mSave->GetPosition(), 26.0f + 2.0f * Math::Sin(mRelogio * 9.0f), cor, 16);
+
+        // A nota que ele guarda, em cima dele, na cor do humor.
+        if (EtiquetaDeCodigo* e = Etiqueta(mEtiquetasDoSave, 0, 110, 24)) {
+            e->Pintar(cor, SDL_Color{10, 12, 24, 215}, SDL_Color{cor.r, cor.g, cor.b, 255});
+            Escrever(e, "SAVE " + Inteiro(mSalvo.nota), mSave->GetPosition() + Vector2(0.0f, -36.0f));
         }
-        Placar(kFase, 3, "Salvo com nota " + Inteiro(mSalvo.nota) + ": o load desfaz TUDO desde o save");
-    } else {
-        Placar(kFase, 3, "quicksave() a caminho: o jogo vai voltar no tempo");
+
+        // O toque e o quick load.
+        if (!gravando) {
+            for (const Player* a : alunos) {
+                if (!Encostou(mSave->GetPosition(), a->GetPosition(), RaioDe(a))) continue;
+                Carregar(te);
+                break;
+            }
+        }
+        if (mSalvo.tem) {
+            const std::string notas = "o save tem " + Inteiro(mSalvo.nota) + ", voc\xc3\xaa tem " + Inteiro(agora);
+            switch (humor) {
+                case Humor::Foge: Placar(kFase, 3, notas + ": ele FOGE - pegue-o!"); break;
+                case Humor::Persegue: Placar(kFase, 3, notas + ": ele te PERSEGUE - fuja!"); break;
+                case Humor::Parado: Placar(kFase, 3, notas + ": ele espera"); break;
+            }
+        }
     }
+    if (!mSalvo.tem) {
+        Esconder(mEtiquetasDoSave);
+        Placar(kFase, 3, te > kUltimoSave ? "sem mais saves: s\xc3\xb3 desvie" : "quicksave() a caminho: o save vai guardar a sua nota");
+    }
+}
+
+void Ferreira::Carregar(const float te) {
+    Battle* b = Batalha();
+    const std::vector<Player*> alunos = Jogadores();
+    for (size_t i = 0; i < alunos.size() && i < mSalvo.alunos.size(); ++i) {
+        alunos[i]->SetPosition(mSalvo.alunos[i]);
+        alunos[i]->Proteger(0.6f);
+    }
+    const float antes = Nota();
+    if (b) b->DefinirNota(mSalvo.nota);
+    Matar(mSave);
+    mSalvo.tem = false;
+    mUltimoLoad = te;
+    Esconder(mEtiquetasDoSave);
+    mClarao = 0.25f;
+    mCorDoClarao = SDL_Color{255, 255, 255, 255};
+    Avisar("quickload(): a nota foi de " + Inteiro(antes) + " para " + Inteiro(mSalvo.nota), 1.6f);
+    SomDoDisparo();
 }
 
 // ---- A repescagem: o lancamento ----
@@ -1679,12 +1948,12 @@ void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
 void Ferreira::OnDerrubou(BossProjectile* qual) {
     if (!qual) return;
     Battle* b = Batalha();
-    // O X de uma janela: ela fecha inteira.
-    for (size_t k = 0; k < mJanelas.size(); ++k) {
-        if (mJanelas[k].fechar != qual) continue;
-        mJanelas[k].fechar = nullptr;
-        FecharJanela(k, false);
-        if (b) b->Conquistar(HudHostil::kPremioPorFechar);
+    // Um olho do inimigo, o ponto fraco: ele fica atordoado (a IA percebe no quadro seguinte).
+    for (BossProjectile*& o : mOlhos) {
+        if (o != qual) continue;
+        o = nullptr;
+        mOlhoAtingido = true;
+        if (b) b->Conquistar(IaDoInimigo::kPremioPorOlho);
         return;
     }
     // Um botao do dialogo: a escolha vale no quadro seguinte (AtualizarCrash).

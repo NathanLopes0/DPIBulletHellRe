@@ -10,8 +10,9 @@
   // primeiro quadro: tres aneis rapidos fecham sobre o aluno, cada um com um vao. Depois o professor
   // arranca a barra da nota da HUD - a de verdade - e varre o campo com ela, cheia ate a nota do
   // aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio). Primeiro deitada, sobe e desce;
-  // depois, de pe, vai de um lado ao outro, e volta para o rodape. Por fim as janelas de dica abrem
-  // em volta do aluno, e so fecham com um tiro no X.
+  // depois, de pe, vai de um lado ao outro, e volta para o rodape. Por fim o primeiro inimigo do
+  // jogo, gigante e sem textura, persegue o aluno - e a IA dele se ve: patrulha, alerta, persegue.
+  // O power-up faz ele fugir (e cada bloco dele vira nota), e um tiro no olho o atordoa.
   "StateOne": {
     "duracao": 40,
     "proximo": "StateTwo",
@@ -20,7 +21,7 @@
       { "nome": "Abertura",  "duracao": 3.0,  "anuncio": "quadro 1: bem-vindo à INF 216" },
       { "nome": "BarraSobe", "duracao": 11.5, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
       { "nome": "BarraJoga", "duracao": 11.5, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
-      { "nome": "Janelas",   "duracao": 14.0, "anuncio": "tutorial.abrir(): atire no X para fechar" }
+      { "nome": "Inimigo",   "duracao": 14.0, "anuncio": "new Inimigo(): a IA dele é uma máquina de estados" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
@@ -30,9 +31,11 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 3, "velocidade": 230, "angulo": 26, "intervalo": 0 },
-      { "som": false, "gatilho": "janela", "estrategia": "WaveAttack", "projetil": "Janela",
+      { "som": false, "gatilho": "inimigo", "estrategia": "WaveAttack", "projetil": "Inimigo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "fechar", "estrategia": "WaveAttack", "projetil": "Fechar",
+      { "som": false, "gatilho": "olho", "estrategia": "WaveAttack", "projetil": "Olho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "poder", "estrategia": "WaveAttack", "projetil": "Poder",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
@@ -77,7 +80,8 @@
   // professor tira nota e os tiros dele viram moedas, que passam pelo aluno e dao nota - ate as
   // regras voltarem. A do campo: no fogo amigo, o tiro do aluno que erra o professor volta por baixo.
   // A do tempo: no lag os tiros andam aos saltos, e um circulo mostra o proximo quadro. A do estado:
-  // no save/load ele salva o jogo e depois carrega - o aluno, os tiros e a nota voltam ao que eram.
+  // no save/load ele salva a nota num disquete que anda: se a nota do save e maior que a de agora,
+  // ele foge do aluno; se e menor, persegue - e quem ele encosta volta para o save, com a nota dele.
   "StateThree": {
     "duracao": 40,
     "proximo": "",
@@ -86,7 +90,7 @@
       { "nome": "Inversao",  "duracao": 10.0, "anuncio": "regras.inverter(): acertar TIRA, tiro DÁ nota" },
       { "nome": "FogoAmigo", "duracao": 10.0, "anuncio": "fogoAmigo = true: tiro que erra volta" },
       { "nome": "Lag",       "duracao": 10.0, "anuncio": "fps = 2.5: o círculo é o próximo quadro" },
-      { "nome": "SaveLoad",  "duracao": 10.0, "anuncio": "quicksave(): tudo volta para o disquete" }
+      { "nome": "SaveLoad",  "duracao": 10.0, "anuncio": "quicksave(): o save foge ou te persegue" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
@@ -96,7 +100,7 @@
         "projeteis": 5, "velocidade": 210, "angulo": 40, "intervalo": 0 },
       { "som": false, "gatilho": "retorno", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "disquete", "estrategia": "WaveAttack", "projetil": "Tiro",
+      { "som": false, "gatilho": "disquete", "estrategia": "WaveAttack", "projetil": "Save",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },

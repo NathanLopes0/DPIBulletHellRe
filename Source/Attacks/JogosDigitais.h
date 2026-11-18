@@ -17,12 +17,12 @@
 /// A optativa secreta nao tem materia para ensinar: o professor de Projeto e Implementacao de Jogos
 /// Digitais pega o jogo que o aluno ja conhece e mexe nele. Cada prova e um sistema:
 ///   1. a interface (HudHostil): um golpe no primeiro quadro, para assustar; depois a barra da nota -
-///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; e as
-///      janelas de dica abrem em volta dele;
+///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; e por fim
+///      o primeiro inimigo, gigante, com a IA dele a mostra (IaDoInimigo);
 ///   2. a fisica (Gravidade): a prova inteira vira jogo de plataforma, e o professor escolhe para que
 ///      lado a gravidade puxa - cada lado com o seu desafio;
 ///   3. as regras (RegrasTrocadas): a nota (acertar tira, os tiros dao), o campo (o tiro que erra
-///      volta), o tempo (o lag) e o estado (o quick save e o quick load);
+///      volta), o tempo (o lag) e o estado (o save que foge ou persegue, e o quick load);
 ///   4. o lancamento (Lancamento, a repescagem): a hitbox descola, o jogo trava, os bugs marcham, os
 ///      creditos sobem.
 /// Aqui ficam as contas; quem poe os tiros no campo e Ferreira.cpp.
@@ -62,6 +62,15 @@ namespace JogosDigitais {
         for (int k = 0; k < etapa; ++k) inicio += d[static_cast<std::size_t>(k)];
         return t - inicio < 0.0f ? 0.0f : t - inicio;
     }
+
+    /// O rumo de 'eu' ate 'alvo', de tamanho 1 (zero, se ja chegou).
+    Vector2 Rumo(Vector2 eu, Vector2 alvo);
+    /// Para onde foge quem esta em 'eu' de quem esta em 'de', sem sair de 'c' ('margem' das bordas):
+    /// para longe; na parede, escorrega por ela; encurralado num canto, sai pela parede em que o
+    /// perseguidor esta mais longe - e passa por ele, se ele nao fechar o caminho. Tamanho 1.
+    Vector2 Fugir(Vector2 eu, Vector2 de, const Campo& c, float margem);
+    /// 'p' preso dentro de 'c', a 'mx' das bordas dos lados e a 'my' das de cima e de baixo.
+    Vector2 Prender(Vector2 p, const Campo& c, float mx, float my);
 }
 
 // ---- Fase 1: a interface ----
@@ -70,17 +79,19 @@ namespace HudHostil {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
     constexpr const char* kFase = "StateOne";
-    constexpr std::array<const char*, 4> kEtapas = {"Abertura", "BarraSobe", "BarraJoga", "Janelas"};
+    constexpr std::array<const char*, 4> kEtapas = {"Abertura", "BarraSobe", "BarraJoga", "Inimigo"};
     constexpr std::array<float, 4> kDuracoes = {3.0f, 11.5f, 11.5f, 14.0f};
     constexpr int kEtapaDaAbertura = 0;
     constexpr int kEtapaDaBarraDeitada = 1;
     constexpr int kEtapaDaBarraDePe = 2;
-    constexpr int kEtapaDasJanelas = 3;
+    constexpr int kEtapaDoInimigo = 3;
     constexpr const char* kGatilhoDaAbertura = "abertura";
     constexpr const char* kGatilhoDaBarra = "barra";
     constexpr const char* kGatilhoDoLeque = "leque";
-    constexpr const char* kGatilhoDaJanela = "janela";
-    constexpr const char* kGatilhoDeFechar = "fechar";
+    /// O inimigo (IaDoInimigo): cada bloco do corpo, cada olho e o power-up.
+    constexpr const char* kGatilhoDoInimigo = "inimigo";
+    constexpr const char* kGatilhoDoOlho = "olho";
+    constexpr const char* kGatilhoDoPoder = "poder";
 
     // ---- A abertura: o susto ----
 
@@ -136,7 +147,6 @@ namespace HudHostil {
         float entreLeques = 1.25f;
         int tirosDoLeque = 3;
         float velocidade = 230.0f;
-        float entreJanelas = 2.6f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
@@ -182,26 +192,108 @@ namespace HudHostil {
                      const Degrau& g);
     /// O centro do segmento 'k' de 'segmentos' numa barra nesta pose.
     Vector2 CentroDoSegmento(const PoseDaBarra& p, int k, int segmentos);
+}
 
-    // ---- As janelas ----
+// ---- Fase 1, a ultima etapa: a IA do inimigo ----
 
-    /// Uma janela de dica abre em volta do aluno: a moldura machuca, e ela so fecha com um tiro no X.
-    constexpr float kLarguraDaJanela = 220.0f;
-    constexpr float kAlturaDaJanela = 140.0f;
-    constexpr float kPecaDaJanela = 20.0f;
-    /// O X fica na barra de titulo, kRecuoDoFechar para dentro do canto direito: da para mirar nele de
-    /// dentro da janela.
-    constexpr float kRecuoDoFechar = 40.0f;
-    constexpr float kAvisoDaJanela = 0.75f;
-    constexpr int kJanelasAbertas = 4;
-    constexpr float kPremioPorFechar = 0.8f;
-    /// As pecas da moldura da janela centrada em 'centro' (sem a do X).
-    std::vector<Vector2> Moldura(Vector2 centro);
-    Vector2 BotaoDeFechar(Vector2 centro);
-    /// O centro da janela que abre em volta de 'aluno', sem sair do retangulo dado.
-    Vector2 CentroDaJanela(Vector2 aluno, float esquerda, float topo, float direita, float fundo);
-    constexpr std::array<const char*, 6> kDicas = {"Dica 1/97: desvie!", "Atirar d\xc3\xa1 nota!",     "Aceita os cookies?",
-                                                   "Feche no X",         "Avalie: 5 estrelas?", "Compre a DLC do TCC"};
+namespace IaDoInimigo {
+
+    /// O primeiro inimigo do jogo, gigante: um bloco de textura que faltou - o xadrez magenta e preto
+    /// que o motor poe no lugar da arte que nao carregou -, com dois olhos. Ele persegue o aluno, e a
+    /// IA dele e uma maquina de estados que se ve (o placar diz o estado, e cada troca tem o seu aviso):
+    ///   NASCENDO -> PATRULHA: ele ronda os cantos do campo; o circulo e o raio de visao dele;
+    ///   PATRULHA -> ALERTA: o aluno entrou no raio (ou a ronda cansou): um "!", e ele treme parado;
+    ///   ALERTA -> PERSEGUE: vai atras do aluno mais perto, cada vez mais rapido;
+    ///   PERSEGUE -> PATRULHA: o aluno ficou longe (fora do raio de perder) por kParaPerder: "?";
+    ///     ou ele acabou de acertar o aluno - e recua para o canto mais longe, sem enxerga-lo por
+    ///     kRecuo, como todo inimigo justo faz (sem isso, encostado no aluno, ele o veria na hora e o
+    ///     acertaria de novo a cada fim de invencivel);
+    ///   PATRULHA, ALERTA ou PERSEGUE -> ATORDOADO: um tiro no olho, o ponto fraco;
+    ///   qualquer um, vivo -> FUGINDO: o aluno pegou o power-up - os blocos viram moeda, ele foge, e
+    ///     cada bloco que o aluno encosta e nota; no fim do power-up ele pisca e volta a perseguir;
+    ///   FUGINDO -> DERROTADO: o aluno pegou o ultimo bloco (sem bloco nenhum - o Ponto Extra tambem
+    ///     os desfaz -, ele e derrotado em qualquer estado); DERROTADO -> NASCENDO: o respawn.
+    enum class Estado { Nascendo, Patrulha, Alerta, Persegue, Atordoado, Fugindo, Derrotado };
+    /// O nome que o placar e a etiqueta em cima dele mostram.
+    const char* Nome(Estado e);
+
+    /// O corpo, de cima para baixo: '#' e um bloco, 'O' um olho, '.' nada.
+    constexpr int kColunas = 7;
+    constexpr int kLinhas = 6;
+    constexpr std::array<const char*, kLinhas> kCorpo = {".#####.", "#######", "#O###O#", "#######", "#######", ".##.##."};
+    /// O lado de um bloco, em px (o sprite e desse tamanho).
+    constexpr float kBloco = 24.0f;
+    constexpr float kMeiaLargura = kBloco * static_cast<float>(kColunas) / 2.0f;
+    constexpr float kMeiaAltura = kBloco * static_cast<float>(kLinhas) / 2.0f;
+    /// O lugar de cada bloco e de cada olho, em relacao ao centro dele.
+    std::vector<Vector2> LugaresDosBlocos();
+    std::vector<Vector2> LugaresDosOlhos();
+
+    /// Os tempos (segundos).
+    constexpr float kNascendo = 0.9f;     ///< os blocos se juntam no lugar, sem machucar
+    constexpr float kAlerta = 0.5f;       ///< o "!": ele treme parado, e ai corre
+    constexpr float kRondaCansa = 3.0f;   ///< a patrulha que nao viu ninguem vira alerta assim mesmo
+    constexpr float kParaPerder = 1.3f;   ///< longe por tanto tempo, e ele desiste: "?"
+    constexpr float kRespawn = 2.2f;
+    constexpr float kRecuo = 2.2f;        ///< depois de acertar o aluno, a ronda nao o ve por tanto tempo
+    constexpr float kPiscaNoFim = 1.0f;   ///< o fim do power-up: os blocos piscam entre moeda e textura
+    /// O que vale: cada bloco pego, o tiro no olho e o inimigo inteiro.
+    constexpr float kPremioPorBloco = 0.25f;
+    constexpr float kPremioPorOlho = 0.5f;
+    constexpr float kPremioPorDerrotar = 2.0f;
+    /// A folga do toque num bloco ou no power-up, alem do raio do aluno.
+    constexpr float kToque = 14.0f;
+    /// Onde o corpo pode andar: o campo sem a faixa de cima (a do professor e do placar).
+    constexpr float kTopoDaArena = 170.0f;
+
+    struct Degrau {
+        float ronda = 100.0f;         ///< px/s na patrulha
+        float persegue = 130.0f;      ///< px/s quando comeca a perseguir
+        float aceleracao = 8.0f;      ///< a mais por segundo de perseguicao
+        float maxima = 180.0f;        ///< o teto (o aluno anda a 300)
+        float foge = 190.0f;          ///< fugindo: o aluno alcanca
+        float raioDeVisao = 260.0f;
+        float raioDePerder = 400.0f;
+        float susto = 4.5f;           ///< quanto o power-up dura
+        float atordoado = 2.0f;
+        float primeiroPoder = 3.2f;   ///< segundos de etapa ate o primeiro power-up
+        float entrePoderes = 2.5f;    ///< do fim de um susto ao power-up seguinte
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// O que ele percebe num quadro.
+    struct Percepcao {
+        float distancia = 1e9f;   ///< do centro dele ao aluno mais perto
+        bool pegouOPoder = false;
+        bool olhoAtingido = false;
+        bool acertouOAluno = false;   ///< o corpo dele acabou de acertar o aluno
+        int blocos = 0;           ///< os que sobram no corpo
+    };
+    struct Ia {
+        Estado estado = Estado::Nascendo;
+        float noEstado = 0.0f;    ///< segundos no estado de agora
+        float longe = 0.0f;       ///< segundos com o aluno fora do raio de perder
+        float susto = 0.0f;       ///< o que falta do power-up
+        float rapidez = 0.0f;     ///< a da perseguicao, que cresce
+        float recuo = 0.0f;       ///< o que falta do recuo: a ronda ainda nao ve o aluno
+    };
+    /// Um passo de 'dt' segundos: as transicoes do diagrama acima. Devolve se o estado mudou.
+    bool Passo(Ia& ia, const Percepcao& p, float dt, const Degrau& g);
+    /// Se os blocos machucam neste estado: fugindo sao moeda; nascendo e derrotado, ainda nao estao la.
+    bool Machuca(Estado e);
+    /// A que velocidade ele anda agora (0: parado).
+    float Rapidez(const Ia& ia, const Degrau& g);
+    /// Se os blocos, fugindo, estao com a cara de textura neste instante: o aviso do fim.
+    bool Pisca(const Ia& ia, float relogio);
+
+    /// O centro dele sem o corpo sair da arena.
+    Vector2 NaArena(Vector2 centro, const JogosDigitais::Campo& c);
+    /// Os cantos da ronda, na ordem em que ele os percorre.
+    std::array<Vector2, 4> Ronda(const JogosDigitais::Campo& c);
+    /// O canto da ronda mais longe de 'aluno': onde ele nasce.
+    int Ninho(const JogosDigitais::Campo& c, Vector2 aluno);
+    /// Onde o power-up aparece: longe do inimigo - do outro lado do campo, com um pouco de sorteio.
+    Vector2 LugarDoPoder(Variacao::Sorteio& s, const JogosDigitais::Campo& c, Vector2 inimigo);
 }
 
 // ---- Fase 2: a fisica ----
@@ -397,18 +489,33 @@ namespace RegrasTrocadas {
     /// Onde esta, 'quadros' quadros depois, o tiro que estava em 'p0' com a velocidade 'v'.
     Vector2 NoQuadro(Vector2 p0, Vector2 v, int quadros);
 
-    // ---- O quick save e o quick load: a regra do estado ----
+    // ---- O quick save: a regra do estado ----
 
-    /// O professor salva o jogo e, segundos depois, carrega: o aluno volta para onde estava, os tiros
-    /// voltam para onde estavam, e a nota volta a ser a do save - nada do que aconteceu no meio conta,
-    /// para o bem e para o mal.
-    enum class Evento { Nada, Salvar, Carregar };
-    constexpr std::array<float, 2> kSaves = {1.0f, 5.4f};
-    constexpr std::array<float, 2> kLoads = {4.4f, 9.2f};
-    /// O evento que cai depois de 'antes' e ate 'agora'.
-    Evento EventoEntre(float antes, float agora);
-    /// De 0 a 1, quanto do caminho entre o save e o load dele ja passou em 't'; -1 fora dele.
-    float RumoAoLoad(float t);
+    /// O professor salva a nota do aluno num disquete - e o disquete fica no campo, vivo, comparando a
+    /// nota dele com a de agora. Se a do save e MAIOR (o aluno perdeu nota desde o save), ele vale
+    /// mais: foge do aluno. Se e MENOR (o aluno ganhou), ele persegue. Encostar e o quick load: o
+    /// aluno volta para onde estava no save, com a nota do save - para o bem e para o mal.
+    enum class Humor { Parado, Foge, Persegue };
+    /// Ate esta diferenca de nota, ele fica parado.
+    constexpr float kEmpate = 0.5f;
+    Humor HumorDoSave(float salva, float agora);
+    /// A que velocidade ele anda: quanto maior a diferenca, mais rapido - ate o teto, que fica abaixo
+    /// da do aluno (fugindo, ele e alcancavel; perseguindo, da para escapar).
+    float RapidezDoSave(float salva, float agora);
+    constexpr float kSaveDevagar = 90.0f;
+    constexpr float kSavePorPonto = 14.0f;   ///< px/s a mais por ponto de diferenca
+    constexpr float kSaveRapido = 245.0f;
+    /// O raio do disquete (o sprite tem 34 px): encostar e ficar a menos disto mais o raio do aluno.
+    constexpr float kRaioDoSave = 17.0f;
+    bool Encostou(Vector2 save, Vector2 aluno, float raioDoAluno);
+    /// O save recem-feito ainda esta gravando: por este tempo, encostar nele nao carrega.
+    constexpr float kGravando = 0.8f;
+    /// Quando sai um save: o primeiro logo no comeco da etapa, e um novo kEntreSaves depois de cada
+    /// load - enquanto ainda houver tempo para ele andar. 'ultimoLoad' < 0: nenhum ainda.
+    constexpr float kPrimeiroSave = 1.0f;
+    constexpr float kEntreSaves = 1.4f;
+    constexpr float kUltimoSave = 7.6f;
+    bool HoraDeSalvar(float te, float ultimoLoad);
 
     struct Degrau {
         // A inversao e o fogo amigo.

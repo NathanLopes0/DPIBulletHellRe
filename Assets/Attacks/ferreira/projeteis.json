@@ -4,12 +4,12 @@
   // gerar_ferreira.py --animacoes.
 
   // O tiro de sempre e as caras que ele ganha quando o jogo muda: a moeda das regras invertidas (e
-  // a da chuva), a duvida do aluno que volta contra ele, o fragmento da travada, o disquete do save -
-  // e a cara vazia, a da hitbox que descolou do desenho.
+  // a da chuva), a duvida do aluno que volta contra ele, o fragmento da travada - e a cara vazia, a
+  // da hitbox que descolou do desenho.
   "Tiro": {
     "sprite": "Teachers/Projectiles/DPIBHFerreiraTiros.png",
     "dados":  "Teachers/Projectiles/DPIBHFerreiraTiros.json",
-    "animacoes": { "Tiro": [0], "Moeda": [1], "Seu": [2], "Vazio": [3], "Fragmento": [4], "Disquete": [5] },
+    "animacoes": { "Tiro": [0], "Moeda": [1], "Seu": [2], "Vazio": [3], "Fragmento": [4] },
     "animacaoInicial": "Tiro",
     "ordemDeDesenho": 91,
     "colisorDivisor": 2.6
@@ -37,26 +37,49 @@
     "colisorDivisor": 2.0
   },
 
-  // A moldura de uma janela de dica: a borda e a barra de titulo.
-  "Janela": {
-    "sprite": "Teachers/Projectiles/DPIBHFerreiraJanela.png",
-    "dados":  "Teachers/Projectiles/DPIBHFerreiraJanela.json",
-    "animacoes": { "Borda": [0], "Titulo": [1] },
-    "animacaoInicial": "Borda",
-    "ordemDeDesenho": 93,
-    "colisorDivisor": 2.2
+  // Um bloco do inimigo gigante: a textura que faltou (o xadrez magenta e preto), ou a moeda em que
+  // ele vira quando foge do power-up. O tiro do aluno passa pelo corpo.
+  "Inimigo": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraInimigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraInimigo.json",
+    "animacoes": { "Textura": [0], "Moeda": [1] },
+    "animacaoInicial": "Textura",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.6
   },
 
-  // O X da janela: um tiro do aluno fecha a janela inteira.
-  "Fechar": {
-    "sprite": "Teachers/Projectiles/DPIBHFerreiraJanela.png",
-    "dados":  "Teachers/Projectiles/DPIBHFerreiraJanela.json",
-    "animacoes": { "X": [2] },
-    "animacaoInicial": "X",
-    "ordemDeDesenho": 94,
-    "colisorDivisor": 1.7,
+  // Um olho do inimigo, o ponto fraco: dois tiros o derrubam, e ele fica atordoado. A pupila olha
+  // para o aluno; fugindo, ele arregala.
+  "Olho": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraInimigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraInimigo.json",
+    "animacoes": { "Olho": [2], "OlhoEsquerda": [3], "OlhoDireita": [4], "Assustado": [5] },
+    "animacaoInicial": "Olho",
+    "ordemDeDesenho": 93,
+    "colisorDivisor": 2.0,
     "derrubavel": true,
-    "resistencia": 1
+    "resistencia": 2
+  },
+
+  // O power-up: a estrela que pulsa. Quem encosta nela faz o inimigo fugir.
+  "Poder": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraInimigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraInimigo.json",
+    "animacoes": { "Poder": [6, 7] },
+    "animacaoInicial": "Poder",
+    "ordemDeDesenho": 94,
+    "colisorDivisor": 2.4
+  },
+
+  // O disquete do save, vivo: o de sempre, o que foge (a nota dele e maior que a de agora) e o que
+  // persegue (e menor). Quem ele encosta volta para o save.
+  "Save": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraSave.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraSave.json",
+    "animacoes": { "Save": [0], "Foge": [1], "Persegue": [2] },
+    "animacaoInicial": "Save",
+    "ordemDeDesenho": 94,
+    "colisorDivisor": 2.0
   },
 
   // Os botoes do dialogo "o jogo nao esta respondendo": o aluno escolhe a tiro.

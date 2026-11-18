@@ -109,28 +109,6 @@
     "h": 20
    },
    "duration": 120
-  },
-  {
-   "filename": "DPIBHFerreiraTiros 5.placeholder",
-   "frame": {
-    "x": 100,
-    "y": 0,
-    "w": 20,
-    "h": 20
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 20,
-    "h": 20
-   },
-   "sourceSize": {
-    "w": 20,
-    "h": 20
-   },
-   "duration": 120
   }
  ],
  "meta": {
@@ -139,7 +117,7 @@
   "image": "DPIBHFerreiraTiros.png",
   "format": "RGBA8888",
   "size": {
-   "w": 120,
+   "w": 100,
    "h": 20
   },
   "scale": "1"

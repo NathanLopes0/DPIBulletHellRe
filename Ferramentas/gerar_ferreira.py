@@ -5,15 +5,18 @@ optativa secreta): o cartao do professor e as folhas dos projeteis das quatro pr
     python3 Ferramentas/gerar_ferreira.py              # grava os PNG e os JSON em Assets/
     python3 Ferramentas/gerar_ferreira.py --animacoes  # so imprime o mapa nome -> quadros
 
-As provas dele mexem nos sistemas do proprio jogo, e a arte e a da interface e a do motor: as
-pecas de uma janela, os botoes de um dialogo, a moeda, o disquete do save, as caixas de colisao do
-jogo de plataforma. A barra da nota nao tem folha: no campo, ela e a da HUD, de verdade.
+As provas dele mexem nos sistemas do proprio jogo, e a arte e a da interface e a do motor: o
+inimigo sem textura (o xadrez magenta e preto da arte que nao carregou), os botoes de um dialogo,
+a moeda, o disquete do save, as caixas de colisao do jogo de plataforma. A barra da nota nao tem
+folha: no campo, ela e a da HUD, de verdade.
 
   DPIBHFerreira          128x128   o cartao: o controle, o coracao de pixel e a barra de nota
-  DPIBHFerreiraTiros      20x20    Tiro Moeda Seu Vazio Fragmento Disquete
+  DPIBHFerreiraTiros      20x20    Tiro Moeda Seu Vazio Fragmento
   DPIBHFerreiraFisica     28x28    Caixa Espinho Lanca Bloco Fagulha Vazia (a plataforma; a Vazia
                                    e o segmento sem cara embaixo da barra da nota)
-  DPIBHFerreiraJanela     20x20    Borda Titulo X
+  DPIBHFerreiraInimigo    24x24    Textura Moeda Olho OlhoEsquerda OlhoDireita Assustado Poder (dois
+                                   quadros): cada bloco do inimigo gigante, os olhos e o power-up
+  DPIBHFerreiraSave       34x34    Save Foge Persegue: o disquete do save, vivo
   DPIBHFerreiraBotoes     64x40    Esperar Fechar
   DPIBHFerreiraBugs       32x32    Bug (um besouro visto de cima; dois quadros: as patas mexem)
   DPIBHFerreiraBlocos     28x28    Bloco (um tijolo de uma linha dos creditos)
@@ -110,7 +113,7 @@ def ferreira():
 # ---- Os tiros (20 x 20) -------------------------------------------------------------
 
 TW = 20
-TIROS = ["Tiro", "Moeda", "Seu", "Vazio", "Fragmento", "Disquete"]
+TIROS = ["Tiro", "Moeda", "Seu", "Vazio", "Fragmento"]
 
 
 def tiro(nome):
@@ -132,11 +135,6 @@ def tiro(nome):
         centrado(d, "?", 10, 8, fonte(11, True), TINTA)
     elif nome == "Fragmento":
         d.polygon([(10, 3), (16, 10), (10, 17), (4, 10)], fill=claro(ROXO, 0.3), outline=escuro(ROXO, 0.4))
-    elif nome == "Disquete":
-        d.rectangle([2, 2, 17, 17], fill=(60, 110, 220, 255), outline=TRACO)
-        d.rectangle([5, 2, 14, 8], fill=(210, 215, 230, 255))
-        d.rectangle([11, 3, 13, 7], fill=(60, 110, 220, 255))
-        d.rectangle([5, 11, 14, 17], fill=TINTA)
     return im
 
 
@@ -189,26 +187,95 @@ def fisica(nome):
     return im
 
 
-# ---- A janela (20 x 20) ---------------------------------------------------------------
+# ---- O inimigo gigante (24 x 24) ------------------------------------------------------
 
-JW = 20
-JANELA = ["Borda", "Titulo", "X"]
+IW = 24
+INIMIGO = ["Textura", "Moeda", "Olho", "OlhoEsquerda", "OlhoDireita", "Assustado", "Poder0", "Poder1"]
+MAGENTA = (255, 0, 220, 255)
+PRETO_DA_TEXTURA = (58, 12, 72, 255)
 
 
-def janela(nome):
-    im = Image.new("RGBA", (JW, JW), (0, 0, 0, 0))
+def estrela(d, cx, cy, r_fora, r_dentro, cor, contorno):
+    import math
+    pontas = []
+    for k in range(10):
+        r = r_fora if k % 2 == 0 else r_dentro
+        a = -math.pi / 2 + math.pi * k / 5
+        pontas.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    d.polygon(pontas, fill=cor, outline=contorno)
+
+
+def inimigo(nome):
+    """Um bloco do inimigo gigante: a textura que faltou (o xadrez magenta e preto que se repete de
+    bloco em bloco), a moeda em que ele vira quando foge, os olhos e o power-up."""
+    im = Image.new("RGBA", (IW, IW), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    if nome == "Borda":
-        d.rectangle([1, 1, JW - 2, JW - 2], fill=(196, 200, 214, 255), outline=(90, 94, 110, 255))
-        d.line([(2, 2), (JW - 3, 2)], fill=(240, 242, 250, 255))
-        d.line([(2, 2), (2, JW - 3)], fill=(240, 242, 250, 255))
-    elif nome == "Titulo":
-        d.rectangle([0, 1, JW - 1, JW - 2], fill=(40, 70, 190, 255), outline=(20, 30, 100, 255))
-        d.line([(0, 3), (JW - 1, 3)], fill=(110, 150, 255, 255))
-    elif nome == "X":
-        d.rectangle([0, 0, JW - 1, JW - 1], fill=cheia(VERMELHO), outline=TINTA)
-        d.line([(5, 5), (14, 14)], fill=TINTA, width=3)
-        d.line([(14, 5), (5, 14)], fill=TINTA, width=3)
+    m = IW // 2
+    if nome == "Textura":
+        d.rectangle([0, 0, m - 1, m - 1], fill=MAGENTA)
+        d.rectangle([m, 0, IW - 1, m - 1], fill=PRETO_DA_TEXTURA)
+        d.rectangle([0, m, m - 1, IW - 1], fill=PRETO_DA_TEXTURA)
+        d.rectangle([m, m, IW - 1, IW - 1], fill=MAGENTA)
+        # Um brilho de um pixel no canto de cada quadrado magenta: a textura tem relevo de pixel.
+        d.line([(1, 1), (m - 3, 1)], fill=(255, 150, 245, 255))
+        d.line([(m + 1, m + 1), (IW - 3, m + 1)], fill=(255, 150, 245, 255))
+    elif nome == "Moeda":
+        d.ellipse([1, 1, IW - 2, IW - 2], fill=cheia(AMARELO), outline=escuro(AMARELO, 0.5), width=2)
+        d.ellipse([5, 5, IW - 6, IW - 6], outline=claro(AMARELO, 0.6))
+        d.rectangle([m - 1, 7, m, IW - 8], fill=escuro(AMARELO, 0.45))
+        d.rectangle([7, m - 1, IW - 8, m], fill=escuro(AMARELO, 0.45))
+    elif nome.startswith("Olho") or nome == "Assustado":
+        # O olho e um bloco tambem: o branco ocupa o bloco inteiro, e a pupila olha para o aluno.
+        d.rectangle([0, 0, IW - 1, IW - 1], fill=(250, 250, 255, 255), outline=PRETO_DA_TEXTURA, width=2)
+        if nome == "Assustado":
+            d.rectangle([m - 2, m - 1, m + 1, m + 2], fill=TRACO)
+            d.line([(4, 6), (m - 2, 3)], fill=TRACO, width=2)
+            d.line([(m + 1, 3), (IW - 5, 6)], fill=TRACO, width=2)
+        else:
+            dx = {"Olho": 0, "OlhoEsquerda": -5, "OlhoDireita": 5}[nome]
+            d.rectangle([m - 4 + dx, m - 3, m + 3 + dx, m + 5], fill=TRACO)
+            d.rectangle([m - 3 + dx, m - 2, m - 2 + dx, m - 1], fill=(250, 250, 255, 255))
+    elif nome in ("Poder0", "Poder1"):
+        # O power-up: uma estrela de pixel, que pulsa entre os dois quadros.
+        grande = nome == "Poder1"
+        if grande:
+            d.ellipse([0, 0, IW - 1, IW - 1], fill=(255, 230, 120, 90))
+        estrela(d, m, m + 1, 11 if grande else 10, 4.5, cheia(AMARELO), escuro(AMARELO, 0.4))
+        estrela(d, m, m + 1, 5, 2.2, claro(AMARELO, 0.7), None)
+    return im
+
+
+# ---- O disquete do save (34 x 34) ---------------------------------------------------------
+
+SW = 34
+SAVE = ["Save", "Foge", "Persegue"]
+
+
+def save(nome):
+    """O disquete do save, vivo: o de sempre; o que foge (vale mais que a nota de agora: verde, com
+    olhos assustados); e o que persegue (vale menos: vermelho, com olhos bravos)."""
+    im = Image.new("RGBA", (SW, SW), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    corpo = {"Save": (60, 110, 220), "Foge": (60, 170, 110), "Persegue": (200, 60, 70)}[nome]
+    d.rectangle([2, 2, SW - 3, SW - 3], fill=cheia(corpo), outline=TRACO, width=2)
+    d.polygon([(SW - 3, 2), (SW - 3, 8), (SW - 9, 2)], fill=(0, 0, 0, 0))
+    # A tampa de metal e a etiqueta.
+    d.rectangle([9, 2, 24, 12], fill=(205, 210, 226, 255), outline=TRACO)
+    d.rectangle([18, 4, 21, 10], fill=cheia(corpo))
+    d.rectangle([7, 17, SW - 8, SW - 4], fill=TINTA, outline=TRACO)
+    if nome == "Foge":
+        for x in (12, 21):
+            d.ellipse([x - 3, 20, x + 3, 26], fill=TINTA, outline=TRACO)
+            d.rectangle([x - 1, 22, x, 23], fill=TRACO)
+        d.arc([13, 26, 21, 31], 200, 340, fill=TRACO, width=1)
+    elif nome == "Persegue":
+        for x, inclina in ((12, 1), (21, -1)):
+            d.rectangle([x - 2, 22, x + 1, 25], fill=TRACO)
+            d.line([(x - 4, 20 - inclina), (x + 3, 20 + inclina)], fill=TRACO, width=2)
+        d.line([(13, 29), (21, 29)], fill=TRACO, width=2)
+    else:
+        for y in (21, 25, 29):
+            d.line([(10, y), (SW - 11, y)], fill=(150, 156, 180, 255))
     return im
 
 
@@ -332,7 +399,9 @@ def animacoes():
     return {
         "Tiros": {nome: [i] for i, nome in enumerate(TIROS)},
         "Fisica": {nome: [i] for i, nome in enumerate(FISICA)},
-        "Janela": {nome: [i] for i, nome in enumerate(JANELA)},
+        "Inimigo": {"Textura": [0], "Moeda": [1], "Olho": [2], "OlhoEsquerda": [3], "OlhoDireita": [4],
+                    "Assustado": [5], "Poder": [6, 7]},
+        "Save": {nome: [i] for i, nome in enumerate(SAVE)},
         "Botoes": {nome: [i] for i, nome in enumerate(BOTOES)},
         "Bugs": {"Bug": [0, 1]},
         "Blocos": {"Bloco": [0]},
@@ -346,7 +415,8 @@ if __name__ == "__main__":
     grava(ferreira(), "DPIBHFerreira", "Assets/Teachers")
     grava_tira([tiro(n) for n in TIROS], "DPIBHFerreiraTiros", TW, TW, len(TIROS))
     grava_tira([fisica(n) for n in FISICA], "DPIBHFerreiraFisica", FW, FW, len(FISICA))
-    grava_tira([janela(n) for n in JANELA], "DPIBHFerreiraJanela", JW, JW, len(JANELA))
+    grava_tira([inimigo(n) for n in INIMIGO], "DPIBHFerreiraInimigo", IW, IW, len(INIMIGO))
+    grava_tira([save(n) for n in SAVE], "DPIBHFerreiraSave", SW, SW, len(SAVE))
     grava_tira([botao(n) for n in BOTOES], "DPIBHFerreiraBotoes", QW, QH, len(BOTOES))
     grava_tira([bug(0), bug(1)], "DPIBHFerreiraBugs", GW, GW, 2)
     grava_tira([bloco()], "DPIBHFerreiraBlocos", CW, CW, 1)

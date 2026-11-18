@@ -30,10 +30,9 @@ q01740 nota=18.3545 sofridos=8
 q01800 nota=19.1399 sofridos=8
 q01860 nota=20.9725 sofridos=8
 q01920 nota=16.7020 sofridos=9
-q01980 nota=10.7020 sofridos=10
-q02040 nota=11.5020 sofridos=10
-q02100 nota=6.8110 sofridos=11
-q02160 nota=8.9054 sofridos=11
-q02220 nota=4.9113 sofridos=12
-q02280 nota=5.7113 sofridos=12
+q01980 nota=16.7020 sofridos=9
+q02040 nota=16.7020 sofridos=9
+q02100 nota=18.0110 sofridos=9
+q02160 nota=14.5814 sofridos=10
+q02220 nota=4.2873 sofridos=12
 FIM nota=0.0000 acertos_sofridos=13 acertos_dados=127 aprovado=0

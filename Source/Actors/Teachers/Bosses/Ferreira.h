@@ -26,14 +26,16 @@ class Player;
 /// ensina materia: pega o jogo que o aluno ja conhece e mexe nos sistemas dele.
 ///   1. a interface - o golpe do primeiro quadro, para assustar; a barra da nota, a da HUD de
 ///      verdade, arrancada do rodape para varrer o campo (cheia ate a nota do aluno: deitada sobe e
-///      desce, de pe vai de um lado ao outro, e volta para o lugar); e as janelas de dica, que abrem
-///      em volta do aluno e so fecham com um tiro no X;
+///      desce, de pe vai de um lado ao outro, e volta para o lugar); e o primeiro inimigo, gigante e
+///      sem textura, com a IA a mostra - ele persegue, o power-up o faz fugir (e cada bloco dele vira
+///      nota), e um tiro no olho o atordoa;
 ///   2. a fisica - a prova inteira e jogo de plataforma, e ele escolhe para que lado a gravidade
 ///      puxa: o chao de sempre (pular as pilhas de caixas), a parede esquerda (as lancas em duas
 ///      alturas), o teto (a chuva de blocos e moedas) e a parede direita (a esteira ate o moedor);
 ///   3. as regras - a inversao (acertar tira nota, os tiros dao), o fogo amigo (o tiro do aluno que
-///      erra volta por baixo), o lag (os tiros andam aos saltos) e o quick save / quick load, que traz
-///      de volta o aluno, os tiros e a nota;
+///      erra volta por baixo), o lag (os tiros andam aos saltos) e o quick save: o disquete guarda a
+///      nota e anda - foge se ela e maior que a de agora, persegue se e menor -, e quem ele encosta
+///      volta para o save, com a nota dele;
 ///   e a repescagem, o lancamento: a hitbox descola do desenho, o jogo trava e pede uma escolha, uma
 ///   frota de bugs marcha, e os creditos sobem.
 /// As contas estao em JogosDigitais.h; aqui, os tiros no campo.
@@ -64,6 +66,7 @@ private:
     /// provas mudam.
     Variacao::Sorteio mSorteioDaFisica{0u};
     HudHostil::Degrau mDegrauDoHud;
+    IaDoInimigo::Degrau mDegrauDoInimigo;
     Gravidade::Degrau mDegrauDaGravidade;
     RegrasTrocadas::Degrau mDegrauDasRegras;
     Lancamento::Degrau mDegrauDoLancamento;
@@ -145,7 +148,8 @@ private:
     EtiquetaDeCodigo* Etiqueta(std::vector<EtiquetaDeCodigo*>& grupo, size_t k, int largura, int altura);
     void Escrever(EtiquetaDeCodigo* e, const std::string& texto, Vector2 onde);
     static void Esconder(std::vector<EtiquetaDeCodigo*>& grupo);
-    std::vector<EtiquetaDeCodigo*> mEtiquetasDasJanelas;
+    std::vector<EtiquetaDeCodigo*> mEtiquetasDoInimigo;   ///< o estado em cima dele, e o "POWER-UP"
+    std::vector<EtiquetaDeCodigo*> mEtiquetasDoSave;
     std::vector<EtiquetaDeCodigo*> mEtiquetasDoDialogo;
     std::vector<EtiquetaDeCodigo*> mEtiquetasDosCreditos;
     static constexpr int kOrdemDasEtiquetas = 98;
@@ -185,20 +189,34 @@ private:
     /// A barra volta para o rodape, e os segmentos embaixo dela somem.
     void DevolverABarra();
     std::vector<BossProjectile*> mBarra;
-    struct Janela {
-        Vector2 centro;
-        float abre = 0.0f;
-        bool aberta = false;
-        std::vector<BossProjectile*> pecas;
-        BossProjectile* fechar = nullptr;
-        int dica = 0;
-        size_t etiqueta = 0;
-    };
-    void AtualizarJanelas(float te);
-    void FecharJanela(size_t k, bool comEstouro);
-    std::vector<Janela> mJanelas;
-    float mProximaJanela = 0.0f;
-    int mJanelasFeitas = 0;
+    /// O inimigo gigante (IaDoInimigo): a maquina de estados decide, e aqui o corpo anda.
+    void AtualizarInimigo(float te, float deltaTime);
+    /// O corpo inteiro e os olhos, no ninho: ele nasce.
+    void MontarOInimigo();
+    /// Os olhos que faltam (o tiro derrubou), de volta no lugar.
+    void PorOsOlhos();
+    void DesmontarOInimigo();
+    /// Quando o estado muda: o que cada troca faz no campo.
+    void AoTrocarDeEstado(IaDoInimigo::Estado de, IaDoInimigo::Estado para, float te);
+    [[nodiscard]] int BlocosVivos() const;
+    IaDoInimigo::Ia mIa;
+    Vector2 mCentroDoInimigo;
+    Vector2 mVelocidadeDoInimigo;
+    int mCantoDaRonda = 0;
+    /// Um por bloco, na ordem de IaDoInimigo::LugaresDosBlocos (nullptr: pego, ou ainda por nascer).
+    std::vector<BossProjectile*> mCorpo;
+    bool mCorpoMontado = false;
+    std::array<BossProjectile*, 2> mOlhos{};
+    /// O tiro derrubou um olho (OnDerrubou): a IA percebe no quadro seguinte.
+    bool mOlhoAtingido = false;
+    /// Se cada aluno ja estava piscando (acertado) no quadro anterior: o acerto e a borda.
+    std::array<bool, 2> mApanhava{};
+    BossProjectile* mPoder = nullptr;
+    float mProximoPoder = -1.0f;
+    float mPremioDoInimigo = 0.0f;
+    /// O "!" ou o "?" em cima dele, por um instante, no lugar do nome do estado.
+    std::string mMarca;
+    float mMarcaAte = -1.0f;
 
     // ---- Fase 2: a fisica ----
 
@@ -286,20 +304,19 @@ private:
     };
     std::vector<AosSaltos> mAosSaltos;
     int mQuadroDoLag = -1;
-    void AtualizarSaveLoad(float te);
+    void AtualizarSaveLoad(float te, float deltaTime);
+    /// O quick load: quem o save encostou volta para onde estava, e a nota volta a ser a dele.
+    void Carregar(float te);
     struct Salvo {
         bool tem = false;
         float nota = 0.0f;
+        float ha = 0.0f;   ///< segundos desde o save (kGravando: ainda nao carrega)
         std::vector<Vector2> alunos;
-        struct Tiro {
-            Vector2 onde;
-            Vector2 v;
-        };
-        std::vector<Tiro> tiros;
     };
     Salvo mSalvo;
-    std::vector<BossProjectile*> mDisquetes;
-    float mTeAnterior = -1.0f;
+    /// O disquete do save, vivo no campo.
+    BossProjectile* mSave = nullptr;
+    float mUltimoLoad = -1.0f;
 
     // ---- A repescagem: o lancamento ----
 
@@ -355,7 +372,9 @@ private:
     static constexpr SDL_Color kDebugFraco = {120, 255, 120, 80};
     static constexpr SDL_Color kFantasma = {200, 170, 255, 150};
     static constexpr SDL_Color kFantasmaFraco = {200, 170, 255, 60};
-    static constexpr SDL_Color kJanelaPorDentro = {14, 16, 30, 150};
+    /// A textura que faltou: o magenta do inimigo, nas linhas da IA dele.
+    static constexpr SDL_Color kMagenta = {255, 60, 230, 200};
+    static constexpr SDL_Color kMagentaFraco = {255, 60, 230, 70};
     static constexpr SDL_Color kSave = {110, 170, 255, 220};
     /// O chao do jogo de plataforma: a faixa, a linha de cima e as juntas dos ladrilhos.
     static constexpr SDL_Color kChaoFundo = {26, 30, 54, 215};

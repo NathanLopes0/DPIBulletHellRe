@@ -94,7 +94,7 @@ namespace {
                                                 "genoma", "tesoura",
                                                 // O Lucas Ferreira: a interface, a fisica, as regras e
                                                 // o lancamento.
-                                                "abertura", "janela", "fechar", "tiro", "espinho", "lanca",
+                                                "abertura", "inimigo", "olho", "poder", "tiro", "espinho", "lanca",
                                                 "bloco", "fagulha", "retorno", "sprite", "colisor", "disquete",
                                                 "botao", "credito"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.

@@ -23,6 +23,54 @@ namespace {
         const float a = Math::ToRadians(angulo);
         return Vector2(std::cos(a), std::sin(a));
     }
+
+    float Sinal(const float x, const float seZero) {
+        if (x > 1.0f) return 1.0f;
+        if (x < -1.0f) return -1.0f;
+        return seZero;
+    }
+}
+
+namespace JogosDigitais {
+
+    Vector2 Rumo(const Vector2 eu, const Vector2 alvo) {
+        Vector2 d = alvo - eu;
+        if (d.Length() < 1e-3f) return Vector2::Zero;
+        d.Normalize();
+        return d;
+    }
+
+    Vector2 Fugir(const Vector2 eu, const Vector2 de, const Campo& c, const float margem) {
+        Vector2 d = eu - de;
+        if (d.Length() < 1e-3f) d = Vector2(1.0f, 0.0f);
+        d.Normalize();
+        const bool esquerda = eu.x <= c.x + margem, direita = eu.x >= c.x + c.w - margem;
+        const bool cima = eu.y <= c.y + margem, baixo = eu.y >= c.y + c.h - margem;
+        // Na parede, o que entraria nela sai: sobra o que escorrega.
+        if ((esquerda && d.x < 0.0f) || (direita && d.x > 0.0f)) d.x = 0.0f;
+        if ((cima && d.y < 0.0f) || (baixo && d.y > 0.0f)) d.y = 0.0f;
+        if (d.Length() > 0.3f) {
+            d.Normalize();
+            return d;
+        }
+        // Sem para onde fugir de frente: anda pela parede, para o lado longe do perseguidor (ou, se
+        // ele esta bem em frente, para o meio do campo); no canto, pela parede em que ele esta mais
+        // longe.
+        const float sx = Sinal(eu.x - de.x, c.x + c.w / 2.0f >= eu.x ? 1.0f : -1.0f);
+        const float sy = Sinal(eu.y - de.y, c.y + c.h / 2.0f >= eu.y ? 1.0f : -1.0f);
+        const Vector2 porX((sx > 0.0f ? !direita : !esquerda) ? sx : -sx, 0.0f);
+        const Vector2 porY(0.0f, (sy > 0.0f ? !baixo : !cima) ? sy : -sy);
+        const bool naParedeDosLados = esquerda || direita, naDeCimaOuDeBaixo = cima || baixo;
+        if (naDeCimaOuDeBaixo && !naParedeDosLados) return porX;
+        if (naParedeDosLados && !naDeCimaOuDeBaixo) return porY;
+        return std::fabs(eu.x - de.x) > std::fabs(eu.y - de.y) ? porY : porX;
+    }
+
+    Vector2 Prender(const Vector2 p, const Campo& c, const float mx, const float my) {
+        const float x0 = c.x + mx, x1 = c.x + c.w - mx, y0 = c.y + my, y1 = c.y + c.h - my;
+        return Vector2(x0 <= x1 ? std::clamp(p.x, x0, x1) : c.x + c.w / 2.0f,
+                       y0 <= y1 ? std::clamp(p.y, y0, y1) : c.y + c.h / 2.0f);
+    }
 }
 
 // ---- Fase 1: a interface ----
@@ -78,7 +126,6 @@ namespace HudHostil {
         d.entreLeques = 0.95f;
         d.tirosDoLeque = 5;
         d.velocidade = 270.0f;
-        d.entreJanelas = 2.0f;
         return d;
     }
 
@@ -204,30 +251,189 @@ namespace HudHostil {
         return p.centro + p.eixo * ao;
     }
 
-    std::vector<Vector2> Moldura(const Vector2 centro) {
-        std::vector<Vector2> pecas;
-        const float meiaL = kLarguraDaJanela / 2.0f, meiaA = kAlturaDaJanela / 2.0f;
-        const Vector2 x = BotaoDeFechar(centro);
-        for (float dx = -meiaL; dx <= meiaL + 0.5f; dx += kPecaDaJanela) {
-            const Vector2 cima(centro.x + dx, centro.y - meiaA);
-            if (std::fabs(cima.x - x.x) > kPecaDaJanela / 2.0f) pecas.push_back(cima);
-            pecas.emplace_back(centro.x + dx, centro.y + meiaA);
+}
+
+// ---- Fase 1, a ultima etapa: a IA do inimigo ----
+
+namespace IaDoInimigo {
+
+    const char* Nome(const Estado e) {
+        switch (e) {
+            case Estado::Nascendo:  return "NASCENDO";
+            case Estado::Patrulha:  return "PATRULHA";
+            case Estado::Alerta:    return "ALERTA";
+            case Estado::Persegue:  return "PERSEGUE";
+            case Estado::Atordoado: return "ATORDOADO";
+            case Estado::Fugindo:   return "FUGINDO";
+            case Estado::Derrotado: return "DERROTADO";
         }
-        for (float dy = -meiaA + kPecaDaJanela; dy <= meiaA - kPecaDaJanela + 0.5f; dy += kPecaDaJanela) {
-            pecas.emplace_back(centro.x - meiaL, centro.y + dy);
-            pecas.emplace_back(centro.x + meiaL, centro.y + dy);
-        }
-        return pecas;
+        return "";
     }
 
-    Vector2 BotaoDeFechar(const Vector2 centro) {
-        return Vector2(centro.x + kLarguraDaJanela / 2.0f - kRecuoDoFechar, centro.y - kAlturaDaJanela / 2.0f);
+    namespace {
+        std::vector<Vector2> Lugares(const char marca) {
+            std::vector<Vector2> v;
+            for (int j = 0; j < kLinhas; ++j) {
+                for (int i = 0; i < kColunas; ++i) {
+                    if (kCorpo[static_cast<size_t>(j)][i] != marca) continue;
+                    v.emplace_back((static_cast<float>(i) - static_cast<float>(kColunas - 1) / 2.0f) * kBloco,
+                                   (static_cast<float>(j) - static_cast<float>(kLinhas - 1) / 2.0f) * kBloco);
+                }
+            }
+            return v;
+        }
+
+        /// O retangulo em que o centro dele pode estar.
+        JogosDigitais::Campo Arena(const JogosDigitais::Campo& c) {
+            return JogosDigitais::Campo{c.x, c.y + kTopoDaArena, c.w, c.h - kTopoDaArena};
+        }
+        constexpr float kFolgaDaArena = 6.0f;
     }
 
-    Vector2 CentroDaJanela(const Vector2 aluno, const float esquerda, const float topo, const float direita, const float fundo) {
-        const float meiaL = kLarguraDaJanela / 2.0f + 14.0f, meiaA = kAlturaDaJanela / 2.0f + 6.0f;
-        return Vector2(std::clamp(aluno.x, esquerda + meiaL, std::max(esquerda + meiaL, direita - meiaL)),
-                       std::clamp(aluno.y, topo + meiaA, std::max(topo + meiaA, fundo - meiaA)));
+    std::vector<Vector2> LugaresDosBlocos() {
+        return Lugares('#');
+    }
+
+    std::vector<Vector2> LugaresDosOlhos() {
+        return Lugares('O');
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        if (n != Dificuldade::Nivel::Dificil) return d;
+        d.persegue = 140.0f;
+        d.aceleracao = 10.0f;
+        d.maxima = 200.0f;
+        d.foge = 210.0f;
+        d.raioDeVisao = 280.0f;
+        d.raioDePerder = 420.0f;
+        d.susto = 3.6f;
+        d.atordoado = 1.5f;
+        d.primeiroPoder = 3.6f;
+        d.entrePoderes = 3.0f;
+        return d;
+    }
+
+    bool Passo(Ia& ia, const Percepcao& p, const float dt, const Degrau& g) {
+        const Estado antes = ia.estado;
+        const auto ir = [&](const Estado e) {
+            ia.estado = e;
+            ia.noEstado = 0.0f;
+            ia.longe = 0.0f;
+            ia.recuo = 0.0f;
+        };
+        // Sem corpo, nao ha inimigo. Depois os eventos: o power-up vence o olho, e o power-up de novo,
+        // fugindo, renova o susto.
+        const bool vivo = ia.estado != Estado::Nascendo && ia.estado != Estado::Derrotado;
+        if (vivo && p.blocos <= 0) {
+            ir(Estado::Derrotado);
+            return true;
+        }
+        if (p.pegouOPoder && vivo) {
+            if (ia.estado != Estado::Fugindo) ir(Estado::Fugindo);
+            ia.susto = g.susto;
+            return ia.estado != antes;
+        }
+        if (p.olhoAtingido && (ia.estado == Estado::Patrulha || ia.estado == Estado::Alerta || ia.estado == Estado::Persegue)) {
+            ir(Estado::Atordoado);
+            return true;
+        }
+        if (p.acertouOAluno && (ia.estado == Estado::Alerta || ia.estado == Estado::Persegue)) {
+            ir(Estado::Patrulha);
+            ia.recuo = kRecuo;
+            return true;
+        }
+        ia.noEstado += dt;
+        switch (ia.estado) {
+            case Estado::Nascendo:
+                if (ia.noEstado >= kNascendo) ir(Estado::Patrulha);
+                break;
+            case Estado::Patrulha:
+                ia.recuo = std::max(0.0f, ia.recuo - dt);
+                if ((p.distancia <= g.raioDeVisao && ia.recuo <= 0.0f) || ia.noEstado >= kRondaCansa) ir(Estado::Alerta);
+                break;
+            case Estado::Alerta:
+                if (ia.noEstado >= kAlerta) {
+                    ir(Estado::Persegue);
+                    ia.rapidez = g.persegue;
+                }
+                break;
+            case Estado::Persegue:
+                ia.rapidez = std::min(g.maxima, std::max(ia.rapidez, g.persegue) + g.aceleracao * dt);
+                ia.longe = p.distancia > g.raioDePerder ? ia.longe + dt : 0.0f;
+                if (ia.longe >= kParaPerder) ir(Estado::Patrulha);
+                break;
+            case Estado::Atordoado:
+                if (ia.noEstado >= g.atordoado) {
+                    ir(Estado::Persegue);
+                    ia.rapidez = g.persegue;
+                }
+                break;
+            case Estado::Fugindo:
+                ia.susto = std::max(0.0f, ia.susto - dt);
+                if (ia.susto <= 0.0f) {
+                    ir(Estado::Persegue);
+                    ia.rapidez = g.persegue;
+                }
+                break;
+            case Estado::Derrotado:
+                if (ia.noEstado >= kRespawn) ir(Estado::Nascendo);
+                break;
+        }
+        return ia.estado != antes;
+    }
+
+    bool Machuca(const Estado e) {
+        return e == Estado::Patrulha || e == Estado::Alerta || e == Estado::Persegue || e == Estado::Atordoado;
+    }
+
+    float Rapidez(const Ia& ia, const Degrau& g) {
+        switch (ia.estado) {
+            case Estado::Patrulha: return g.ronda;
+            case Estado::Persegue: return std::max(ia.rapidez, g.persegue);
+            case Estado::Fugindo:  return g.foge;
+            default:               return 0.0f;
+        }
+    }
+
+    bool Pisca(const Ia& ia, const float relogio) {
+        return ia.estado == Estado::Fugindo && ia.susto <= kPiscaNoFim && std::fmod(relogio, 0.2f) < 0.1f;
+    }
+
+    Vector2 NaArena(const Vector2 centro, const JogosDigitais::Campo& c) {
+        return JogosDigitais::Prender(centro, Arena(c), kMeiaLargura + kFolgaDaArena, kMeiaAltura + kFolgaDaArena);
+    }
+
+    std::array<Vector2, 4> Ronda(const JogosDigitais::Campo& c) {
+        const JogosDigitais::Campo a = Arena(c);
+        const float x0 = a.x + kMeiaLargura + kFolgaDaArena, x1 = a.x + a.w - kMeiaLargura - kFolgaDaArena;
+        const float y0 = a.y + kMeiaAltura + kFolgaDaArena, y1 = a.y + a.h - kMeiaAltura - kFolgaDaArena;
+        return {Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)};
+    }
+
+    int Ninho(const JogosDigitais::Campo& c, const Vector2 aluno) {
+        const auto cantos = Ronda(c);
+        int longe = 0;
+        for (int k = 1; k < 4; ++k) {
+            if ((cantos[static_cast<size_t>(k)] - aluno).Length() > (cantos[static_cast<size_t>(longe)] - aluno).Length()) longe = k;
+        }
+        return longe;
+    }
+
+    Vector2 LugarDoPoder(Variacao::Sorteio& s, const JogosDigitais::Campo& c, const Vector2 inimigo) {
+        const JogosDigitais::Campo a = Arena(c);
+        const Vector2 meio(a.x + a.w / 2.0f, a.y + a.h / 2.0f);
+        // O espelho dele pelo meio da arena, com um pouco de sorteio.
+        const float dx = s.Real(-90.0f, 90.0f), dy = s.Real(-60.0f, 60.0f);
+        const Vector2 lugar = JogosDigitais::Prender(meio * 2.0f - inimigo + Vector2(dx, dy), a, 40.0f, 30.0f);
+        if ((lugar - inimigo).Length() >= 320.0f) return lugar;
+        // Perto demais (ele estava no meio): o canto mais longe dele.
+        const auto cantos = Ronda(c);
+        Vector2 melhor = cantos[0];
+        for (const Vector2& k : cantos) {
+            if ((k - inimigo).Length() > (melhor - inimigo).Length()) melhor = k;
+        }
+        return melhor;
     }
 }
 
@@ -441,17 +647,24 @@ namespace RegrasTrocadas {
         return p0 + v * (kQuadroDoLag * static_cast<float>(quadros));
     }
 
-    Evento EventoEntre(const float antes, const float agora) {
-        for (const float s : kSaves) if (antes < s && s <= agora) return Evento::Salvar;
-        for (const float l : kLoads) if (antes < l && l <= agora) return Evento::Carregar;
-        return Evento::Nada;
+    Humor HumorDoSave(const float salva, const float agora) {
+        if (salva > agora + kEmpate) return Humor::Foge;
+        if (salva < agora - kEmpate) return Humor::Persegue;
+        return Humor::Parado;
     }
 
-    float RumoAoLoad(const float t) {
-        for (size_t k = 0; k < kSaves.size(); ++k) {
-            if (t >= kSaves[k] && t < kLoads[k]) return (t - kSaves[k]) / (kLoads[k] - kSaves[k]);
-        }
-        return -1.0f;
+    float RapidezDoSave(const float salva, const float agora) {
+        if (HumorDoSave(salva, agora) == Humor::Parado) return 0.0f;
+        return std::min(kSaveRapido, kSaveDevagar + kSavePorPonto * std::fabs(salva - agora));
+    }
+
+    bool Encostou(const Vector2 save, const Vector2 aluno, const float raioDoAluno) {
+        return (save - aluno).Length() <= kRaioDoSave + raioDoAluno;
+    }
+
+    bool HoraDeSalvar(const float te, const float ultimoLoad) {
+        if (te < kPrimeiroSave || te > kUltimoSave) return false;
+        return ultimoLoad < 0.0f || te >= ultimoLoad + kEntreSaves;
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {

@@ -2617,8 +2617,8 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
     // A fase de cada gatilho, como o C++ os puxa (Ferreira.cpp).
     const std::vector<std::pair<std::string, const char*>> gatilhos = {
         {HudHostil::kFase, HudHostil::kGatilhoDaAbertura}, {HudHostil::kFase, HudHostil::kGatilhoDaBarra},
-        {HudHostil::kFase, HudHostil::kGatilhoDoLeque}, {HudHostil::kFase, HudHostil::kGatilhoDaJanela},
-        {HudHostil::kFase, HudHostil::kGatilhoDeFechar},
+        {HudHostil::kFase, HudHostil::kGatilhoDoLeque}, {HudHostil::kFase, HudHostil::kGatilhoDoInimigo},
+        {HudHostil::kFase, HudHostil::kGatilhoDoOlho}, {HudHostil::kFase, HudHostil::kGatilhoDoPoder},
         {Gravidade::kFase, Gravidade::kGatilhoDaCaixa}, {Gravidade::kFase, Gravidade::kGatilhoDoEspinho},
         {Gravidade::kFase, Gravidade::kGatilhoDaLanca}, {Gravidade::kFase, Gravidade::kGatilhoDoBloco},
         {Gravidade::kFase, Gravidade::kGatilhoDaFagulha}, {Gravidade::kFase, Gravidade::kGatilhoDaMoeda},
@@ -2673,12 +2673,18 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
 
     // A barra em campo e a da HUD: o segmento embaixo dela nao tem cara.
     CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaBarra)).count("Vazia") == 1);
-    for (const char* c : {"Borda", "Titulo"}) CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaJanela)).count(c) == 1);
-    CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDeFechar)).count("X") == 1);
+    // O inimigo: o bloco sem textura (que vira moeda), os olhos que olham e o power-up.
+    for (const char* c : {"Textura", "Moeda"}) CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDoInimigo)).count(c) == 1);
+    for (const char* c : {"Olho", "OlhoEsquerda", "OlhoDireita", "Assustado"}) {
+        CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDoOlho)).count(c) == 1);
+    }
+    CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDoPoder)).count("Poder") == 1);
     // O tiro de sempre e as caras que ele ganha quando o jogo muda.
-    for (const char* c : {"Tiro", "Moeda", "Seu", "Vazio", "Fragmento", "Disquete"}) {
+    for (const char* c : {"Tiro", "Moeda", "Seu", "Vazio", "Fragmento"}) {
         CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel)).count(c) == 1);
     }
+    // O disquete do save: o de sempre, o que foge (vale mais) e o que persegue (vale menos).
+    for (const char* c : {"Save", "Foge", "Persegue"}) CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoDisquete)).count(c) == 1);
     CHECK(caras(de(Gravidade::kFase, Gravidade::kGatilhoDaMoeda)).count("Moeda") == 1);
     // As pecas da plataforma.
     for (const char* g : {Gravidade::kGatilhoDaCaixa, Gravidade::kGatilhoDoEspinho, Gravidade::kGatilhoDaLanca,
@@ -2690,13 +2696,14 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
     CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoBug)).count("Bug") == 1);
     CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoCredito)).count("Bloco") == 1);
 
-    // O que o tiro do aluno derruba: o X da janela, os botoes do dialogo, os bugs. A barra, a moldura
-    // e os blocos dos creditos, nao - o tiro passa.
-    CHECK(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDeFechar)).derrubavel);
+    // O que o tiro do aluno derruba: o olho do inimigo (o ponto fraco), os botoes do dialogo, os bugs.
+    // A barra, o corpo do inimigo, o power-up e os blocos dos creditos, nao - o tiro passa.
+    CHECK(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDoOlho)).derrubavel);
     CHECK(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoBotao)).derrubavel);
     CHECK(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoBug)).derrubavel);
     CHECK_FALSE(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDaBarra)).derrubavel);
-    CHECK_FALSE(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDaJanela)).derrubavel);
+    CHECK_FALSE(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDoInimigo)).derrubavel);
+    CHECK_FALSE(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDoPoder)).derrubavel);
     CHECK_FALSE(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoCredito)).derrubavel);
 }
 
