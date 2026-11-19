@@ -74,6 +74,18 @@ void Generico::OnUpdate(const float deltaTime) {
     const float te = Tutorial::NaEtapa(t);
     const bool noComputador = !b->GetGame()->NoGabinete();
 
+    // O Ponto Extra da etapa dele: um para cada aluno, acima dele, uma vez.
+    if (etapa == Tutorial::Etapa::PontoExtra && mOndeDoPontoExtra.empty()) {
+        const SDL_FRect c = Campo();
+        for (const Player* a : b->Jogadores()) {
+            if (!a) continue;
+            const Vector2 onde(std::clamp(a->GetPosition().x, c.x + 60.0f, c.x + c.w - 60.0f),
+                               std::max(c.y + 80.0f, a->GetPosition().y - Tutorial::kPontoExtraAcima));
+            mOndeDoPontoExtra.push_back(onde);
+            b->SoltarPontoExtra(onde);
+        }
+    }
+
     // Ninguem reprova aqui.
     if (b->NotaAtual() < Tutorial::kNotaMinima) {
         b->DefinirNota(Tutorial::kNotaMinima);
@@ -127,6 +139,30 @@ void Generico::OnUpdate(const float deltaTime) {
                 Circulo(sobre, kRaioDoBotao + 7.0f + 3.0f * std::sin(te * 6.0f), kAmarelo, 28);
                 Circulo(sobre, kRaioDoBotao + 8.0f + 3.0f * std::sin(te * 6.0f), kAmarelo, 28);
                 if (noComputador) EscreverTecla(tecla, Painel::NomeDaTeclaDoFoco(quem), sobre + Vector2(0.0f, kTeclaAbaixo));
+                break;
+            }
+            case Tutorial::Etapa::PontoExtra: {
+                if (a->PontosExtras() > 0) {
+                    // Com ele na mao: o Botao 2, que limpa a chuva.
+                    Botao(sobre, '2', Tutorial::BotaoApertado(te));
+                    if (noComputador) EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Dois), sobre + Vector2(0.0f, kTeclaAbaixo));
+                } else if (i < mOndeDoPontoExtra.size()) {
+                    // Sem ele: a seta tracejada do aluno ate o Ponto Extra, que espera no campo.
+                    const Vector2 de = a->GetPosition() + Vector2(0.0f, -26.0f);
+                    const Vector2 ate = mOndeDoPontoExtra[i];
+                    const Vector2 d = ate - de;
+                    const float comprimento = d.Length();
+                    if (comprimento > 50.0f) {
+                        const Vector2 u = d * (1.0f / comprimento);
+                        constexpr float kTraco = 12.0f, kPasso = 26.0f;
+                        const float desloca = std::fmod(te * 80.0f, kPasso);
+                        for (float s = desloca; s + kTraco < comprimento - 30.0f; s += kPasso) {
+                            Linha(de + u * s, de + u * (s + kTraco), kVerde);
+                        }
+                        Seta(ate - u * 52.0f, ate - u * 24.0f, kVerde);
+                    }
+                    Circulo(ate, 22.0f + 3.0f * std::sin(te * 6.0f), kVerde, 26);
+                }
                 break;
             }
             case Tutorial::Etapa::Chegada:
@@ -252,6 +288,12 @@ void Generico::Algarismo(const char d, const Vector2 centro, const float altura,
     if (d == '1') {
         grosso(b, g);
         Linha(b, b + Vector2(-w, w * 0.8f), cor);
+    } else if (d == '2') {
+        grosso(a, b);
+        grosso(b, e);
+        grosso(e, c);
+        grosso(c, f);
+        grosso(f, g);
     } else if (d == '4') {
         grosso(a, c);
         grosso(c, e);

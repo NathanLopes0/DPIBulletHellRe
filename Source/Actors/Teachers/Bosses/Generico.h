@@ -42,7 +42,7 @@ private:
     void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 20);
     void Disco(Vector2 centro, float raio, SDL_Color cor);
     void Seta(Vector2 de, Vector2 ate, SDL_Color cor, float ponta = 9.0f);
-    /// Um algarismo de sete segmentos (o 1 e o 4 dos botoes), de 'altura' pixels.
+    /// Um algarismo de sete segmentos (o 1, o 2 e o 4 dos botoes), de 'altura' pixels.
     void Algarismo(char d, Vector2 centro, float altura, SDL_Color cor);
 
     /// O manche, com a bola apontando para 'lado'.
@@ -75,4 +75,6 @@ private:
     bool mEtapasSemTexto = false;
     bool mEncerrou = false;
     bool mLimpouNoFim = false;
+    /// Onde o Ponto Extra de cada aluno caiu, na etapa dele: a seta aponta para la.
+    std::vector<Vector2> mOndeDoPontoExtra;
 };

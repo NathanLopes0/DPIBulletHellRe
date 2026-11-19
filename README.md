@@ -280,7 +280,9 @@ para, e aparece o **Botão 1** sendo apertado e uma linha tracejada até ele
 (atirar); a cada acerto, um **"+" verde** voa até a ponta da barra da nota, que
 ganha uma seta para cima, e a cada tiro levado, um **"−" vermelho** e a seta
 para baixo; então vêm anéis cheios e lentos com o **Botão 4** segurado (o
-foco); e no fim, um visto verde. Fora do gabinete, a tecla de cada botão
+foco); depois o professor solta um **Ponto Extra** acima do aluno, com uma seta
+verde tracejada até ele, e quem já tem um vê o **Botão 2** piscando no meio de
+uma chuva cheia — o botão que a limpa; e no fim, um visto verde. Fora do gabinete, a tecla de cada botão
 aparece numa plaquinha embaixo do desenho. Ninguém reprova (a nota não desce
 de 15), e a prova acaba sozinha, sem tela de resultado: a nota não vai para a
 ficha, não conta tentativa e a INF 191 não aparece na seleção, no boletim nem

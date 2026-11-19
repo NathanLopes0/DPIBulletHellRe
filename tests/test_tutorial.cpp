@@ -14,13 +14,14 @@ TEST_CASE("Tutorial: as etapas vem em ordem, e o professor encerra na festa do f
     CHECK(EtapaEm(ComecoDa(Etapa::Atirar) - 0.01f) == Etapa::Desviar);
     CHECK(EtapaEm(ComecoDa(Etapa::SobeEDesce) + 1.0f) == Etapa::SobeEDesce);
     CHECK(EtapaEm(ComecoDa(Etapa::Foco) + 1.0f) == Etapa::Foco);
+    CHECK(EtapaEm(ComecoDa(Etapa::PontoExtra) + 1.0f) == Etapa::PontoExtra);
     CHECK(EtapaEm(1000.0f) == Etapa::Fim);
     CHECK(NaEtapa(ComecoDa(Etapa::Atirar) + 2.0f) == doctest::Approx(2.0f));
-    // Cada etapa tem tempo de ensinar; o tutorial inteiro cabe em um minuto.
+    // Cada etapa tem tempo de ensinar; o tutorial inteiro cabe em pouco mais de um minuto.
     for (const float d : kDuracoes) CHECK(d >= 3.0f);
     CHECK_FALSE(Acabou(ComecoDa(Etapa::Fim)));
     CHECK(Acabou(ComecoDa(Etapa::Fim) + kAplausos));
-    CHECK(ComecoDa(Etapa::Fim) + kAplausos <= 60.0f);
+    CHECK(ComecoDa(Etapa::Fim) + kAplausos <= 75.0f);
     // A fase do arquivo dura mais que isso: quem encerra e o professor, e nao o relogio.
     float total = 0.0f;
     for (const float d : kDuracoes) total += d;
