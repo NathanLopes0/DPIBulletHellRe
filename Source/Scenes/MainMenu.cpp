@@ -74,7 +74,9 @@ namespace {
     /// A dica do botao, a direita da moldura.
     constexpr int kTamanhoDaDica = 20;
     constexpr int kLarguraDaDica = 300;
-    constexpr float kVaoDaDica = 24.0f;
+    constexpr float kVaoDaDica = 20.0f;
+    /// A placa das opcoes e mais larga que a moldura, isto a mais.
+    constexpr int kSobraDaPlaca = 60;
 
     /// A placa atras das opcoes existe por legibilidade, nao por enfeite. Sem moldura, para nao
     /// competir com a moldura da opcao em foco.
@@ -257,7 +259,7 @@ void MainMenu::CriarOpcoes() {
 
     auto placa = std::make_unique<Actor>(this);
     placa->SetPosition(Vector2(largura / 2.0f, (primeira + ultima) / 2.0f));
-    placa->AddComponent<DrawCaixaComponent>(kSelecaoLargura + 60,
+    placa->AddComponent<DrawCaixaComponent>(kSelecaoLargura + kSobraDaPlaca,
                                             static_cast<int>(ultima - primeira)
                                                 + AlturaDaSelecao(altura)
                                                 + 2 * kMargemDaPlaca,
@@ -321,7 +323,8 @@ void MainMenu::PosicionarSelecao() const {
 
     mSelecaoAtor->SetPosition(Vector2(largura / 2.0f, AlturaDaOpcao(mSelecionada, altura)));
     if (mDicaAtor) {
-        const float x = largura / 2.0f + static_cast<float>(kSelecaoLargura) / 2.0f + kVaoDaDica +
+        // Do lado de fora da placa das opcoes, com um vao: as duas placas nao se encostam.
+        const float x = largura / 2.0f + static_cast<float>(kSelecaoLargura + kSobraDaPlaca) / 2.0f + kVaoDaDica +
                         static_cast<float>(kLarguraDaDica) / 2.0f;
         mDicaAtor->SetPosition(Vector2(x, AlturaDaOpcao(mSelecionada, altura)));
     }

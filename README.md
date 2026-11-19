@@ -247,11 +247,11 @@ numa tela de menu —, ficam:
 - a **hitbox**: mostra na batalha o círculo cheio onde um tiro acerta o aluno de
   verdade, bem menor que o desenho dele;
 - o **daltonismo**: desligado, **deuteranopia**, **protanopia** ou
-  **tritanopia**. Ligado, o jogo corrige todas as cores — as imagens, as linhas,
-  as caixas e o texto — para quem confunde vermelho e verde (as duas primeiras,
-  as mais comuns) ou azul e amarelo: o que esse olho perde da cor é devolvido
-  nos canais que ele vê (a simulação de Machado, Oliveira e Fernandes, e a
-  correção de Fidaner). As linhas e o texto mudam na hora; as imagens, ao sair
+  **tritanopia**. Ligado, o jogo ajusta todas as cores — as imagens, as linhas,
+  as caixas e o texto — para cada tipo de visão de cores: a diferença entre o
+  vermelho e o verde (nas duas primeiras, as mais comuns) ou entre o azul e o
+  amarelo é levada para as cores que aquela visão distingue bem (a simulação de
+  Machado, Oliveira e Fernandes, e a correção de Fidaner). As linhas e o texto mudam na hora; as imagens, ao sair
   da tela de Opções.
 
 O manche para cima e para baixo escolhe a opção, e para os lados (ou o botão 1)

@@ -129,8 +129,8 @@ void Opcoes::Mostrar() {
         case Item::Daltonismo:
             // \xc3\xa1 e \xc3\xa3 sao a agudo e a til.
             mDescricao->SetText(mGame->ModoDeDaltonismo() == Daltonismo::Modo::Desligado
-                ? "Corrige as cores para quem confunde vermelho e verde, ou azul e amarelo."
-                : std::string("Cores corrigidas para ") + Daltonismo::Nome(mGame->ModoDeDaltonismo()) +
+                ? "Ajusta as cores do jogo para cada tipo de daltonismo."
+                : std::string("Cores ajustadas para ") + Daltonismo::Nome(mGame->ModoDeDaltonismo()) +
                   ". As imagens mudam ao sair desta tela.");
             break;
     }

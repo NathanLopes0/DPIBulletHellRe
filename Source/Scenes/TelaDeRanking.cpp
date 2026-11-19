@@ -194,7 +194,7 @@ void TelaDeRanking::Redesenhar() {
         escrever(mTituloAtor, "MEDIA DO CURSO");
         escrever(mSubtituloAtor,
                  "Soma das melhores notas dividida pelas "
-                 + std::to_string(contadas.size()) + " materias. Nao e uma nota.");
+                 + std::to_string(contadas.size()) + " materias.");
     }
     else {
         const Materias::Materia* m = materias.Por(mPedido.materia);
