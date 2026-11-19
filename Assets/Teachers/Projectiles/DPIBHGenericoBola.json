@@ -1,0 +1,59 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGenericoBola 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGenericoBola 1.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_generico.py",
+  "version": "1.0",
+  "image": "DPIBHGenericoBola.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 64,
+   "h": 32
+  },
+  "scale": "1"
+ }
+}

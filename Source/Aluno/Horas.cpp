@@ -16,7 +16,7 @@ namespace Horas {
             std::vector<int> v;
             for (int i = 0; i < materias.Quantas(); ++i) {
                 const Materias::Materia* m = materias.Por(i);
-                if (m && !m->chefe.empty()) v.push_back(i);
+                if (m && !m->chefe.empty() && !m->tutorial) v.push_back(i);
             }
             return v;
         }

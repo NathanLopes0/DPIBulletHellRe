@@ -545,7 +545,17 @@ void Battle::Retomar() {
 
 void Battle::SairDaBatalha(const SceneType destino) {
     Abandonar();
+    // Quem sai do tutorial pela pausa segue a entrada do mesmo jeito.
+    if (EhTutorial() && destino == SceneType::StageSelect) {
+        mGame->DepoisDoTutorial();
+        return;
+    }
     mGame->RequestSceneChange(destino);
+}
+
+bool Battle::EhTutorial() const {
+    const Materias::Materia* m = Materias::Carregadas().Por(mMateria);
+    return m && m->tutorial;
 }
 
 void Battle::Abandonar() {
@@ -959,6 +969,16 @@ bool Battle::DissolvidoPelaOnda(const BossProjectile* p) const {
 void Battle::EncerrarBatalha(bool aprovado) {
     if (mAcabando) return; // Já está acabando, ignora chamadas duplicadas
     Avisar([&](OuvinteDaBatalha& o) { o.AoDecidir(*this, aprovado); });
+
+    // A fase tutorial (Materia::tutorial): sem resultado, sem ficha, sem tentativa - so segue a
+    // primeira entrada.
+    if (EhTutorial()) {
+        mAcabando = true;
+        if (mProjeteis) mProjeteis->ClearBossProjectiles();
+        for (Boss* corpo : Corpos()) if (corpo) corpo->AoTerminarABatalha();
+        mGame->DepoisDoTutorial();
+        return;
+    }
 
     // A ultima fase tambem paga - menos a nota que se destruiu (DestruirANota).
     if (!mNotaDestruida) EncerrarFase();

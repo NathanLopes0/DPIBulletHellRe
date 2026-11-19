@@ -73,6 +73,7 @@
 #include "../Source/Aluno/ProvaDaSemana.h"
 #include "../Source/Motor/JsonDeDados.h"
 #include "../Source/Interface/Manual.h"
+#include "../Source/Attacks/Tutorial.h"
 
 #ifndef DPI_ASSETS_DIR
 #error "DPI_ASSETS_DIR nao foi definido. Veja target_compile_definitions(dpi_tests ...) no CMakeLists."
@@ -173,7 +174,8 @@ TEST_CASE("Dados: o regras.json de cada chefe nao tem problema nenhum") {
         const auto r = RegrasDoChefe(chefe);
         CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/regras.json:"
                                                            << Juntar(r.problemas));
-        CHECK(r.conjuntos.size() > 0);
+        // O professor generico do tutorial nao tem regra nenhuma: a bolinha dele so anda reto.
+        if (chefe != "generico") CHECK(r.conjuntos.size() > 0);
     }
 }
 
@@ -201,11 +203,18 @@ TEST_CASE("Dados: todo chefe tem fases e as transicoes delas fecham") {
 }
 
 TEST_CASE("Dados: todo chefe tem as quatro fases") {
-    // Nao e exigencia do formato - um chefe pode ter tres.
+    // Nao e exigencia do formato - um chefe pode ter tres. O tutorial (o professor generico) tem uma,
+    // e a final de seguranca.
     for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
         std::set<std::string> nomes;
         for (const auto& f : FasesDoChefe(chefe).fases) nomes.insert(f.nome);
+        if (chefe == "generico") {
+            CHECK(nomes.count("StateOne") == 1);
+            CHECK(nomes.count("StateFinal") == 1);
+            CHECK(nomes.size() == 2u);
+            continue;
+        }
         CHECK(nomes.count("StateOne") == 1);
         CHECK(nomes.count("StateTwo") == 1);
         CHECK(nomes.count("StateThree") == 1);
@@ -805,7 +814,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
         "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425", "INF429", "INF491",
-        "INF216"
+        "INF216", "INF191"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -828,7 +837,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 17);  // Hoje sao todas as dezessete: o Lucas Ferreira, na optativa secreta INF 216, foi o ultimo.
+    CHECK(comChefe == 18);  // Todas as dezessete do curso, e a fase tutorial (INF 191, o professor generico).
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -838,7 +847,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
                                                         "thiago", "vladimir", "vitor",
                                                         "marialucia", "lucas", "luizinho", "hugo",
                                                         "arroyo", "goulart", "daniel", "michel", "sabrina",
-                                                        "ferreira"};
+                                                        "ferreira", "generico"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -857,7 +866,8 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310", "INF451"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 17);
+    REQUIRE(l.Quantas() == 18);
+    REQUIRE(l.QuantasDoCurso() == 17);
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
@@ -867,6 +877,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
             return n;
         };
         if (codigo == "INF110") return true;
+        if (codigo == "INF191") return true;   // o tutorial: nunca aparece, mas a regra dele e "sempre"
         if (codigo == "INF213") return aprovado("INF110");
         for (const auto& c : col2) if (c == codigo) return aprovado("INF213");
         for (const auto& c : col3) if (c == codigo) return quantas(col2) >= 2;
@@ -901,7 +912,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         }
     }
 
-    CHECK(comparacoes == (1 << 13) * 17);
+    CHECK(comparacoes == (1 << 13) * 18);   // as 17 do curso e o tutorial
 
     // As optativas nao pedem materia alem da INF 213, nem uma a outra: pedem muitas mencoes - nenhuma
     // a nota cheia - e a compra.
@@ -1870,8 +1881,12 @@ TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDo
             CAPTURE(f.nome);
             // As excecoes declaradas: o TCC (Fase::kDuracaoDoTcc) e o Lucas Ferreira, cujas fases
             // duram o dobro - e a das regras, mais (JogosDigitais::DuracaoDa).
+            // E o tutorial, que dura o que as etapas de Tutorial::kDuracoes somam.
+            float doTutorial = 0.0f;
+            for (const float d : Tutorial::kDuracoes) doTutorial += d;
             const float duracao = chefe == "hugo" ? Fase::kDuracaoDoTcc
-                                                  : (chefe == "ferreira" ? JogosDigitais::DuracaoDa(f.nome) : Fase::kDuracao);
+                                : chefe == "generico" ? (f.nome == "StateOne" ? doTutorial : Fase::kDuracao)
+                                : (chefe == "ferreira" ? JogosDigitais::DuracaoDa(f.nome) : Fase::kDuracao);
             CHECK(f.duracao == doctest::Approx(duracao));
             if (f.etapas.empty()) continue;
             float soma = 0.0f;
@@ -2742,7 +2757,7 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com 10 materias no Dificil e 6 com 
 
     std::vector<int> obrigatorias, optativas;
     for (int i = 0; i < l.Quantas(); ++i) {
-        if (i == jd) continue;
+        if (i == jd || !l.DoCurso(i)) continue;
         (l.Por(i)->optativa ? optativas : obrigatorias).push_back(i);
     }
     REQUIRE(obrigatorias.size() == 13);
@@ -2815,7 +2830,8 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com 10 materias no Dificil e 6 com 
     // E na media do curso: o ranking geral divide pelas 17.
     const std::vector<int> doGeral = l.DoGeral();
     CHECK(doGeral.size() == 17u);
-    CHECK(static_cast<int>(doGeral.size()) == l.Quantas());
+    CHECK(static_cast<int>(doGeral.size()) == l.QuantasDoCurso());
+    CHECK(l.Quantas() == l.QuantasDoCurso() + 1);   // a fase tutorial, fora do curso
     CHECK(std::find(doGeral.begin(), doGeral.end(), jd) != doGeral.end());
     // O boletim de quem nem a viu diz "de 17", e mostra 16 linhas.
     const Boletim::Dados boletim = Boletim::Montar(Progresso{}, l);

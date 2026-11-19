@@ -271,9 +271,23 @@ botão 1 digita e o botão 2 apaga — e confirma em **ENTRAR**. Não é preciso
 se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e traz
 de volta a aparência escolhida; se não existe, o aluno passa pela criação de
 personagem, e o perfil só é gravado quando ela é confirmada. Na primeira vez de
-uma matrícula, depois da dificuldade e antes da seleção de fases, aparece a
-página das **menções** do "Como Jogar" — cada selo e como se ganha —, e o
-botão 1 segue para as matérias (na dupla, basta um dos dois ser novo). A tecla
+uma matrícula, depois da dificuldade e antes da seleção de fases, vem a **fase
+tutorial**: a **INF 191 — Introdução à Ciência da Computação**, com o Prof.
+Silva, um professor genérico de óculos e gravata. Ela dura menos de um minuto e
+não tem uma palavra na tela: primeiro cai uma chuva lenta com o **manche**
+desenhado acima do aluno, apontando para cada lado (desviar); depois o professor
+para, e aparece o **Botão 1** sendo apertado e uma linha tracejada até ele
+(atirar); a cada acerto, um **"+" verde** voa até a ponta da barra da nota, que
+ganha uma seta para cima, e a cada tiro levado, um **"−" vermelho** e a seta
+para baixo; então vêm anéis cheios e lentos com o **Botão 4** segurado (o
+foco); e no fim, um visto verde. Fora do gabinete, a tecla de cada botão
+aparece numa plaquinha embaixo do desenho. Ninguém reprova (a nota não desce
+de 15), e a prova acaba sozinha, sem tela de resultado: a nota não vai para a
+ficha, não conta tentativa e a INF 191 não aparece na seleção, no boletim nem
+em conta nenhuma do curso. Dali, a página das **menções** do "Como Jogar" —
+cada selo e como se ganha —, e o botão 1 segue para as matérias (na dupla,
+basta um dos dois ser novo; quem sai do tutorial pela pausa segue o mesmo
+caminho). A tecla
 **VISITANTE** entra sem se identificar, e nesse caso nada é gravado.
 
 A personagem é vista de costas, olhando para o professor, e é montada peça por

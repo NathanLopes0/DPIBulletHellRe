@@ -163,6 +163,17 @@
       "desbloqueio": { "tipo": "sempre",
                        "requisitos": [ { "tipo": "mencao", "mencao": "dificil", "quantas": 10 },
                                        { "tipo": "mencao", "mencao": "notaCheia", "quantas": 6 } ] }
+    },
+
+    // A fase tutorial, com um professor generico: so a primeira entrada de uma matricula a joga
+    // (Game::IrParaASelecao), sem texto - desviar, atirar, a nota que sobe e desce, e o foco -, e
+    // depois a pagina das mencoes e as materias. Fora do curso ("tutorial"): nao aparece na grade
+    // nem no boletim, nao conta em nada e a nota dela nao vai para a ficha. --batalha 17 e ela.
+    {
+      "codigo": "INF191", "nome": "INF 191",
+      "nomeCompleto": "Introdução à Ciência da Computação", "professor": "Silva",
+      "coluna": 0, "chefe": "generico", "tutorial": true,
+      "desbloqueio": { "tipo": "sempre" }
     }
   ]
 }

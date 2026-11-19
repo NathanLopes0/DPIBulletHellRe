@@ -16,7 +16,7 @@ namespace Boletim {
         Dados d;
         // O total e o curso inteiro, a secreta inclusive, mesmo sem a linha dela: e o mesmo numero
         // da selecao de fases.
-        d.total = materias.Quantas();
+        d.total = materias.QuantasDoCurso();
         float soma = 0.0f;
 
         // Periodo a periodo, e dentro dele na ordem da grade; as optativas, numa secao so, no fim.

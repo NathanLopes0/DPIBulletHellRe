@@ -190,6 +190,8 @@ public:
     [[nodiscard]] int AcertosSofridos() const { return mConta.AcertosSofridos(); }
     /// O indice da materia desta batalha (Materias::Lista).
     [[nodiscard]] int MateriaDaBatalha() const { return mMateria; }
+    /// A fase tutorial (INF 191): acaba sem tela de resultado e sem ir para a ficha.
+    [[nodiscard]] bool EhTutorial() const;
 
     /// A janela perdeu o foco: a luta pausa sozinha (Pausa::PausaAoPerderOFoco).
     void AoPerderOFoco() override;

@@ -40,6 +40,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/TelaDoBoletim.h
         Source/Scenes/TelaComoJogar.cpp
         Source/Scenes/TrocaDeAlunos.cpp
+        Source/Actors/Teachers/Bosses/Generico.cpp
+        Source/Actors/Teachers/Bosses/Generico.h
+        Source/Attacks/Tutorial.cpp
+        Source/Attacks/Tutorial.h
         Source/Scenes/TrocaDeAlunos.h
         Source/Scenes/TelaComoJogar.h
         Source/Scenes/Atracao.cpp
@@ -674,6 +678,7 @@ add_executable(dpi_tests
         tests/test_cronograma.cpp
         tests/test_poder.cpp
         tests/test_daltonismo.cpp
+        tests/test_tutorial.cpp
         tests/test_plataforma.cpp
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
@@ -780,6 +785,7 @@ add_executable(dpi_tests
         Source/Interface/Carregamento.cpp
         Source/Interface/Carregamento.h
         Source/Interface/Hud.cpp
+        Source/Attacks/Tutorial.cpp
         Source/Interface/Daltonismo.cpp
         Source/Interface/Daltonismo.h
         Source/Interface/FundoDoCampo.cpp

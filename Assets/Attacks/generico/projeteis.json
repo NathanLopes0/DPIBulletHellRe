@@ -1,0 +1,13 @@
+{
+  // Os projeteis do professor generico da fase tutorial. A arte e de Ferramentas/gerar_generico.py.
+
+  // A bolinha: uma so, laranja, que pisca - a do tutorial nao precisa ensinar nada alem de desviar.
+  "Bola": {
+    "sprite": "Teachers/Projectiles/DPIBHGenericoBola.png",
+    "dados":  "Teachers/Projectiles/DPIBHGenericoBola.json",
+    "animacoes": { "Acesa": [0, 1] },
+    "animacaoInicial": "Acesa",
+    "escala": 0.8,
+    "ordemDeDesenho": 90
+  }
+}

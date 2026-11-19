@@ -22,6 +22,8 @@
 #endif
 
 void RegistroDaTentativa::AoComecar(Battle& b) {
+    // O tutorial nao e uma tentativa: nao entra nos dados.
+    if (b.EhTutorial()) return;
     Tentativas::Tentativa& t = mTentativa;
     t.inicio = Relogio::Agora();
     t.id = Tentativas::NovoId(t.inicio, b.SementeDaBatalha());

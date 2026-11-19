@@ -104,6 +104,11 @@ namespace Materias {
         /// Materia secreta: nem aparece na selecao de fases (nem no boletim) enquanto a regra dela
         /// nao estiver cumprida - e entao abre, sem aviso antes.
         bool secreta = false;
+        /// A fase tutorial (INF 191): joga-se uma vez, na primeira entrada de uma matricula
+        /// (Game::IrParaASelecao), e nada mais. Nunca aparece na selecao nem no boletim, nao entra em
+        /// conta nenhuma do curso (as aprovadas, a media, as mencoes, as horas, a prova da semana) e a
+        /// nota dela nao vai para a ficha.
+        bool tutorial = false;
         /// So na secreta: o codigo da materia que, aprovada, a abre para quem digitou o codigo
         /// secreto no menu inicial (ChaveDoAtalho). Vazio: o codigo nao a abre.
         std::string atalho;
@@ -120,6 +125,12 @@ namespace Materias {
         std::vector<std::string> problemas;
 
         [[nodiscard]] int Quantas() const { return static_cast<int>(materias.size()); }
+        /// Se a materia deste indice e do curso: todas, menos a fase tutorial.
+        [[nodiscard]] bool DoCurso(int indice) const;
+        /// Quantas sao do curso (DoCurso): o "de 17" da selecao e do boletim.
+        [[nodiscard]] int QuantasDoCurso() const;
+        /// O indice da fase tutorial, ou -1 sem ela.
+        [[nodiscard]] int Tutorial() const;
 
         /// O indice de um codigo, ou -1 se nao existe.
         [[nodiscard]] int IndiceDe(const std::string& codigo) const;
@@ -130,7 +141,7 @@ namespace Materias {
         /// O codigo nesse indice, ou vazio.
         [[nodiscard]] std::string CodigoDe(int indice) const;
 
-        /// Os indices das materias de uma coluna, na ordem da lista.
+        /// Os indices das materias de uma coluna, na ordem da lista - sem a fase tutorial.
         [[nodiscard]] std::vector<int> DaColuna(int coluna) const;
 
         /// Quantas colunas a grade tem (a maior coluna usada, mais um).
@@ -159,7 +170,7 @@ namespace Materias {
         /// A lista do que a materia pede, item por item, cada um cumprido ou nao: a regra (uma linha
         /// por materia exigida, ou a das aprovacoes na coluna) e os requisitos. Sem o preco.
         [[nodiscard]] std::vector<ItemDaExigencia> Itens(int indice, const Progresso& progresso) const;
-        /// A materia secreta que este aluno ainda nao abriu: nao se mostra.
+        /// A materia secreta que este aluno ainda nao abriu, e a fase tutorial: nao se mostram.
         [[nodiscard]] bool Escondida(int indice, const Progresso& progresso) const;
 
         /// O aluno ja comprou esta optativa?

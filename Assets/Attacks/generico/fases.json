@@ -1,0 +1,47 @@
+{
+  // A fase tutorial (INF 191), com o professor generico. Uma pasta por chefe: Assets/Attacks/generico/.
+  // Uma fase so, sem texto na tela: as etapas so dao o ritmo, e o desenho de cada uma (o manche, o
+  // Botao 1, a nota que sobe e desce, o Botao 4) e do Generico. As duracoes sao as de
+  // Tutorial::kDuracoes, na mesma ordem; o professor encerra a prova no meio da ultima.
+
+  "StateOne": {
+    "duracao": 64,
+    "proximo": "",
+    "etapas": [
+      { "nome": "Chegada",      "duracao": 3 },
+      { "nome": "Desviar",      "duracao": 13 },
+      { "nome": "Atirar",       "duracao": 12 },
+      { "nome": "Sobe e desce", "duracao": 14 },
+      { "nome": "Foco",         "duracao": 13 },
+      { "nome": "Fim",          "duracao": 9 }
+    ],
+    "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
+    "ataques": [
+      // Desviar: uma chuva lenta e rala, que da para ver chegando.
+      { "etapa": "Desviar", "estrategia": "WaveAttack", "projetil": "Bola",
+        "projeteis": 7, "velocidade": 150, "angulo": 110, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 1.2, "variar": { "giro": 15 } },
+      // Sobe e desce: tres bolas miradas no aluno (o Generico as mira), enquanto ele atira de volta.
+      { "etapa": "Sobe e desce", "estrategia": "WaveAttack", "projetil": "Bola",
+        "projeteis": 3, "velocidade": 190, "angulo": 24, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 1.1 },
+      // Foco: aneis cheios e lentos, com os vaos estreitos - segurando o foco, cabe.
+      { "etapa": "Foco", "estrategia": "CircleSpreadAttack", "projetil": "Bola",
+        "projeteis": 26, "velocidade": 115, "cooldown": 1.5, "variar": { "giro": 7 } }
+    ]
+  },
+
+  // A final que todo chefe tem (a maquina de estados vai para ela se a nota terminar a fase entre
+  // 40 e 59). No tutorial ela nao chega a ser vista: o professor encerra a prova antes de a fase
+  // acabar. Se for, e so a chuva mansa do comeco.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "",
+    "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Bola",
+        "projeteis": 5, "velocidade": 150, "angulo": 110, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 1.4 }
+    ]
+  }
+}

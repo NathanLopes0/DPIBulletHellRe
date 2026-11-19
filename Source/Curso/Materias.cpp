@@ -56,32 +56,51 @@ std::string Lista::CodigoDe(const int indice) const {
 std::vector<int> Lista::DaColuna(const int coluna) const {
     std::vector<int> saida;
     for (size_t i = 0; i < materias.size(); ++i) {
-        if (materias[i].coluna == coluna) saida.push_back(static_cast<int>(i));
+        // A fase tutorial nao ocupa lugar na grade.
+        if (materias[i].coluna == coluna && !materias[i].tutorial) saida.push_back(static_cast<int>(i));
     }
     return saida;
 }
 
+bool Lista::DoCurso(const int indice) const {
+    const Materia* m = Por(indice);
+    return m && !m->tutorial;
+}
+
+int Lista::QuantasDoCurso() const {
+    int n = 0;
+    for (const auto& m : materias) if (!m.tutorial) ++n;
+    return n;
+}
+
+int Lista::Tutorial() const {
+    for (int i = 0; i < Quantas(); ++i) {
+        if (materias[static_cast<size_t>(i)].tutorial) return i;
+    }
+    return -1;
+}
+
 int Lista::QuantasColunasObrigatorias() const {
     int maior = -1;
-    for (const auto& m : materias) if (!m.optativa) maior = std::max(maior, m.coluna);
+    for (const auto& m : materias) if (!m.optativa && !m.tutorial) maior = std::max(maior, m.coluna);
     return maior + 1;
 }
 
 int Lista::QuantasObrigatorias() const {
     int n = 0;
-    for (const auto& m : materias) if (!m.optativa) ++n;
+    for (const auto& m : materias) if (!m.optativa && !m.tutorial) ++n;
     return n;
 }
 
 std::vector<int> Lista::DoGeral() const {
     std::vector<int> contadas;
-    for (int i = 0; i < Quantas(); ++i) contadas.push_back(i);
+    for (int i = 0; i < Quantas(); ++i) if (DoCurso(i)) contadas.push_back(i);
     return contadas;
 }
 
 int Lista::QuantasColunas() const {
     int maior = -1;
-    for (const auto& m : materias) maior = std::max(maior, m.coluna);
+    for (const auto& m : materias) if (!m.tutorial) maior = std::max(maior, m.coluna);
     return maior + 1;
 }
 
@@ -254,6 +273,7 @@ bool Lista::Comprada(const int indice, const Progresso& progresso) const {
 
 bool Lista::Escondida(const int indice, const Progresso& progresso) const {
     const Materia* m = Por(indice);
+    if (m && m->tutorial) return true;
     return m && m->secreta && !Desbloqueada(indice, progresso);
 }
 
@@ -557,6 +577,15 @@ Lista LerMaterias(const std::string& textoJson) {
             }
         }
 
+        // "tutorial": a fase da primeira entrada, fora do curso.
+        if (j.contains("tutorial")) {
+            if (j["tutorial"].is_boolean()) {
+                m.tutorial = j["tutorial"].get<bool>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"tutorial\" e true ou false; ficou no curso");
+            }
+        }
+
         // "atalho": a materia que abre a secreta para quem digitou o codigo secreto.
         if (j.contains("atalho")) {
             if (j["atalho"].is_string() && m.secreta) {
@@ -620,7 +649,7 @@ Lista LerMaterias(const std::string& textoJson) {
             if (r.fracao <= 0.0f) continue;
             int universo = 0;
             for (const auto& outra : lista.materias) {
-                if (outra.chefe.empty() || outra.secreta) continue;
+                if (outra.chefe.empty() || outra.secreta || outra.tutorial) continue;
                 if (r.soObrigatorias && outra.optativa) continue;
                 ++universo;
             }

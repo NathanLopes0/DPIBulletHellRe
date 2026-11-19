@@ -956,11 +956,26 @@ void Game::AvancarEntrada() {
 void Game::IrParaASelecao() {
     if (mMencoesAntesDaSelecao) {
         mMencoesAntesDaSelecao = false;
+        // Primeiro a fase tutorial, com o professor generico (Generico.h); dela, as mencoes.
+        const int tutorial = Materias::Carregadas().Tutorial();
+        if (tutorial >= 0) {
+            mSelectedStage = tutorial;
+            RequestSceneChange(Scene::SceneType::Battle);
+            return;
+        }
         mManualDaEntrada = true;
         RequestSceneChange(Scene::SceneType::ComoJogar);
         return;
     }
     RequestSceneChange(Scene::SceneType::StageSelect);
+}
+
+void Game::DepoisDoTutorial() {
+    // A selecao nao abre na materia escondida: o foco volta ao comeco da grade.
+    mSelectedStage = 0;
+    mMateriaEmFoco = -1;
+    mManualDaEntrada = true;
+    RequestSceneChange(Scene::SceneType::ComoJogar);
 }
 
 bool Game::TirarManualDaEntrada() {

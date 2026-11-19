@@ -75,6 +75,7 @@ namespace Mencoes {
     Total DoCurso(const Progresso& progresso, const Materias::Lista& materias) {
         Total t;
         for (int i = 0; i < materias.Quantas(); ++i) {
+            if (!materias.DoCurso(i)) continue;
             // A secreta conta desde o comeco, mesmo escondida: quem junta todas as mencoes que ve
             // nunca chega ao total, e fica com a pulga atras da orelha.
             const DaMateria d = Da(progresso, materias, i);

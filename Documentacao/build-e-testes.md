@@ -392,7 +392,10 @@ impulso de velocidade, `kImpulso`, para quem segurou o foco ao menos 0,3 s): o v
 bastante para não ser alcançado com foco e perto o bastante para ser alcançado
 sem ele (`RegrasTrocadas::VaoAlcancavel`). Para ver o foco numa foto, rode sem
 piloto e segure a tecla com o roteiro — uma a cada 3 quadros, que é o que uma
-tecla do roteiro dura (`Simulacao::kQuadrosDeTecla`):
+tecla do roteiro dura (`Simulacao::kQuadrosDeTecla`). A fase tutorial é a
+`--batalha 17` (INF 191): com `--piloto segue --atira`, ela acaba sozinha perto
+de 58 s de fase (`Tutorial::Acabou`) com `FIM ... aprovado=1`, e o jogo segue para
+a página das menções.
 
 ```bash
 TECLAS=$(python3 -c "print(','.join(f'Left Shift@{q}' for q in range(1500, 1800, 3)))")

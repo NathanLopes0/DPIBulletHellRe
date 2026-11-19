@@ -356,7 +356,7 @@ void StageSelect::CreateStaticUI() {
         if (m && mGame->Aprovado(i)) ++aprovadas;
     }
     // O curso inteiro, a secreta inclusive: quem conta os losangos acha um a menos.
-    const int doCurso = materias.Quantas();
+    const int doCurso = materias.QuantasDoCurso();
 
     auto avanco = std::make_unique<Actor>(this);
     avanco->SetPosition(Vector2(w - 190.f, 52.f));
@@ -940,7 +940,7 @@ void StageSelect::ComecarARevelacao(const int materia) {
         mNomeDaRevelacao.push_back(texto(m->nome + "  \xc2\xb7  " + m->nomeCompleto, altura * 0.70f, 30, Color::White));
         mNomeDaRevelacao.push_back(texto("Prof. " + m->professor, altura * 0.755f, 24, Color::LightBlue));
     }
-    mNomeDaRevelacao.push_back(texto(Revelacao::Parabens(materias.Quantas()), altura * 0.815f, 26, Color::Gold));
+    mNomeDaRevelacao.push_back(texto(Revelacao::Parabens(materias.QuantasDoCurso()), altura * 0.815f, 26, Color::Gold));
     mAvisoDaRevelacao = texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "continuar"}}, mGame->JeitoDoRodape()),
                               altura * 0.92f, 26, Color::LightYellow);
     SDL_Log("SELECAO: a revelacao de %s.", m ? m->codigo.c_str() : "?");

@@ -210,6 +210,9 @@ public:
     /// O fim da entrada: a selecao de fases - ou, se alguem entrou pela primeira vez, antes a pagina
     /// das mencoes, que leva a selecao.
     void IrParaASelecao();
+    /// O tutorial (INF 191) acabou, ou foi abandonado pela pausa: a pagina das mencoes, e dali as
+    /// materias - o resto da primeira entrada.
+    void DepoisDoTutorial();
     /// Se o "Como Jogar" que abre agora e o da entrada (so a pagina das mencoes, e depois a selecao).
     /// Vale uma vez: quem pergunta ja o consome.
     [[nodiscard]] bool TirarManualDaEntrada();
