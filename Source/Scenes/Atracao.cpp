@@ -86,7 +86,8 @@ Atracao::Cartaz Atracao::CriarChamada() {
     AddActor(std::move(titulo));
 
     // A arte do titulo ocupa ate y = 607 de 800, entao as duas linhas vivem na faixa de baixo.
-    cartaz.push_back(Texto("Voce e o aluno. Os professores sao os chefes.",
+    // \xc3\xa7 e \xc3\xa3 sao o c cedilha e o a til.
+    cartaz.push_back(Texto("Uma gradua\xc3\xa7\xc3\xa3o em formato de Arcade",
                            largura / 2.0f, altura * 0.86f, 28, 1000, Color::White));
 
     cartaz.push_back(Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "jogar"}},
