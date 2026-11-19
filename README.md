@@ -37,7 +37,9 @@ escritos na tela.
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
 > W A S D é o do jogador 2.
 
-O menu principal tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
+Ao lado da opção em foco, o menu principal mostra **BOTÃO 1 confirmar**, e o
+**Modo Dupla** em foco fica dourado, com a moldura respirando devagar — um
+convite discreto para jogar junto. O menu tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
 quatro páginas (o manche vira a página): como a matéria funciona, os botões, a
 personagem com o convite para a dupla, e as menções — cada selo, o nome e como se
 ganha. É curto de propósito — a nota, o que se

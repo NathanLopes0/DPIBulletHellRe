@@ -54,6 +54,13 @@ private:
     /// A moldura que mostra qual opcao esta em foco. Uma so, que muda de lugar: uma por opcao
     /// obrigaria a apagar e acender todas a cada passo.
     Actor* mSelecaoAtor{};
+    /// "BOTAO 1 confirmar", ao lado da moldura, andando com ela: quem chega ao gabinete nao sabe o que
+    /// apertar.
+    Actor* mDicaAtor{};
+    /// O Modo Dupla em foco ganha a moldura e a letra douradas, num pulso lento: o convite para jogar
+    /// junto, sem gritar.
+    float mPulso = 0.0f;
+    void PintarSelecao();
 
     int mSelecionada = 0;
 

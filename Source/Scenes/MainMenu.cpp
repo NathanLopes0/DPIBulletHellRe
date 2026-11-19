@@ -14,6 +14,9 @@
 
 #include "../Motor/CaminhosArquivo.h"
 #include "../Motor/Fontes.h"
+#include "TextoDeCena.h"
+
+#include <cmath>
 
 namespace {
 
@@ -62,6 +65,16 @@ namespace {
 
     constexpr SDL_Color kBordaDaSelecao = {235, 235, 235, 255};
     constexpr SDL_Color kFundoDaSelecao = { 34,  38,  48, 150};
+
+    /// O Modo Dupla em foco: dourado, e o fundo um pouco mais quente. O pulso so mexe na moldura.
+    constexpr SDL_Color kBordaDaDupla = {255, 214, 90, 255};
+    constexpr SDL_Color kFundoDaDupla = { 58,  50,  30, 170};
+    constexpr float kPulsoPorSegundo = 0.8f;
+
+    /// A dica do botao, a direita da moldura.
+    constexpr int kTamanhoDaDica = 20;
+    constexpr int kLarguraDaDica = 300;
+    constexpr float kVaoDaDica = 24.0f;
 
     /// A placa atras das opcoes existe por legibilidade, nao por enfeite. Sem moldura, para nao
     /// competir com a moldura da opcao em foco.
@@ -201,6 +214,8 @@ void MainMenu::MostrarOSegredo() {
 }
 
 void MainMenu::OnUpdate(const float deltaTime) {
+    mPulso += deltaTime;
+    PintarSelecao();
     if (mTempoDoAviso <= 0.0f || !mAvisoDoSegredo) return;
     mTempoDoAviso -= deltaTime;
     // Pisca entre o dourado e o ciano da revelacao, e some no fim.
@@ -257,6 +272,14 @@ void MainMenu::CriarOpcoes() {
     mSelecaoAtor = selecao.get();
     AddActor(std::move(selecao));
 
+    // A dica do botao 1, que anda com a moldura (PosicionarSelecao).
+    mDicaAtor = CriarTexto(*this, mMainMenuFont.get(),
+                           Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "confirmar"}}, mGame->JeitoDoRodape()),
+                           Vector2(largura / 2.0f, AlturaDaOpcao(0, altura)), kTamanhoDaDica, kLarguraDaDica,
+                           kTamanhoDaDica + 8)->GetOwner();
+    // Sobre a foto do fundo, uma placa como a das opcoes, para a letra nao sumir na mesa.
+    mDicaAtor->AddComponent<DrawCaixaComponent>(kLarguraDaDica, kTamanhoDaDica + 16, kSemBorda, kFundoPlaca, 0, 85);
+
     for (int i = 0; i < kQuantasOpcoes; ++i) {
 
         auto ator = std::make_unique<Actor>(this);
@@ -297,4 +320,29 @@ void MainMenu::PosicionarSelecao() const {
     const auto altura  = static_cast<float>(mGame->GetWindowHeight());
 
     mSelecaoAtor->SetPosition(Vector2(largura / 2.0f, AlturaDaOpcao(mSelecionada, altura)));
+    if (mDicaAtor) {
+        const float x = largura / 2.0f + static_cast<float>(kSelecaoLargura) / 2.0f + kVaoDaDica +
+                        static_cast<float>(kLarguraDaDica) / 2.0f;
+        mDicaAtor->SetPosition(Vector2(x, AlturaDaOpcao(mSelecionada, altura)));
+    }
+}
+
+void MainMenu::PintarSelecao() {
+    const bool dupla = kOpcoes[mSelecionada].jogadores == Sessao::Modo::Dois;
+    if (auto* caixa = mSelecaoAtor ? mSelecaoAtor->GetComponent<DrawCaixaComponent>() : nullptr) {
+        SDL_Color borda = dupla ? kBordaDaDupla : kBordaDaSelecao;
+        if (dupla) {
+            // Respira devagar entre o dourado cheio e um pouco apagado.
+            const float u = 0.5f + 0.5f * std::sin(mPulso * 6.2831853f * kPulsoPorSegundo);
+            borda.a = static_cast<Uint8>(160.0f + 95.0f * u);
+        }
+        caixa->SetMoldura(borda);
+        caixa->SetFundo(dupla ? kFundoDaDupla : kFundoDaSelecao);
+    }
+    for (int i = 0; i < static_cast<int>(mOpcaoAtores.size()); ++i) {
+        auto* dc = mOpcaoAtores[static_cast<size_t>(i)]->GetComponent<DrawTextComponent>();
+        if (!dc) continue;
+        const bool douradaAgora = i == mSelecionada && kOpcoes[i].jogadores == Sessao::Modo::Dois;
+        dc->SetColor(douradaAgora ? Vector3(1.0f, 0.86f, 0.42f) : Vector3(1.0f, 1.0f, 1.0f));
+    }
 }
