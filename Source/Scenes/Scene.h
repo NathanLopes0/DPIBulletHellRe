@@ -30,6 +30,7 @@ public:
         Atracao,
         EscolhaDaDificuldade,
         StageSelect,
+        TrocaDeAlunos,
         EscolhaDoOrientador,
         Battle
     };

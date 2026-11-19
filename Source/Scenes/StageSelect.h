@@ -296,6 +296,8 @@ private:
     /// Com a borda em false, voltar do ranking com o botao ainda apertado jogava o aluno direto
     /// para a tela de matricula.
     Borda mBordaTrocar{true};
+    /// O Botao 4: a troca de aluno(s) (TrocaDeAlunos).
+    Borda mBordaTrocarAlunos{true};
 
     /// F9, para quem desenvolve: desfaz as matriculas nas optativas (Game::DesfazerMatriculas), para
     /// ver a compra e a festa de novo.

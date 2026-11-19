@@ -39,6 +39,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/TelaDoBoletim.cpp
         Source/Scenes/TelaDoBoletim.h
         Source/Scenes/TelaComoJogar.cpp
+        Source/Scenes/TrocaDeAlunos.cpp
+        Source/Scenes/TrocaDeAlunos.h
         Source/Scenes/TelaComoJogar.h
         Source/Scenes/Atracao.cpp
         Source/Scenes/Atracao.h

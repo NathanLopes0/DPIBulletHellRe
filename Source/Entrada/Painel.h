@@ -114,6 +114,10 @@ struct Acao {
 /// "MANCHE  escolher", e com a tecla "MANCHE (SETAS)  escolher".
 [[nodiscard]] Acao Manche(Jogador quem, std::string oQueFaz);
 
+/// O botao de foco (o Botao 4 do painel) como item de rodape: "BOTAO 4  trocar", e com a tecla
+/// "BOTAO 4 (SHIFT)  trocar". Na batalha ele e o foco; nas telas, um botao como os outros.
+[[nodiscard]] Acao BotaoQuatro(Jogador quem, std::string oQueFaz);
+
 /// Um botao de sistema como item de rodape: "START  continuar", e com a tecla "START (P)  continuar".
 [[nodiscard]] Acao BotaoDeSistema(Jogador quem, Sistema botao, std::string oQueFaz);
 

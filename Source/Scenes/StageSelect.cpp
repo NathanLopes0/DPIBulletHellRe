@@ -116,7 +116,8 @@ void StageSelect::CriarIdentificacaoNaTela() {
     const auto rodape = trocar->AddComponent<DrawTextComponent>(
         Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "jogar"},
                         {Painel::Jogador::Um, Painel::Botao::Dois, "dificuldade"},
-                        {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"}},
+                        {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"},
+                        Painel::BotaoQuatro(Painel::Jogador::Um, "trocar aluno(s)")},
                        mGame->JeitoDoRodape()),
         mStageSelectFont.get(), 1100, 34, 22, 255);
     rodape->SetLarguraDeQuebra(1100);
@@ -657,6 +658,12 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaTrocar.Bateu(trocar)) {
         mGame->RequestSceneChange(SceneType::EscolhaDaDificuldade);
+        return;
+    }
+
+    // O Botao 4 passa a vez: outro aluno (ou outra dupla) entra sem voltar ao menu principal.
+    if (mBordaTrocarAlunos.Bateu(Painel::FocoApertado(keyState, Painel::Jogador::Um))) {
+        mGame->RequestSceneChange(SceneType::TrocaDeAlunos);
         return;
     }
 
@@ -1307,7 +1314,8 @@ void StageSelect::AtualizarRodape(const std::string& acao) const {
     if (auto* dc = mTrocarAtor->GetComponent<DrawTextComponent>()) {
         dc->SetText(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, acao},
                                     {Painel::Jogador::Um, Painel::Botao::Dois, "dificuldade"},
-                                    {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"}},
+                                    {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"},
+                                    Painel::BotaoQuatro(Painel::Jogador::Um, "trocar aluno(s)")},
                                    mGame->JeitoDoRodape()));
     }
 }

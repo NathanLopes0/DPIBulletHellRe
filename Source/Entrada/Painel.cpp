@@ -122,6 +122,10 @@ Acao::Acao(const Jogador quem, const Botao botao, std::string oQueFaz)
 Acao::Acao(std::string rotulo, std::string tecla, std::string oQueFaz)
     : rotulo(std::move(rotulo)), tecla(std::move(tecla)), oQueFaz(std::move(oQueFaz)) {}
 
+Acao BotaoQuatro(const Jogador quem, std::string oQueFaz) {
+    return Acao{std::string("BOTAO 4"), std::string(NomeDaTeclaDoFoco(quem)), std::move(oQueFaz)};
+}
+
 Acao Manche(const Jogador quem, std::string oQueFaz) {
     return Acao{std::string("MANCHE"), std::string(NomeDoManche(quem)), std::move(oQueFaz)};
 }

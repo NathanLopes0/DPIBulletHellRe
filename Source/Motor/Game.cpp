@@ -33,6 +33,7 @@
 #include "../Scenes/Atracao.h"
 #include "../Scenes/CriacaoDePersonagem.h"
 #include "../Scenes/StageSelect.h"
+#include "../Scenes/TrocaDeAlunos.h"
 #include "../Scenes/EscolhaDoOrientador.h"
 #include "../Scenes/EscolhaDaDificuldade.h"
 #include "../Scenes/Battle/Battle.h"
@@ -206,6 +207,7 @@ void Game::LoadInitialScene()
             else if (mSimulacao.cena == "horas") ChangeScene(Scene::SceneType::Horas);
             // A pagina das mencoes que a matricula nova ve antes da selecao (IrParaASelecao).
             else if (mSimulacao.cena == "comojogar") ChangeScene(Scene::SceneType::ComoJogar);
+            else if (mSimulacao.cena == "troca") ChangeScene(Scene::SceneType::TrocaDeAlunos);
             else if (mSimulacao.cena == "personagem") ChangeScene(Scene::SceneType::CriacaoDePersonagem);
             else if (mSimulacao.cena == "entrada") {
                 mManualDaEntrada = true;
@@ -672,6 +674,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             break;
         case Scene::SceneType::ComoJogar:
             mScene = std::make_unique<TelaComoJogar>(this);
+            break;
+        case Scene::SceneType::TrocaDeAlunos:
+            mScene = std::make_unique<TrocaDeAlunos>(this);
             break;
         case Scene::SceneType::Atracao:
             // O codigo secreto e de quem o digitou: quem chegar depois da atracao nao o herda.

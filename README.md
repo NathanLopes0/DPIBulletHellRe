@@ -31,7 +31,7 @@ escritos na tela.
 | **Botão 3** | **N** | **H** | na criação da personagem, passar do objeto para a cor; na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
 | **Start** | **P** | **T** | na batalha: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. No computador o **Esc** faz o mesmo, e a batalha também pausa sozinha quando a janela perde o foco; no gabinete, a pausa esquecida volta ao menu sozinha |
 | **Select** | **O** | **R** | nas telas de menu (o menu principal, a seleção, a dificuldade, o boletim, as horas, o Como Jogar): abre as **Opções**, e de lá volta para a mesma tela |
-| **Foco** | **Shift** | **Q** | segurado na batalha: o aluno anda na **metade da velocidade** — o clássico dos bullet hell, para passar num vão apertado — e a hitbox dele aparece. No gabinete, o botão mais perto do manche |
+| **Botão 4 (foco)** | **Shift** | **Q** | segurado na batalha: o aluno anda na **metade da velocidade** — o clássico dos bullet hell, para passar num vão apertado — e a hitbox dele aparece. Na seleção de fases, **trocar aluno(s)**. No gabinete, o botão mais perto do manche |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
@@ -123,6 +123,12 @@ uma palma — o rodapé ensina. O menu só
 aceita o botão depois de um instante, para o tiro que estava apertado não
 escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.
+
+Na seleção de fases, o **Botão 4** passa a vez: a tela **TROCAR ALUNO(S)** pergunta
+se quem vem joga no **Modo Solo** ou no **Modo Dupla** e segue para a matrícula de
+sempre, sem voltar ao menu principal — num gabinete com fila, quem acabou de jogar
+deixa o próximo entrar na hora. O progresso de quem saiu já está na ficha, e o
+**Botão 2** desiste da troca e volta para as matérias de quem estava jogando.
 
 Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matérias
 período a período (o período na primeira linha dele, e as optativas numa seção
