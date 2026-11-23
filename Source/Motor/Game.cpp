@@ -135,7 +135,7 @@ bool Game::Initialize() {
     else Random::Init();
 
     // Start counter for deltaTime.
-    mTicksCount = SDL_GetTicks();
+    mTicksCount = SDL_GetTicks64();
 
     LoadInitialScene();
 
@@ -291,20 +291,36 @@ void Game::ProcessInput()
 
 void Game::UpdateGame()
 {
-    float deltaTime = 0;
+    float deltaTime = 0.0f;
     // Calculo de deltaTime pro resto do jogo.
     {
         // Com passo fixo (--passo), nao ha relogio a esperar: o quadro anda o quanto a maquina der.
-        if (mSimulacao.passo <= 0.0f) while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}
-
-        deltaTime = (static_cast<float>(SDL_GetTicks()) - static_cast<float>(mTicksCount)) / 1000.0f;
-        if(deltaTime > 0.05f)
+        if (mSimulacao.passo <= 0.0f)
         {
-            deltaTime = 0.05f;
+            // Espera pelo menos 16 ms desde o quadro anterior.
+            const Uint64 limite = mTicksCount + 16;
+
+            while (SDL_GetTicks64() < limite) {}
         }
 
-        mTicksCount = SDL_GetTicks();
-        if (mSimulacao.passo > 0.0f) deltaTime = mSimulacao.passo;
+        // Lê o relógio uma única vez.
+        const Uint64 agora = SDL_GetTicks64();
+
+        // Faz a subtração ainda em inteiro.
+        const Uint64 decorridoMs = agora - mTicksCount;
+
+        mTicksCount = agora;
+
+        // Somente o intervalo pequeno entre quadros vira float.
+        const double segundos =
+            static_cast<double>(decorridoMs) / 1000.0;
+
+        deltaTime = static_cast<float>(
+            std::clamp(segundos, 0.0, 0.05)
+        );
+
+        if (mSimulacao.passo > 0.0f)
+            deltaTime = mSimulacao.passo;
     }
 
     if (mScene) {

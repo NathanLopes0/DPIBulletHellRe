@@ -241,24 +241,36 @@ void EscadaStrategy::Initialize(Boss* boss) {
 }
 
 void EscadaStrategy::Update(Boss* boss, const float deltaTime) {
+    // Se nao passou tempo, nao ha movimento a ser realizado.
+    if (deltaTime <= 0.0f) return;
+
     auto rb = boss->GetComponent<RigidBodyComponent>();
     if (!rb) return;
+
     mTempo += deltaTime;
 
     Escada::Geometria g;
-    g.largura = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
-    const Vector2 alvo = Escada::Degrau(Escada::DegrauNoTempo(mTempo, mSegundosPorDegrau, mDegraus),
-                                        mDegraus, g);
+    g.largura = static_cast<float>(
+        boss->GetScene()->GetGame()->GetWindowWidth()
+    );
+
+    const Vector2 alvo = Escada::Degrau(
+        Escada::DegrauNoTempo(mTempo, mSegundosPorDegrau, mDegraus),
+        mDegraus,
+        g
+    );
 
     // Vai ate o degrau e para nele.
     const Vector2 falta = alvo - boss->GetPosition();
     const float d = falta.Length();
     const float passo = kVelocidadeEntreDegraus * deltaTime;
-    if (d <= passo || deltaTime <= 0.0f) {
+
+    if (d <= passo) {
         boss->SetPosition(alvo);
         rb->SetVelocity(Vector2::Zero);
         return;
     }
+
     rb->SetVelocity(falta * (kVelocidadeEntreDegraus / d));
 }
 
@@ -277,24 +289,42 @@ void DeslocamentoStrategy::Initialize(Boss* boss) {
 }
 
 void DeslocamentoStrategy::Update(Boss* boss, const float deltaTime) {
+    // Se nao passou tempo, nao ha movimento a ser realizado.
+    if (deltaTime <= 0.0f) return;
+
     auto rb = boss->GetComponent<RigidBodyComponent>();
     if (!rb || mColunas <= 0) return;
+
     mTempo += deltaTime;
 
-    const auto largura = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
-    const int coluna = Logica::ColunaDoDeslocamento(mTempo, mSegundosPorPasso, kColunasDaBorda,
-                                                    mColunas - 1 - kColunasDaBorda, mInicio);
-    const Vector2 alvo(Logica::CentroDaColuna(coluna, largura, mColunas), mAltura);
+    const auto largura = static_cast<float>(
+        boss->GetScene()->GetGame()->GetWindowWidth()
+    );
+
+    const int coluna = Logica::ColunaDoDeslocamento(
+        mTempo,
+        mSegundosPorPasso,
+        kColunasDaBorda,
+        mColunas - 1 - kColunasDaBorda,
+        mInicio
+    );
+
+    const Vector2 alvo(
+        Logica::CentroDaColuna(coluna, largura, mColunas),
+        mAltura
+    );
 
     // Vai ate a coluna e para nela, como a escada.
     const Vector2 falta = alvo - boss->GetPosition();
     const float d = falta.Length();
     const float passo = kVelocidadeDoPasso * deltaTime;
-    if (d <= passo || deltaTime <= 0.0f) {
+
+    if (d <= passo) {
         boss->SetPosition(alvo);
         rb->SetVelocity(Vector2::Zero);
         return;
     }
+
     rb->SetVelocity(falta * (kVelocidadeDoPasso / d));
 }
 
@@ -339,21 +369,27 @@ ConduzidoStrategy::ConduzidoStrategy(const float velocidade)
 }
 
 void ConduzidoStrategy::Update(Boss* boss, const float deltaTime) {
+    if (deltaTime <= 0.0f)
+        return;
+
     auto rb = boss->GetComponent<RigidBodyComponent>();
     if (!rb) return;
+
     const auto alvo = boss->AlvoDoMovimento();
+
     if (!alvo || mVelocidade <= 0.0f) {
         rb->SetVelocity(Vector2::Zero);
         return;
     }
 
-    // Vai ate o alvo e para nele, como o deslocamento: sem passar do ponto.
     const Vector2 falta = *alvo - boss->GetPosition();
     const float d = falta.Length();
-    if (d <= mVelocidade * deltaTime || deltaTime <= 0.0f) {
+
+    if (d <= mVelocidade * deltaTime) {
         boss->SetPosition(*alvo);
         rb->SetVelocity(Vector2::Zero);
         return;
     }
+
     rb->SetVelocity(falta * (mVelocidade / d));
 }

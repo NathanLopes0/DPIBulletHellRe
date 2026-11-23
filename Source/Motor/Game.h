@@ -314,7 +314,7 @@ private:
     int mWindowHeight;
 
     // Track elapsed time since game start.
-    Uint32 mTicksCount;
+    Uint64 mTicksCount;
 
     // Track if game is running.
     bool mIsGameRunning;
