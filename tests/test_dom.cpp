@@ -44,7 +44,9 @@ TEST_CASE("Dom: a div nasce pequena, quica na parte de cima e so desce com o z-i
         maisBaixo = std::max(maisBaixo, d.centro.y + d.altura / 2.0f);
         CHECK(d.centro.y + d.altura / 2.0f <= kCampo.h + 0.01f);
     }
-    CHECK(maisBaixo > kCampo.h * 0.9f);
+    // Desce ate perto do aluno, mas o rodape e sempre dele.
+    CHECK(maisBaixo > kCampo.h * 0.8f);
+    CHECK(maisBaixo <= kCampo.h - kFaixaLivre + 0.01f);
 }
 
 TEST_CASE("Dom: toda regra CSS piora a div, se acumula, e a div nunca some") {
@@ -251,4 +253,30 @@ TEST_CASE("Dom: a regra mirada na div faz a curva, mas nao vira de uma vez") {
     const Vector2 reta = Curvar(v, Vector2(0.0f, 0.0f), Vector2(500.0f, 0.0f), kGiroDaRegra, 0.016f);
     CHECK(reta.x == doctest::Approx(170.0f));
     CHECK(reta.y == doctest::Approx(0.0f));
+}
+
+TEST_CASE("Dom: o Math.random() nunca salta em cima do aluno, e o lugar aparece antes") {
+    Variacao::Sorteio s(3u);
+    Div d = Nova(kCampo, 110.0f, 2.4f, 0.0f, s);
+    Aplicar(d, Efeito::Aleatoria, 0.0f);
+    Aplicar(d, Efeito::Desce, 0.0f);
+    const Vector2 aluno(600.0f, kCampo.h - 60.0f);
+    int saltos = 0;
+    bool estava = false;
+    for (int k = 0; k < 3000; ++k) {
+        const float agora = k * 0.016f;
+        const Vector2 antes = d.centro;
+        Andar(d, 0.016f, agora, aluno, kCampo, s);
+        if (d.saltando && !estava) {
+            // O destino: a borda da div longe do aluno.
+            const float dx = std::max(0.0f, std::fabs(aluno.x - d.saltoPara.x) - d.largura / 2.0f);
+            const float dy = std::max(0.0f, std::fabs(aluno.y - d.saltoPara.y) - d.altura / 2.0f);
+            CHECK(std::sqrt(dx * dx + dy * dy) >= kLongeDoSalto - 0.01f);
+            CHECK(d.saltaEm == doctest::Approx(agora + kAvisoDoSalto));
+            ++saltos;
+        }
+        (void)antes;
+        estava = d.saltando;
+    }
+    CHECK(saltos >= 3);
 }

@@ -521,6 +521,12 @@ void Lucas::AtualizarDom(const float t, const float deltaTime, const bool js) {
     std::vector<Dom::Div> clones;
     for (DivViva& d : mDivs) {
         Dom::Andar(d.div, deltaTime, agora, aluno, c, mSorteioDoDom);
+        // Math.random(): o lugar do salto pisca antes - longe do aluno.
+        if (d.div.saltando && std::fmod(agora, 0.2f) < 0.12f) {
+            const float e = Dom::Escala(d.div, agora);
+            Retangulo(d.div.saltoPara, d.div.largura * e, d.div.altura * e, SDL_Color{255, 220, 90, 230});
+            Retangulo(d.div.saltoPara, d.div.largura * e - 4.0f, d.div.altura * e - 4.0f, SDL_Color{255, 220, 90, 150});
+        }
         const Vector2 centro = d.div.centro;
         const Dom::Tiros disparos = Dom::Atirar(d.div, agora, aluno);
         // O overflow, sempre: o conteudo transborda da <div>.

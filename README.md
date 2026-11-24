@@ -1077,7 +1077,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   muda, sempre para pior, e as mudanças se acumulam — `width: 200%`,
   `display: grid` (vira quatro), `border-radius` (transborda em leque),
   `animation` (pulsa), `margin: 0 auto` (fica em cima do aluno),
-  `overflow: scroll` (transborda mais), `z-index` (desce até o aluno),
+  `overflow: scroll` (transborda mais), `z-index` (desce até o aluno, mas nunca entra no rodapé: lá embaixo sempre dá para escapar),
   `transition`. Boa parte das regras faz a curva atrás da `<div>`: derrubar a
   regra no caminho, ou deixá-la passar, ou atirar no professor, é escolha do
   aluno. No JavaScript (`document.querySelector`) é a **mesma** `<div>`, com
@@ -1086,7 +1086,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   `onclick` devolve o tiro que passa por ela, o `mousemove` a faz seguir o
   aluno (nunca mais rápida que ele, e depois de acertá-lo ela recua), o
   `onmouseover` despeja uma coluna em quem está embaixo, o `Math.random()` a
-  teletransporta, o `setTimeout` a faz estourar e o `cloneNode` a duplica. No
+  teletransporta (o lugar novo pisca antes, e nunca é em cima de você), o `setTimeout` a faz estourar e o `cloneNode` a duplica. No
   aluno, a regra de JavaScript o trava um instante. O Elixir é uma sala de
   masmorra, uma homenagem aos jogos de aventura de que ele gosta: "É perigoso
   ir sozinho!". Uma fadinha de luz sai do aluno e voa até o inimigo mais perto,

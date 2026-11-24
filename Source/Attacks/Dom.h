@@ -44,8 +44,13 @@ namespace Dom {
     constexpr float kVaoDaGrade = 18.0f;
     /// cloneNode: nunca mais que isto na tela.
     constexpr int kMaisDivs = 2;
-    /// Sem o z-index, a <div> fica nesta fracao de cima do campo; com ele, desce ate o aluno.
+    /// Sem o z-index, a <div> fica nesta fracao de cima do campo; com ele, desce ate o aluno - mas o
+    /// rodape (kFaixaLivre px) e sempre dele: grande e atras dele, ela nunca o encurrala la embaixo.
     constexpr float kFaixaDaDiv = 0.62f;
+    constexpr float kFaixaLivre = 100.0f;
+    /// Math.random(): o salto nunca cai perto do aluno, e o lugar pisca antes (kAvisoDoSalto).
+    constexpr float kLongeDoSalto = 150.0f;
+    constexpr float kAvisoDoSalto = 0.7f;
     /// animation: o tamanho vai e volta ate esta fracao a mais, uma vez a cada kPeriodoDoPulso.
     constexpr float kPulso = 0.3f;
     constexpr float kPeriodoDoPulso = 1.2f;
@@ -77,6 +82,9 @@ namespace Dom {
         float proximaQueda = 0.0f;
         float teleporteACada = 0.0f;   ///< Math.random(): salta para um lugar sorteado
         float proximoTeleporte = 0.0f;
+        bool saltando = false;         ///< o salto sorteado, piscando antes de acontecer
+        Vector2 saltoPara;
+        float saltaEm = 0.0f;
         float bombaEm = -1.0f;         ///< setTimeout: estoura neste instante (e continua la)
         float recuoAte = -1.0f;        ///< depois de acertar o aluno, ela se afasta ate aqui
         /// Quantas regras ja a mudaram.

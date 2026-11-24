@@ -25,7 +25,7 @@ namespace Dom {
         /// A faixa do campo em que ela anda: a de cima, ou o campo inteiro com o z-index.
         Campo Faixa(const Div& d, const Campo& c) {
             Campo f = c;
-            if (!d.desce) f.h = c.h * kFaixaDaDiv;
+            f.h = d.desce ? c.h - kFaixaLivre : c.h * kFaixaDaDiv;
             // Nunca menor que a propria <div>.
             f.h = std::max(f.h, std::min(c.h, Meias(d).y * 2.0f + 2.0f));
             return f;
@@ -114,9 +114,26 @@ namespace Dom {
         const Vector2 meia = Meias(d);
         const Campo f = Faixa(d, c);
         // Math.random(): salta para um lugar sorteado da faixa dela.
-        if (d.teleporteACada > 0.0f && agora >= d.proximoTeleporte) {
-            d.proximoTeleporte = agora + d.teleporteACada;
-            d.centro = Clamp(Vector2(f.x + f.w * s.Real(0.15f, 0.85f), f.y + f.h * s.Real(0.2f, 0.8f)), f, meia.x, meia.y);
+        // O lugar e sorteado longe do aluno e pisca kAvisoDoSalto antes: o salto nunca e um tiro de graca.
+        if (d.teleporteACada > 0.0f && !d.saltando && agora >= d.proximoTeleporte) {
+            d.proximoTeleporte = agora + d.teleporteACada + kAvisoDoSalto;
+            Vector2 melhor = d.centro;
+            float maisLonge = -1.0f;
+            for (int tentativa = 0; tentativa < 12; ++tentativa) {
+                const Vector2 p = Clamp(Vector2(f.x + f.w * s.Real(0.15f, 0.85f), f.y + f.h * s.Real(0.2f, 0.8f)), f, meia.x, meia.y);
+                // A distancia do aluno ate a borda dela, e nao ate o centro.
+                const Vector2 fora(std::max(0.0f, std::fabs(aluno.x - p.x) - meia.x), std::max(0.0f, std::fabs(aluno.y - p.y) - meia.y));
+                const float longe = fora.Length();
+                if (longe > maisLonge) { maisLonge = longe; melhor = p; }
+                if (longe >= kLongeDoSalto) break;
+            }
+            d.saltando = true;
+            d.saltoPara = melhor;
+            d.saltaEm = agora + kAvisoDoSalto;
+        }
+        if (d.saltando && agora >= d.saltaEm) {
+            d.saltando = false;
+            d.centro = Clamp(d.saltoPara, f, meia.x, meia.y);
         }
         const float rapidez = std::max(1.0f, d.velocidade.Length());
         const bool recuando = agora < d.recuoAte;
