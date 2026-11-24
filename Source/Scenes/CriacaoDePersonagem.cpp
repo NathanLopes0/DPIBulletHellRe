@@ -182,7 +182,7 @@ void CriacaoDePersonagem::Load() {
     // Uma linha so para o manche, e o rodape saindo dos botoes.
     Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam",
           largura / 2.0f, altura * 0.88f, 22, 1100);
-    Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "objeto / cor"},
+    Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "Alternar objeto / cor"},
                           {PainelDaVez(), Painel::Botao::Um,   "confirmar"},
                           {PainelDaVez(), Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
