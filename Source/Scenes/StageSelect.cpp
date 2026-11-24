@@ -1125,7 +1125,7 @@ void StageSelect::UpdateStageInfo() const {
         cor = Color::LightBlue;
 
     } else {
-        const float nota = mGame->GetMelhorNota(mSelectedSubject);
+        const float nota = mGame->GetMelhorNotaNoNivel(mSelectedSubject);
 
         if (nota <= 0.0f) {
             // Na secreta, quem chega pela primeira vez e o desafiante novo.
@@ -1302,7 +1302,7 @@ void StageSelect::AtualizarCartaoGamer(const float deltaTime) {
         };
         if (auto* dc = mNomeAtor ? mNomeAtor->GetComponent<DrawTextComponent>() : nullptr) dc->SetColor(vetor(Neon(t * 0.6f + 1.0f, 255)));
         if (auto* dc = mEstadoAtor ? mEstadoAtor->GetComponent<DrawTextComponent>() : nullptr) {
-            const float nota = mGame->GetMelhorNota(mSelectedSubject);
+            const float nota = mGame->GetMelhorNotaNoNivel(mSelectedSubject);
             if (nota <= 0.0f) dc->SetColor(std::fmod(t, 0.5f) < 0.25f ? Vector3(1.0f, 0.85f, 0.3f) : Vector3(1.0f, 0.3f, 0.9f));
             else dc->SetColor(Vector3(1.0f, 0.85f, 0.3f));
         }

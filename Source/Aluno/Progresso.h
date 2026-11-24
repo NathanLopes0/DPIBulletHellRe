@@ -46,6 +46,10 @@ public:
     /// nunca jogou.
     [[nodiscard]] float MelhorNota(int materia) const;
 
+    /// A maior nota nesta materia num nivel so (sozinho ou em dupla): a do cartao da selecao de fases,
+    /// no nivel em que o jogador esta. Zero quando nunca jogou nele.
+    [[nodiscard]] float MelhorNotaNoNivel(int materia, Dificuldade::Nivel nivel) const;
+
     /// O recorde de um modo e nivel. Nota zero quando nunca jogou assim.
     [[nodiscard]] const Marca& Recorde(int materia, Modo modo, Dificuldade::Nivel nivel) const;
 

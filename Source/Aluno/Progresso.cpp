@@ -67,6 +67,11 @@ float Progresso::MelhorNota(const int materia) const {
     return Ver(materia).MaiorRecorde();
 }
 
+float Progresso::MelhorNotaNoNivel(const int materia, const Dificuldade::Nivel nivel) const {
+    const Entrada& e = Ver(materia);
+    return std::max(e.De(Modo::Solo, nivel).nota, e.De(Modo::Dupla, nivel).nota);
+}
+
 const Progresso::Marca& Progresso::Recorde(const int materia, const Modo modo,
                                            const Dificuldade::Nivel nivel) const {
     return Ver(materia).De(modo, nivel);

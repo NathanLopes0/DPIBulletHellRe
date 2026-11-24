@@ -312,3 +312,14 @@ TEST_CASE("Progresso: a primeira aprovacao fica datada, e nao muda depois") {
     CHECK(copia.AprovadaEm(3) == "2026-09-02 10:00:00");
     CHECK(copia.AprovadaEm(4).empty());
 }
+
+TEST_CASE("Progresso: a maior nota de um nivel nao olha o outro nivel") {
+    Progresso p;
+    p.RegistrarNota(2, 90.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(2, 55.0f, Dificuldade::Nivel::Dificil);
+    p.RegistrarNotaDeDupla(2, 70.0f, Dificuldade::Nivel::Dificil, "parceiro");
+    CHECK(p.MelhorNota(2) == doctest::Approx(90.0f));
+    CHECK(p.MelhorNotaNoNivel(2, Dificuldade::Nivel::Normal) == doctest::Approx(90.0f));
+    CHECK(p.MelhorNotaNoNivel(2, Dificuldade::Nivel::Dificil) == doctest::Approx(70.0f));   // a da dupla conta
+    CHECK(p.MelhorNotaNoNivel(3, Dificuldade::Nivel::Dificil) == doctest::Approx(0.0f));
+}

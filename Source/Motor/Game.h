@@ -113,6 +113,11 @@ public:
         return ProgressoDoMapa().MelhorNota(materia);
     }
 
+    /// A maior nota no nivel de dificuldade de agora (o cartao da selecao de fases).
+    [[nodiscard]] float GetMelhorNotaNoNivel(const int materia) const {
+        return ProgressoDoMapa().MelhorNotaNoNivel(materia, mDificuldade);
+    }
+
     /// O recorde do jogador 1 no modo e no nivel desta partida: o que a tela de resultado compara
     /// para dizer "NOVO RECORDE!".
     [[nodiscard]] float RecordeDaPartida(int materia) const;
