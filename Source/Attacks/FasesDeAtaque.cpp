@@ -47,7 +47,7 @@ namespace {
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
                                                 "acender", "estados", "diagrama", "ler_a", "ler_b",
                                                 "aceita", "rejeita", "metade", "triplo",
-                                                "parou", "escrever", "apagar", "reescrever", "reler", "pare", "cursor", "clique", "spinner", "carregar", "marquee", "navegar", "digitar", "repintar", "escorrer", "worker", "cast", "handle_cast", "crash", "pipe", "ficha", "log", "then", "fetch", "timeout", "tarefa", "questao", "rascunho", "alvo", "capivara", "push", "estourar", "baldes",
+                                                "parou", "escrever", "apagar", "reescrever", "reler", "pare", "cursor", "tarefa", "questao", "rascunho", "alvo", "capivara", "push", "estourar", "baldes",
                                                 "chave", "percorrer", "nulo", "no", "visitar", "folha_nula",
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
                                                 "cabecalho", "registro", "marcar", "selecionar",
@@ -99,7 +99,17 @@ namespace {
                                                 "botao", "credito", "vermelho", "azul",
                                                 // O professor generico do tutorial: o tiro mirado e a
                                                 // chuva cheia (a chuva e o anel ja existiam).
-                                                "mirado", "cheia"};
+                                                "mirado", "cheia",
+                                                // O Lucas: a <div> (a peca que machuca), a regra de
+                                                // CSS ou de JavaScript, o leque de tags, o anel do
+                                                // setInterval, a explosao do setTimeout, o revide do
+                                                // onclick; a sala do Elixir (a gosma, o item - a chave,
+                                                // o bau, o Elixir -, a furia e o anel dela); e o
+                                                // Phoenix (a fenix, as cinzas, a pena, o socket e o
+                                                // renascimento).
+                                                "peca", "regra", "tag", "setinterval", "explosao", "revide",
+                                                "gosma", "item", "furia", "anel_furia",
+                                                "fenix", "cinzas", "pena", "socket", "renascer"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

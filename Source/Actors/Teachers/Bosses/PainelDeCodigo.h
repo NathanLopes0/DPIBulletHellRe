@@ -29,11 +29,14 @@ private:
 /// assinatura de uma funcao.
 class EtiquetaDeCodigo : public Actor {
 public:
-    EtiquetaDeCodigo(Scene* cena, const std::string& texto, int largura, int altura, int ordem);
+    EtiquetaDeCodigo(Scene* cena, const std::string& texto, int largura, int altura, int ordem,
+                     int tamanhoDaLetra = kTamanhoDaLetra);
 
     void Pintar(SDL_Color moldura, SDL_Color fundo, SDL_Color tinta);
     void Escrever(const std::string& texto);
     void Mostrar(bool mostrar);
+    /// A caixa de outro tamanho: a etiqueta reaproveitada para um texto mais curto ou mais longo.
+    void Redimensionar(int largura, int altura);
 
     static constexpr int kTamanhoDaLetra = 20;
 

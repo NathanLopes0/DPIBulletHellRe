@@ -1,119 +1,106 @@
 {
-  // As fases do Lucas (INF 321 - Programacao Web)
+  // As fases do Lucas (INF 321 - Programacao Web). Quase tudo e de gatilho: quem decide quando cada
+  // coisa nasce e onde e o Lucas.cpp (Dom.h, Masmorra.h e Fenix.h dizem as contas), e aqui fica so
+  // a forma de cada disparo.
 
-  // Fase 1 - HTML: a pagina | gesto: o professor no header.
+  // Fase 1 - CSS: a <div> que as regras mudam | gesto: o professor no alto, de um lado ao outro.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "<!DOCTYPE html>",
-    "movimento": { "tipo": "Conduzido", "a": 380 },
+    "anuncio": "<div id=\"prova\"></div>",
+    "movimento": { "tipo": "Conduzido", "a": 320 },
     "ataques": [
-      { "gatilho": "cursor", "estrategia": "WaveAttack", "projetil": "Cursor",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "pagina" },
-      { "gatilho": "clique", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 5, "velocidade": 240, "angulo": 50, "intervalo": 0,
-        "dificil": { "projeteis": 7 },
-        "regras": "html" },
-      { "gatilho": "spinner", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "spinner" },
-      { "gatilho": "carregar", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 12, "velocidade": 190, "variar": { "giro": 15 },
-        "dificil": { "projeteis": 16 },
-        "regras": "html" },
-      { "gatilho": "marquee", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 227, "angulo": 0, "intervalo": 0,
-        "regras": "html" },
-      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 250, "angulo": 0, "intervalo": 0,
-        "regras": "html" },
-      { "gatilho": "navegar", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 10, "velocidade": 200, "variar": { "giro": 18 },
-        "dificil": { "projeteis": 14 },
-        "regras": "html" },
-      { "gatilho": "digitar", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 300, "angulo": 0, "intervalo": 0,
-        "dificil": { "velocidade": 340 },
-        "regras": "css" }
+      // Cada peca invisivel que faz a <div> machucar em toda a area dela.
+      { "gatilho": "peca", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      // A regra de CSS que ele joga no campo (o rumo e a velocidade vem do Lucas.cpp).
+      { "gatilho": "regra", "estrategia": "WaveAttack", "projetil": "Regra",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      // O leque de tags do proprio professor, mirado.
+      { "gatilho": "tag", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 5, "velocidade": 230, "angulo": 40, "intervalo": 0,
+        "regras": "html" }
     ]
   },
 
-  // Fase 2 - CSS: o devtools | gesto: a varredura.
+  // Fase 2 - JavaScript: a mesma <div>, agora com comportamento.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "F12 - DevTools",
-    "movimento": { "tipo": "Conduzido", "a": 400 },
+    "anuncio": "document.querySelector(\"div\")",
+    "movimento": { "tipo": "Conduzido", "a": 320 },
     "ataques": [
-      { "gatilho": "cartao", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "grade" },
-      { "gatilho": "repintar", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 230, "angulo": 30, "intervalo": 0,
-        "dificil": { "projeteis": 3, "velocidade": 270 },
-        "regras": "css" },
-      { "gatilho": "escorrer", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0,
-        "dificil": { "velocidade": 500 },
+      { "gatilho": "peca", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      { "gatilho": "regra", "estrategia": "WaveAttack", "projetil": "Regra",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "tag", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 5, "velocidade": 230, "angulo": 40, "intervalo": 0,
+        "regras": "html" },
+      // setInterval(atirar): o anel de promessas que sai da <div>, para e acelera.
+      { "gatilho": "setinterval", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 8, "velocidade": 170, "variar": { "giro": 20 },
+        "regras": "promessas" },
+      // setTimeout(explodir): a <div> estoura.
+      { "gatilho": "explosao", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 14, "velocidade": 210, "variar": { "giro": 12 },
+        "regras": "html" },
+      // div.onclick = revidar: o tiro do aluno na <div> volta como leque.
+      { "gatilho": "revide", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 3, "velocidade": 260, "angulo": 30, "intervalo": 0,
         "regras": "css" }
     ]
   },
 
-  // Fase 3 - Elixir: a arvore de supervisao | gesto: a varredura com paradas.
+  // Fase 3 - Elixir: a sala de masmorra | gesto: o professor anda ate o bau.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "Supervisor.start_link",
-    "movimento": { "tipo": "Conduzido", "a": 300 },
+    "anuncio": "É perigoso ir sozinho!",
+    "movimento": { "tipo": "Conduzido", "a": 420 },
     "ataques": [
-      { "gatilho": "worker", "estrategia": "WaveAttack", "projetil": "Processo",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "worker" },
-      { "gatilho": "cast", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "cast" },
-      { "gatilho": "handle_cast", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 3, "velocidade": 240, "angulo": 30, "intervalo": 0,
-        "dificil": { "projeteis": 5, "velocidade": 270 },
+      { "gatilho": "gosma", "estrategia": "WaveAttack", "projetil": "Gosma",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      // A chave, o bau e o Elixir: enfeites, que o aluno pega.
+      { "gatilho": "item", "estrategia": "WaveAttack", "projetil": "Item",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      // O leque com que ele atrapalha a cacada.
+      { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 3, "velocidade": 230, "angulo": 30, "intervalo": 0,
         "regras": "mensagem" },
-      { "gatilho": "crash", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 8, "velocidade": 190, "variar": { "giro": 22.5 },
-        "dificil": { "projeteis": 12 },
-        "regras": "html" },
-      { "gatilho": "pipe", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0,
-        "dificil": { "velocidade": 500 },
-        "regras": "pipe" }
+      // A furia de quem bebeu o Elixir: cada braco da espiral e o anel.
+      { "gatilho": "furia", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0, "som": false,
+        "regras": "pipe" },
+      { "gatilho": "anel_furia", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 12, "velocidade": 170, "variar": { "giro": 15 },
+        "regras": "mensagem" }
     ]
   },
 
-  // Fase final - JavaScript: o event loop | gesto: a orbita.
-
+  // Fase final - Phoenix: a fenix | gesto: o professor no alto.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "while (queue.waitForMessage())",
-    "movimento": { "tipo": "Orbitar", "a": 200, "b": 0.14 },
+    "anuncio": "mix phx.server",
+    "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
-      { "gatilho": "ficha", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "ficha" },
-      { "gatilho": "log", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 3, "velocidade": 280, "angulo": 24, "intervalo": 0,
-        "dificil": { "projeteis": 5 },
-        "regras": "html" },
-      { "gatilho": "then", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 7, "velocidade": 300, "angulo": 150, "intervalo": 0,
-        "dificil": { "projeteis": 9 },
-        "regras": "promessas" },
-      { "gatilho": "fetch", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 12, "velocidade": 220, "variar": { "giro": 15 },
-        "dificil": { "projeteis": 16 },
-        "regras": "promessas" },
-      { "gatilho": "timeout", "estrategia": "CaixaAttack", "projetil": "Codigo",
-        "projeteis": 24, "velocidade": 120,
-        "dificil": { "projeteis": 28 },
+      { "gatilho": "fenix", "estrategia": "WaveAttack", "projetil": "Fenix",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      { "gatilho": "cinzas", "estrategia": "WaveAttack", "projetil": "Cinzas",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      // As penas de fogo, num leque para baixo.
+      { "gatilho": "pena", "estrategia": "WaveAttack", "projetil": "Pena",
+        "projeteis": 4, "velocidade": 200, "angulo": 50, "anguloCentral": 90, "intervalo": 0 },
+      // O broadcast do PubSub: o anel de cada socket.
+      { "gatilho": "socket", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 8, "velocidade": 150, "variar": { "giro": 22.5 },
+        "regras": "mensagem" },
+      // O renascimento: o anel de fogo que sai das cinzas.
+      { "gatilho": "renascer", "estrategia": "CircleSpreadAttack", "projetil": "Pena",
+        "projeteis": 16, "velocidade": 190, "variar": { "giro": 11 } },
+      { "gatilho": "tag", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 3, "velocidade": 230, "angulo": 30, "intervalo": 0,
         "regras": "html" }
     ]
   }

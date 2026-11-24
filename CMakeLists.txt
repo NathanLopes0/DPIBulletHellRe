@@ -317,14 +317,12 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/ReAct.h
         Source/Attacks/Guardrail.cpp
         Source/Attacks/Guardrail.h
-        Source/Attacks/Elixir.cpp
-        Source/Attacks/Elixir.h
-        Source/Attacks/Pagina.cpp
-        Source/Attacks/Pagina.h
-        Source/Attacks/Estilo.cpp
-        Source/Attacks/Estilo.h
-        Source/Attacks/EventLoop.cpp
-        Source/Attacks/EventLoop.h
+        Source/Attacks/Dom.cpp
+        Source/Attacks/Dom.h
+        Source/Attacks/Masmorra.cpp
+        Source/Attacks/Masmorra.h
+        Source/Attacks/Fenix.cpp
+        Source/Attacks/Fenix.h
         Source/Attacks/Tcc.cpp
         Source/Attacks/Tcc.h
         Source/Attacks/Cronograma.cpp
@@ -612,10 +610,9 @@ add_executable(dpi_tests
         tests/test_compilador.cpp
         tests/test_react.cpp
         tests/test_guardrail.cpp
-        tests/test_elixir.cpp
-        tests/test_pagina.cpp
-        tests/test_estilo.cpp
-        tests/test_event_loop.cpp
+        tests/test_dom.cpp
+        tests/test_masmorra.cpp
+        tests/test_fenix.cpp
         tests/test_nuvem.cpp
         tests/test_semaforo.cpp
         tests/test_tcp.cpp
@@ -846,14 +843,12 @@ add_executable(dpi_tests
         Source/Attacks/ReAct.h
         Source/Attacks/Guardrail.cpp
         Source/Attacks/Guardrail.h
-        Source/Attacks/Elixir.cpp
-        Source/Attacks/Elixir.h
-        Source/Attacks/Pagina.cpp
-        Source/Attacks/Pagina.h
-        Source/Attacks/Estilo.cpp
-        Source/Attacks/Estilo.h
-        Source/Attacks/EventLoop.cpp
-        Source/Attacks/EventLoop.h
+        Source/Attacks/Dom.cpp
+        Source/Attacks/Dom.h
+        Source/Attacks/Masmorra.cpp
+        Source/Attacks/Masmorra.h
+        Source/Attacks/Fenix.cpp
+        Source/Attacks/Fenix.h
         Source/Attacks/Tcc.cpp
         Source/Attacks/Tcc.h
         Source/Attacks/Cronograma.cpp

@@ -547,8 +547,8 @@ quando a nota termina entre 40 e 59 — é o exame.
 **Cada luta é outra.** Toda batalha sorteia uma semente, e cada professor tira
 dela o que varia **dentro do conceito de cada fase**: a ordem das portas
 lógicas do Ricardo, a temperatura de cada etapa do Júlio (escrita no placar),
-o *planning poker* das sprints da Maria Lúcia, a página que o Lucas
-renderiza, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
+o *planning poker* das sprints da Maria Lúcia, as regras que o Lucas
+joga na `<div>`, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
 em toda luta; o que muda é o exemplo — como uma lista de exercícios em que cada
 aluno pega outros números. Decorar o padrão não serve, e o placar continua
 sendo a regra: ele diz o que vai acontecer.
@@ -1030,22 +1030,34 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   gastá-lo na chegada de uma onda é abrir a janela na hora. No fim, os
   **créditos** sobem do rodapé, linha por linha, cada uma uma parede de blocos
   com um vão fora do texto ("QA · você, agora", "BUGS · todos de propósito").
-- **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
-  renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
-  cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
-  `<img>` gira o spinner e estoura, o `<marquee>` atravessa a tela, a
-  `<table>` cai linha a linha, o `<a href>` o leva à âncora e o `<input>`
-  digita letra por letra. No CSS ele abre o DevTools: uma grade de cartões que
-  cada regra do placar transforma inteira — `gap`, `rotate`, `scale`,
-  `display: none`, `animation`, `position: fixed`, `:hover` —, e enquanto ele
-  digita a regra, as letras escorrem embaixo dele (a cascata). O Elixir é uma
-  árvore de supervisão: casts correm pelas linhas até a caixa de cada worker,
-  a caixa cheia vira um leque, e o worker derrubado é reiniciado pela
-  estratégia da rodada (`:one_for_one`, `:one_for_all`, `:rest_for_one`);
-  parado, o supervisor manda as dúvidas pelo `|>`. O exame é o event loop do
-  JavaScript: cada script passa pela pilha, os timers correm nas Web APIs, e
-  as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
-  cada callback que sai de uma fila ataca.
+- **Lucas — INF 321.** Programação Web, na ordem da matéria, e tudo gira em
+  torno de uma `<div>`. No CSS ele a invoca pequena e previsível, quicando pelo
+  campo — o contorno dela machuca —, e joga regras de CSS no campo, que entram
+  pelas laterais. Cada regra é derrubável: no aluno, ela machuca e pesa nele
+  por uns segundos; na `<div>`, ela muda a `<div>`, e as mudanças se acumulam —
+  `width: 200%`, `border-radius: 50%`, `display: grid` (vira quatro),
+  `transition: 0.1s` (mais rápida), e também as que aliviam, como
+  `display: none` e `width: 50%`. Boa parte das regras faz a curva atrás da
+  `<div>`: derrubar a regra no caminho, ou deixá-la passar, ou atirar no
+  professor, é escolha do aluno. No JavaScript (`document.querySelector`) o
+  padrão se repete, mas as regras mudam o comportamento dela: o `setInterval`
+  a faz atirar, o `onclick` devolve o tiro que passa por ela, o `mousemove` a
+  faz seguir o aluno, o `Math.random()` a teletransporta, o `setTimeout` arma
+  uma bomba com pavio, o `cloneNode` a duplica e o `div.remove()` a tira do
+  campo um tempo. No aluno, a regra de JavaScript o trava um instante. O
+  Elixir é uma sala de masmorra, uma homenagem aos jogos de aventura de que
+  ele gosta: "É perigoso ir sozinho!". A cada rodada aparece um baú, e o
+  professor anda até ele pelas beiradas (o tracejado mostra o caminho); o
+  aluno derrota as gosmas que guardam a chave pequena, pega a chave e abre o
+  baú antes: ergue o Elixir acima da cabeça e fica protegido, mais rápido e
+  ganhando mais nota por uns segundos, com corações em volta. Se o professor
+  chega primeiro, ele bebe o Elixir e entra em fúria — uma espiral e anéis
+  que no Normal dá para atravessar e no Difícil quase não. A final é o
+  Phoenix (`mix phx.server`): uma fênix voa em oito pelo alto e segue o aluno
+  como o LiveView segue o estado, solta leques de penas e faz broadcast pelos
+  sockets do PubSub, que atiram todos juntos. Derrubada, ela vira cinzas — e
+  o aluno ganha nota; se as cinzas não forem apagadas a tempo, ela renasce num
+  anel de penas, numa versão nova e mais rápida.
 
 - **Hugo — TCC.** A última matéria e a batalha mais difícil do curso (só a
   secreta INF 216 é mais dura): quatro etapas de 30 s. Antes dela você escolhe um **orientador**

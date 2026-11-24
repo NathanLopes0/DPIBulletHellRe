@@ -7,808 +7,838 @@
 #include <algorithm>
 #include <cmath>
 
-#include "../../../Attacks/Ancora.h"
+#include "PainelDeCodigo.h"
+#include "BossesProjectiles/BossProjectile.h"
+#include "../../Player/Player.h"
+#include "../../Player/PlayerProjectile.h"
+#include "../../../Attacks/AttackParameters/AttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
+#include "../../../Motor/AudioSystem.h"
+#include "../../../Motor/Game.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
-#include "../../Player/Player.h"
-#include "BossesProjectiles/BossProjectile.h"
+#include "../../../Scenes/Scene.h"
 
 namespace {
-    /// O tiro guardado ainda e o mesmo se a idade dele bate com a esperada: o
-    /// pool devolve o projetil com o relogio zerado.
-    constexpr float kFolgaDaIdade = 0.1f;
+    // A <div>: o azul do CSS na fase 1, o amarelo do JavaScript na fase 2.
+    constexpr SDL_Color kBordaCss{120, 180, 255, 230};
+    constexpr SDL_Color kFundoCss{70, 140, 240, 70};
+    constexpr SDL_Color kBordaJs{250, 214, 90, 230};
+    constexpr SDL_Color kFundoJs{240, 200, 60, 60};
+    constexpr SDL_Color kTintaCss{190, 220, 255, 255};
+    constexpr SDL_Color kTintaJs{255, 236, 160, 255};
+    constexpr SDL_Color kMudou{255, 255, 255, 255};
+    /// A distancia entre as pecas que machucam da <div>.
+    constexpr float kPassoDasPecas = 30.0f;
+    /// A regra que acerta a <div>: o raio dela para a conta (Dom::Toca).
+    constexpr float kRaioDaRegra = 10.0f;
+    constexpr float kMostrarAMudanca = 1.4f;
 
-    /// O desenho da pagina: o layout esmaecido, o elemento renderizado aceso.
-    constexpr SDL_Color kLayout{110, 120, 160, 90};
-    constexpr SDL_Color kElemento{232, 120, 64, 200};
-    constexpr SDL_Color kAceso{238, 206, 86, 230};
-    constexpr int kOrdemDasLinhas = 84;
+    // A sala do Elixir.
+    constexpr SDL_Color kCaminho{255, 160, 70, 170};
+    constexpr SDL_Color kCoracao{255, 90, 110, 255};
+    // O Phoenix.
+    constexpr SDL_Color kSocket{180, 140, 255, 220};
+    constexpr SDL_Color kBroadcast{255, 170, 80, 200};
 
-    /// O professor fica no header, em cima do elemento que renderiza.
-    constexpr float kYDoProfessor = 105.0f;
-    /// O cursor alcanca o botao em kVooDoCursor (Ancora::Aproximar).
-    constexpr float kRapidezDoCursor = 7.0f;
+    constexpr float kYDoProfessor = 95.0f;
+    /// A moldura do campo fica onde o aluno chega (Player::PrenderNoCampo), um pouco para dentro
+    /// da tela: a <div>, as gosmas e as etiquetas ficam dentro dela.
+    constexpr float kDentroDaMoldura = 30.0f;
+    /// O traco do professor ate a regra que ele acabou de lancar.
+    constexpr float kTracoDoLance = 0.35f;
+    constexpr float kAbaixoDoAnuncio = 64.0f;
+    constexpr SDL_Color kLance{200, 210, 255, 120};
 
-    /// A ficha do event loop chega a pilha antes de o callback atacar.
-    constexpr float kRapidezDasFichas = 12.0f;
-    constexpr float kChegadaNaPilha = 0.2f;
+    /// Quanto o texto de uma etiqueta ocupa, com a folga da caixa.
+    int LarguraDaEtiqueta(const std::string& texto) {
+        return std::clamp(static_cast<int>(static_cast<float>(texto.size()) * 8.2f) + 18, 40, 420);
+    }
+    constexpr int kAlturaDaEtiqueta = 26;
+    /// Um pouco maior que a das outras etiquetas de codigo: a regra se le enquanto voa.
+    constexpr int kLetraDaEtiqueta = 24;
 }
 
-Lucas::Lucas(Scene* scene) : Boss(scene) {
-}
+Lucas::Lucas(Scene* scene) : Boss(scene) {}
 
 void Lucas::SortearALuta() {
     mLutaSorteada = true;
-    mSorteioDaPagina = SorteioDaFase(Pagina::kFaseDaPagina);
-    mSorteioDoEstilo = SorteioDaFase(Estilo::kFaseDoEstilo);
-    mDegrauDoEstilo = Estilo::DegrauDo(NivelDeDificuldade());
-    mDegrauDaPagina = Pagina::DegrauDo(NivelDeDificuldade());
-    mDegrauDoElixir = Elixir::DegrauDo(NivelDeDificuldade());
-    mSorteioDoElixir = SorteioDaFase(Elixir::kFaseDoElixir);
-    mEstrategias = Elixir::Sortear(mSorteioDoElixir);
-    mSorteioDoLoop = SorteioDaFase(EventLoop::kFaseDoLoop);
-    mDegrauDoLoop = EventLoop::DegrauDo(NivelDeDificuldade());
+    mSorteioDoDom = SorteioDaFase(Dom::kFaseDoCss);
+    mSorteioDaMasmorra = SorteioDaFase(Masmorra::kFase);
+    mSorteioDaFenix = SorteioDaFase(Fenix::kFase);
+    mDegrauDoDom = Dom::DegrauDo(NivelDeDificuldade());
+    mDegrauDaMasmorra = Masmorra::DegrauDo(NivelDeDificuldade());
+    mDegrauDaFenix = Fenix::DegrauDo(NivelDeDificuldade());
 }
+
+// ---- O quadro ----
 
 void Lucas::OnUpdate(const float deltaTime) {
     if (!mLutaSorteada && !EhClone()) SortearALuta();
+    // Antes de qualquer disparo deste quadro: o que morreu no quadro passado e esquecido.
+    Sanear();
     Boss::OnUpdate(deltaTime);
-    AtualizarPagina(deltaTime);
-    AtualizarEstilo(deltaTime);
-    AtualizarSupervisao(deltaTime);
-    AtualizarEventLoop(deltaTime);
+    if (EhClone()) return;
+    mRelogio += deltaTime;
+
+    const auto* fsm = GetComponent<FSMComponent>();
+    const std::string fase = fsm ? fsm->GetStateName() : std::string();
+    const float t = fsm ? fsm->GetStateTime() : 0.0f;
+    if (fase != mFase) {
+        Desmontar();
+        mFase = fase;
+    }
+    if (!mLinhas && mScene) {
+        auto ator = std::make_unique<Actor>(mScene);
+        mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
+        mScene->AddActor(std::move(ator));
+    }
+    if (mLinhas) mLinhas->Limpar();
+    EsconderEtiquetas();
+
+    const Battle* b = Batalha();
+    if (!b || !b->EmCombate()) return;
+    if (fase == Dom::kFaseDoCss) AtualizarDom(t, deltaTime, false);
+    else if (fase == Dom::kFaseDoJs) AtualizarDom(t, deltaTime, true);
+    else if (fase == Masmorra::kFase) AtualizarMasmorra(t, deltaTime);
+    else if (fase == Fenix::kFase) AtualizarFenix(t, deltaTime);
 }
 
-bool Lucas::Vivo(const BossProjectile* p, const float idade) {
-    return p && p->GetState() == ActorState::Active && std::fabs(p->TempoDeVida() - idade) <= kFolgaDaIdade;
+void Lucas::AoTerminarABatalha() {
+    Desmontar();
 }
 
-void Lucas::CriarLinhas() {
-    if (mLinhas || !mScene) return;
-    auto ator = std::make_unique<Actor>(mScene);
-    mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
-    mScene->AddActor(std::move(ator));
+void Lucas::Desmontar() {
+    for (DivViva& d : mDivs) MatarTodos(d.pecas);
+    mDivs.clear();
+    for (RegraViva& r : mRegras) Matar(r.p);
+    mRegras.clear();
+    mDomComecou = false;
+
+    MatarTodos(mGosmas);
+    mRumoDasGosmas.clear();
+    Matar(mBauP);
+    Matar(mChaveP);
+    Matar(mElixirP);
+    mCiclo = -1;
+    mDesfecho = Desfecho::EmAberto;
+    mComAChave = -1;
+    mInicioDaFuria = -1.0f;
+    RestaurarAnuncio(Masmorra::kFase);
+
+    Matar(mFenixP);
+    Matar(mCinzasP);
+    mEstado = EstadoDaFenix::Nenhuma;
+    mVersao = 0;
+    mBroadcastEm = -1.0f;
+    RestaurarAnuncio(Fenix::kFase);
+
+    mAlvo.reset();
+    if (mLinhas) mLinhas->Limpar();
+    EsconderEtiquetas();
 }
 
-std::vector<BossProjectile*> Lucas::DispararDe(const char* gatilho, const Vector2 onde,
-                                               const std::optional<float> rumo, const bool enfeite) {
-    mDisparandoDe = true;
+void Lucas::Varrer(const float t, const float amplitude, const float periodo) {
+    const SDL_FRect c = Campo();
+    mAlvo = Vector2(c.x + c.w / 2.0f + c.w * amplitude * Math::Sin(Math::TwoPi * t / periodo), c.y + kYDoProfessor);
+}
+
+float Lucas::FatorDoGanho() const {
+    return mRelogio < mElixirAte ? mDegrauDaMasmorra.fatorDoGanho : 1.0f;
+}
+
+void Lucas::OnDerrubou(BossProjectile* qual) {
+    if (!qual) return;
+    for (const BossProjectile* g : mGosmas) {
+        if (g == qual) {
+            ++mGosmasDerrubadas;
+            mUltimaGosma = qual->GetPosition();
+        }
+    }
+    if (qual == mFenixP) {
+        mFenixDerrubada = true;
+        mOndeCaiu = qual->GetPosition();
+    }
+    if (qual == mCinzasP) mCinzasApagadas = true;
+}
+
+// ---- O que as fases dividem ----
+
+std::vector<BossProjectile*> Lucas::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
+                                               const std::optional<float> centro, const std::optional<float> abertura,
+                                               const std::optional<float> velocidade) {
+    mDisparandoEm = true;
     mOndeDisparar = onde;
-    if (rumo) {
-        mRumoDoDisparo = *rumo;
-    } else {
-        const Vector2 d = PosicaoDoAluno() - onde;
-        mRumoDoDisparo = Math::ToDegrees(Math::Atan2(d.y, d.x));
-    }
-    mEnfeiteAoNascer = enfeite;
-    mDisparados.clear();
+    mQuantos = quantos;
+    mCentroEm = centro;
+    mAberturaEm = abertura;
+    mVelocidadeEm = velocidade;
+    mCriados.clear();
     Disparar(gatilho);
-    mDisparandoDe = false;
-    mEnfeiteAoNascer = false;
-    return mDisparados;
+    mDisparandoEm = false;
+    mQuantos = 0;
+    mCentroEm.reset();
+    mAberturaEm.reset();
+    mVelocidadeEm.reset();
+    return mCriados;
 }
 
-// Fase 1 - a pagina.
-
-void Lucas::RecarregarPagina() {
-    // O F5: os elementos da pagina velha somem.
-    if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
-        for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
-            if (p && p->GetState() == ActorState::Active && p->Posto() == Pagina::kPostoDaPagina) p->Kill();
-        }
+BossProjectile* Lucas::Um(const char* gatilho, const Vector2 onde, const std::string& cara,
+                          const std::optional<Vector2> velocidade) {
+    std::optional<float> centro, rapidez;
+    if (velocidade) {
+        centro = Math::ToDegrees(Math::Atan2(velocidade->y, velocidade->x));
+        rapidez = velocidade->Length();
     }
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    mPagina = Pagina::Gerar(mSorteioDaPagina, largura);
-    mRenderizados.clear();
-    mProximoElemento = 0;
-    mRecarregando = false;
+    const auto criados = DispararEm(gatilho, onde, 1, centro, 0.0f, rapidez.value_or(0.0f));
+    if (criados.empty()) return nullptr;
+    BossProjectile* p = criados.front();
+    for (size_t i = 1; i < criados.size(); ++i) criados[i]->Kill();
+    p->SetPosition(onde);
+    Cara(p, cara);
+    Andar(p, velocidade.value_or(Vector2::Zero));
+    return p;
 }
 
-void Lucas::AtualizarPagina(const float deltaTime) {
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool naPagina = fsm && fsm->GetStateName() == Pagina::kFaseDaPagina && !EhClone();
-
-    if (!naPagina) {
-        if (mNaPagina) {
-            // A fase acabou: a pagina fecha, e o placar volta ao nome dela.
-            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
-                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
-                    if (p && p->GetState() == ActorState::Active && p->Posto() == Pagina::kPostoDaPagina) p->Kill();
-                }
-            }
-            mRenderizados.clear();
-            if (mLinhas) mLinhas->Limpar();
-            if (!mAnuncioDaPagina.empty()) RegistrarAnuncio(Pagina::kFaseDaPagina, mAnuncioDaPagina);
-            mAlvo.reset();
-        }
-        mNaPagina = false;
-        return;
-    }
-    if (!mScene || !mScene->GetGame()) return;
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-
-    if (!mNaPagina) {
-        mNaPagina = true;
-        mProximoRender = Pagina::kPrimeiro;
-        mXDoProfessor = largura / 2.0f;
-        if (mAnuncioDaPagina.empty()) mAnuncioDaPagina = AnuncioDaFase(Pagina::kFaseDaPagina);
-        RegistrarAnuncio(Pagina::kFaseDaPagina, mAnuncioDaPagina);
-        CriarLinhas();
-        RecarregarPagina();
-    }
-
-    const float agora = fsm->GetStateTime();
-    while (agora >= mProximoRender) {
-        if (mRecarregando) RecarregarPagina();
-        if (mProximoElemento >= mPagina.size()) {
-            // A pagina acabou: o F5 vem depois de uma pausa.
-            mRecarregando = true;
-            mProximoRender += Pagina::kRecarga;
-            RegistrarAnuncio(Pagina::kFaseDaPagina, "F5\nrecarregando a p\xc3\xa1gina");
-            continue;
-        }
-        // Um elemento novo: o placar o escreve, e ele comeca o ataque dele.
-        Renderizado r;
-        r.e = mPagina[mProximoElemento++];
-        const Pagina::Retangulo& c = r.e.caixa;
-        switch (r.e.tipo) {
-            case Pagina::Tipo::Botao: {
-                const auto cursor = DispararDe(Pagina::kGatilhoDoCursor, GetPosition(), 90.0f);
-                if (!cursor.empty()) r.cursor = cursor.front();
-                break;
-            }
-            case Pagina::Tipo::Imagem:
-                for (int k = 0; k < Pagina::kPontosDoSpinner; ++k) {
-                    const auto ponto = DispararDe(Pagina::kGatilhoDoSpinner, Vector2(c.Cx(), c.Cy()), 90.0f, true);
-                    if (!ponto.empty()) r.spinner.push_back(ponto.front());
-                }
-                break;
-            case Pagina::Tipo::Marquee: {
-                // A linha atravessa a tela de um lado sorteado, descendo.
-                const bool paraDireita = mSorteioDaPagina.Chance(0.5f);
-                const float rumo = Math::ToDegrees(Math::Atan2(Pagina::kDescidaDoMarquee, paraDireita ? 220.0f : -220.0f));
-                for (int k = 0; k < Pagina::kTagsDoMarquee; ++k) {
-                    const float x = paraDireita ? -20.0f - k * Pagina::kEntreTagsDoMarquee
-                                                : largura + 20.0f + k * Pagina::kEntreTagsDoMarquee;
-                    DispararDe(Pagina::kGatilhoDoMarquee, Vector2(x, c.Cy()), rumo);
-                }
-                r.feito = true;
-                break;
-            }
-            default:
-                break;
-        }
-        mRenderizados.push_back(r);
-        RegistrarAnuncio(Pagina::kFaseDaPagina, Pagina::Placar(r.e));
-        mProximoRender += mDegrauDaPagina.porElemento;
-    }
-
-    RenderizarPagina(deltaTime);
-
-    // O professor fica no header, em cima da regiao que esta renderizando.
-    if (!mRenderizados.empty()) {
-        const Pagina::Elemento& e = mRenderizados.back().e;
-        const auto layout = Pagina::Layout(largura);
-        mXDoProfessor = layout[static_cast<size_t>(e.tipo == Pagina::Tipo::Link ? e.ancora : e.regiao)].Cx();
-    }
-
-    mAlvo = Vector2(mXDoProfessor, kYDoProfessor);
-    DesenharPagina();
+BossProjectile* Lucas::Peca(const char* gatilho, const Vector2 onde, const std::string& cara) {
+    BossProjectile* p = Um(gatilho, onde, cara);
+    if (p) p->DefinirMargemDeSaida(2.0f, 1.0f);
+    return p;
 }
 
-void Lucas::RenderizarPagina(const float deltaTime) {
-    for (Renderizado& r : mRenderizados) {
-        r.idade += deltaTime;
-        if (r.feito) continue;
-        const Pagina::Retangulo& c = r.e.caixa;
-        const Vector2 centro(c.Cx(), c.Cy());
-        switch (r.e.tipo) {
-            case Pagina::Tipo::Botao:
-                // O cursor voa ate o botao e clica - a nao ser que o aluno o derrube no caminho.
-                if (!Vivo(r.cursor, r.idade)) {
-                    r.feito = r.cancelado = true;
-                    RegistrarAnuncio(Pagina::kFaseDaPagina, "event.preventDefault()\nclique cancelado");
-                    break;
-                }
-                r.cursor->SetPosition(Ancora::Aproximar(r.cursor->GetPosition(), centro, kRapidezDoCursor, deltaTime));
-                if (auto* rb = r.cursor->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-                if (r.idade >= Pagina::kVooDoCursor) {
-                    if (auto* anim = r.cursor->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation("Clique");
-                    DispararDe(Pagina::kGatilhoDoClique, centro, std::nullopt);
-                    r.cursor->Kill();
-                    r.cursor = nullptr;
-                    r.feito = true;
-                }
-                break;
-            case Pagina::Tipo::Imagem: {
-                // O spinner gira enquanto carrega; carregada, a imagem estoura.
-                const float giro = r.idade * Pagina::kVoltasDoSpinner * 2.0f * Math::Pi;
-                for (size_t k = 0; k < r.spinner.size(); ++k) {
-                    BossProjectile* ponto = r.spinner[k];
-                    if (!Vivo(ponto, r.idade)) continue;
-                    const float a = giro + static_cast<float>(k) * 2.0f * Math::Pi / static_cast<float>(r.spinner.size());
-                    ponto->SetPosition(centro + Vector2(Math::Cos(a), Math::Sin(a)) * Pagina::kRaioDoSpinner);
-                    if (auto* rb = ponto->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-                }
-                if (r.idade >= mDegrauDaPagina.carregando) {
-                    for (BossProjectile* ponto : r.spinner) if (Vivo(ponto, r.idade)) ponto->Kill();
-                    r.spinner.clear();
-                    DispararDe(Pagina::kGatilhoDaCarga, centro, 90.0f);
-                    r.feito = true;
-                }
-                break;
-            }
-            case Pagina::Tipo::Tabela: {
-                // As linhas acendem uma a uma, e cada uma cai.
-                const auto celulas = Pagina::Celulas(c);
-                while (r.passos < Pagina::kLinhasDaTabela &&
-                       r.idade >= 0.25f + static_cast<float>(r.passos) * Pagina::kEntreLinhas) {
-                    for (const auto& p : celulas[static_cast<size_t>(r.passos)]) {
-                        DispararDe(Pagina::kGatilhoDaCelula, Vector2(p[0], p[1]), 90.0f);
-                    }
-                    ++r.passos;
-                }
-                r.feito = r.passos >= Pagina::kLinhasDaTabela;
-                break;
-            }
-            case Pagina::Tipo::Link:
-                // O professor navega ate a ancora e chega num anel.
-                if (r.idade >= 0.45f) {
-                    DispararDe(Pagina::kGatilhoDaNavegacao, GetPosition(), 90.0f);
-                    r.feito = true;
-                }
-                break;
-            case Pagina::Tipo::Input:
-                // O texto e digitado letra por letra, e cada letra sai no aluno.
-                while (r.passos < Pagina::kLetras &&
-                       r.idade >= 0.2f + static_cast<float>(r.passos) * Pagina::kEntreLetras) {
-                    DispararDe(Pagina::kGatilhoDaDigitacao,
-                               Vector2(c.x + 14.0f + static_cast<float>(r.passos) * 16.0f, c.Cy()), std::nullopt);
-                    ++r.passos;
-                }
-                r.feito = r.passos >= Pagina::kLetras;
-                break;
-            default:
-                r.feito = true;
-                break;
-        }
+void Lucas::Leque(const char* gatilho, const Vector2 de, const int quantos, const float abertura, const float velocidade) {
+    const float centro = AnguloAteOAluno(de);
+    const auto criados = DispararEm(gatilho, de, std::max(1, quantos), centro, abertura, velocidade);
+    // O mesmo leque do WaveAttack, mas ja (ele so poe a velocidade no primeiro quadro).
+    const size_t n = criados.size();
+    const float inicio = centro - abertura / 2.0f;
+    const float passo = n > 1 ? abertura / static_cast<float>(n - 1) : 0.0f;
+    for (size_t i = 0; i < n; ++i) {
+        const float a = Math::ToRadians(inicio + passo * static_cast<float>(i));
+        Andar(criados[i], Vector2(Math::Cos(a), Math::Sin(a)) * velocidade);
     }
+    SomDoDisparo();
 }
 
-void Lucas::DesenharPagina() {
-    if (!mLinhas || !mScene || !mScene->GetGame()) return;
-    mLinhas->Limpar();
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    const auto retangulo = [&](const Pagina::Retangulo& r, const SDL_Color cor) {
-        const Vector2 a(r.x, r.y), b(r.x + r.w, r.y), c(r.x + r.w, r.y + r.h), d(r.x, r.y + r.h);
-        mLinhas->Acrescentar(a, b, cor);
-        mLinhas->Acrescentar(b, c, cor);
-        mLinhas->Acrescentar(c, d, cor);
-        mLinhas->Acrescentar(d, a, cor);
-    };
-    // O layout, a fase inteira.
-    for (const Pagina::Retangulo& r : Pagina::Layout(largura)) retangulo(r, kLayout);
-
-    // Os elementos renderizados, cada um com o desenho do tipo dele; o ultimo, aceso.
-    for (size_t k = 0; k < mRenderizados.size(); ++k) {
-        const Renderizado& r = mRenderizados[k];
-        const Pagina::Retangulo& c = r.e.caixa;
-        const SDL_Color cor = (k + 1 == mRenderizados.size()) ? kAceso : kElemento;
-        switch (r.e.tipo) {
-            case Pagina::Tipo::Link:
-                // O link e o texto sublinhado.
-                mLinhas->Acrescentar(Vector2(c.x, c.y + c.h - 4.0f), Vector2(c.x + c.w, c.y + c.h - 4.0f), cor);
-                break;
-            case Pagina::Tipo::Tabela: {
-                retangulo(c, cor);
-                for (int l = 1; l < Pagina::kLinhasDaTabela; ++l) {
-                    const float y = c.y + c.h * static_cast<float>(l) / Pagina::kLinhasDaTabela;
-                    mLinhas->Acrescentar(Vector2(c.x, y), Vector2(c.x + c.w, y), cor);
-                }
-                for (int col = 1; col < Pagina::kColunasDaTabela; ++col) {
-                    const float x = c.x + c.w * static_cast<float>(col) / Pagina::kColunasDaTabela;
-                    mLinhas->Acrescentar(Vector2(x, c.y), Vector2(x, c.y + c.h), cor);
-                }
-                break;
-            }
-            case Pagina::Tipo::Imagem:
-                retangulo(c, cor);
-                if (r.feito) {   // carregada: o X de "imagem" dos wireframes
-                    mLinhas->Acrescentar(Vector2(c.x, c.y), Vector2(c.x + c.w, c.y + c.h), cor);
-                    mLinhas->Acrescentar(Vector2(c.x + c.w, c.y), Vector2(c.x, c.y + c.h), cor);
-                }
-                break;
-            case Pagina::Tipo::Input: {
-                retangulo(c, cor);
-                if (!r.feito) {   // o cursor de texto, andando
-                    const float x = c.x + 10.0f + static_cast<float>(r.passos) * 16.0f;
-                    mLinhas->Acrescentar(Vector2(x, c.y + 8.0f), Vector2(x, c.y + c.h - 8.0f), kAceso);
-                }
-                break;
-            }
-            default:
-                retangulo(c, cor);
-                break;
-        }
-    }
+float Lucas::AnguloAteOAluno(const Vector2 de) const {
+    const Vector2 d = PosicaoDoAluno() - de;
+    return Math::ToDegrees(Math::Atan2(d.y, d.x));
 }
 
-// Fase 2 - o devtools.
-
-void Lucas::RepovoarGrade(const float agora) {
-    // O cartao que falta nasce do professor e voa ate o lugar dele - menos o da linha com display.
-    for (int i = 0; i < Estilo::kCartoes; ++i) {
-        auto& cartao = mCartoes[static_cast<size_t>(i)];
-        if (cartao || Estilo::Oculto(mCss, i)) continue;
-        const auto nascidos = DispararDe(Estilo::kGatilhoDoCartao, GetPosition(), 90.0f);
-        if (nascidos.empty()) continue;
-        cartao = nascidos.front();
-        mNascimentoDosCartoes[static_cast<size_t>(i)] = agora;
-    }
+bool Lucas::Vivo(const BossProjectile* p) {
+    return p && p->GetState() == ActorState::Active;
 }
 
-void Lucas::AtualizarEstilo(const float deltaTime) {
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool noEstilo = fsm && fsm->GetStateName() == Estilo::kFaseDoEstilo && !EhClone();
-    if (!noEstilo) {
-        if (mNoEstilo) {
-            // A fase acabou: a grade some, e o placar volta ao nome dela.
-            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
-                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
-                    if (p && p->GetState() == ActorState::Active && p->Posto() == Estilo::kPostoDaGrade) p->Kill();
-                }
-            }
-            mCartoes.fill(nullptr);
-            if (!mAnuncioDoEstilo.empty()) RegistrarAnuncio(Estilo::kFaseDoEstilo, mAnuncioDoEstilo);
-            mAlvo.reset();
-        }
-        mNoEstilo = false;
-        return;
-    }
-    if (!mScene || !mScene->GetGame()) return;
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    const float agora = fsm->GetStateTime();
-
-    if (!mNoEstilo) {
-        mNoEstilo = true;
-        mCss = Estilo::Css{};
-        mRegra = Estilo::Regra{};
-        mRegra.tipo = Estilo::Tipo::Hover;   // nenhuma regra ainda: a primeira nao e um :hover
-        mProximaRegra = Estilo::kPrimeira;
-        mInicioDaRegra = 0.0f;
-        mCaindo = false;
-        mCartoes.fill(nullptr);
-        mXDoComecoDaVarredura = GetPosition().x;
-        mTempoVarrendo = 0.0f;
-        if (mAnuncioDoEstilo.empty()) mAnuncioDoEstilo = AnuncioDaFase(Estilo::kFaseDoEstilo);
-        RegistrarAnuncio(Estilo::kFaseDoEstilo, mAnuncioDoEstilo);
-        RepovoarGrade(agora);
-    }
-
-    // O professor varre o alto, devagar no Normal e mais depressa no Dificil.
-    if (agora - mInicioDaRegra >= Estilo::kDigitando || agora < Estilo::kPrimeira) mTempoVarrendo += deltaTime;
-    const float velocidade = NoNivel(Flex::kVarredura, Flex::kVarreduraNoDificil);
-    mAlvo = Vector2(Flex::XDaVarredura(mTempoVarrendo, mXDoComecoDaVarredura, velocidade, largura), Flex::kYDaVarredura);
-
-    // O cartao que nao esta mais la sai da conta.
-    for (int i = 0; i < Estilo::kCartoes; ++i) {
-        auto& cartao = mCartoes[static_cast<size_t>(i)];
-        if (cartao && (!Vivo(cartao, agora - mNascimentoDosCartoes[static_cast<size_t>(i)]) ||
-                       cartao->Posto() != Estilo::kPostoDaGrade)) {
-            cartao = nullptr;
-        }
-    }
-
-    // Uma regra nova: o placar a escreve, e a grade obedece.
-    if (agora >= mProximaRegra) {
-        const Estilo::Tipo anterior = mRegra.tipo;
-        const int ocultaAntes = mCss.linhaOculta;
-        mRegra = Estilo::Proxima(mSorteioDoEstilo, mCss, anterior);
-        mInicioDaRegra = agora;
-        mProximaRegra += mDegrauDoEstilo.porRegra;
-        RegistrarAnuncio(Estilo::kFaseDoEstilo, Estilo::Placar(mRegra));
-        if (mRegra.tipo == Estilo::Tipo::Esconder && ocultaAntes < 0) {
-            // Display: none: a linha nao e mais renderizada.
-            for (int i = 0; i < Estilo::kCartoes; ++i) {
-                auto& cartao = mCartoes[static_cast<size_t>(i)];
-                if (cartao && Estilo::Oculto(mCss, i)) { cartao->Kill(); cartao = nullptr; }
-            }
-        }
-        mCaindo = mRegra.tipo == Estilo::Tipo::Fixar;
-        mRepintou = !Estilo::Repinta(mRegra.tipo);
-        mLetrasEscorridas = 0;
-        if (!mCaindo) RepovoarGrade(agora);
-    }
-
-    const float t = agora - mInicioDaRegra;
-
-    // A cascata: enquanto digita, cada letra escorre reta embaixo dele.
-    while (agora >= Estilo::kPrimeira && mLetrasEscorridas < mDegrauDoEstilo.letras &&
-           t >= static_cast<float>(mLetrasEscorridas) * Estilo::kEntreLetrasDaCascata) {
-        DispararDe(Estilo::kGatilhoDaCascata, GetPosition() + Vector2(0.0f, 40.0f), 90.0f);
-        ++mLetrasEscorridas;
-    }
-
-    if (!mRepintou && t >= Estilo::kRepaint) {
-        mRepintou = true;
-        for (BossProjectile* cartao : mCartoes) {
-            if (cartao) DispararDe(Estilo::kGatilhoDoRepaint, cartao->GetPosition(), 90.0f);
-        }
-    }
-
-    // Position: fixed; bottom: 0 - a grade se espalha de borda a borda e cai ate o chao.
-    if (mCaindo && t >= Estilo::kEspalhar) {
-        for (auto& cartao : mCartoes) {
-            if (!cartao) continue;
-            cartao->DefinirPosto("");
-            if (auto* rb = cartao->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, Estilo::kQuedaDoFixo));
-            cartao = nullptr;
-        }
-        mCaindo = false;
-        RepovoarGrade(agora);
-    }
-
-    const float giro = (mRegra.tipo == Estilo::Tipo::Animar && t < Estilo::kDuracaoDoGiro) ? t * Estilo::kGiroPorSegundo : 0.0f;
-    const auto lugares = Estilo::Posicoes(mCss, {Estilo::XDaGrade(GetPosition().x, largura), Estilo::kYDaGrade}, giro);
-    const float xDoAluno = PosicaoDoAluno().x;
-    for (int i = 0; i < Estilo::kCartoes; ++i) {
-        BossProjectile* cartao = mCartoes[static_cast<size_t>(i)];
-        if (!cartao) continue;
-        Vector2 alvo(lugares[static_cast<size_t>(i)].x, lugares[static_cast<size_t>(i)].y);
-        if (mCaindo) {
-            const Estilo::Ponto e = Estilo::Espalhado(i, largura, alvo.y);
-            alvo = Vector2(e.x, e.y);
-        }
-        // :hover - o cartao em cima do aluno, onde o mouse esta, desce ate ele.
-        if (mRegra.tipo == Estilo::Tipo::Hover && std::fabs(alvo.x - xDoAluno) < Estilo::kAlcanceDoHover) {
-            alvo.y += Estilo::Hover(std::fmod(t, Estilo::kDuracaoDoHover));
-        }
-        cartao->SetPosition(Ancora::Aproximar(cartao->GetPosition(), alvo, Estilo::kRapidezDosCartoes, deltaTime));
-        if (auto* rb = cartao->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-    }
+void Lucas::Matar(BossProjectile*& p) {
+    if (Vivo(p)) p->Kill();
+    p = nullptr;
 }
 
-// Fase 3 - a arvore de supervisao.
-
-void Lucas::IniciarWorker(const int k, const float agora) {
-    Worker& w = mWorkers[static_cast<size_t>(k)];
-    const auto nascidos = DispararDe(Elixir::kGatilhoDoWorker, GetPosition(), 90.0f);
-    w.p = nascidos.empty() ? nullptr : nascidos.front();
-    w.nasceu = agora;
-    w.caixa = 0;
-    w.reinicio = -1.0f;
+void Lucas::MatarTodos(std::vector<BossProjectile*>& ps) {
+    for (BossProjectile*& p : ps) Matar(p);
+    ps.clear();
 }
 
-void Lucas::AtualizarSupervisao(const float deltaTime) {
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool noElixir = fsm && fsm->GetStateName() == Elixir::kFaseDoElixir && !EhClone();
-    if (!noElixir) {
-        if (mNoElixir) {
-            // A fase acabou: a arvore cai inteira, e o placar volta ao nome dela.
-            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
-                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
-                    if (p && p->GetState() == ActorState::Active && p->Posto() == Elixir::kPostoDosWorkers) p->Kill();
-                }
-            }
-            mWorkers.fill(Worker{});
-            mCasts.clear();
-            if (mLinhas) mLinhas->Limpar();
-            if (!mAnuncioDoElixir.empty()) RegistrarAnuncio(Elixir::kFaseDoElixir, mAnuncioDoElixir);
-            mAlvo.reset();
-        }
-        mNoElixir = false;
-        return;
-    }
-    if (!mScene || !mScene->GetGame()) return;
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    const float agora = fsm->GetStateTime();
-
-    if (!mNoElixir) {
-        mNoElixir = true;
-        mRodadaDoElixir = -1;
-        mCasts.clear();
-        mProximoCast = Elixir::kPrimeira;
-        mUltimoCast = -1;
-        mTempoVarrendoNoElixir = 0.0f;
-        mParadaDoSupervisor = -1;
-        mXDoComecoDaVarredura = GetPosition().x;
-        if (mAnuncioDoElixir.empty()) mAnuncioDoElixir = AnuncioDaFase(Elixir::kFaseDoElixir);
-        RegistrarAnuncio(Elixir::kFaseDoElixir, mAnuncioDoElixir);
-        CriarLinhas();
-        for (int k = 0; k < Elixir::kWorkers; ++k) IniciarWorker(k, agora);
-    }
-
-    // A rodada: uma estrategia de supervisao por rodada.
-    const int rodada = std::min(2, static_cast<int>(agora / Elixir::kRodada));
-    const Elixir::Estrategia estrategia = mEstrategias[static_cast<size_t>(rodada)];
-    mRodadaDoElixir = rodada;
-
-    // O supervisor varre o alto devagar, um segundo andando e um parado.
-    if (std::fmod(agora, 2.0f) < 1.0f) mTempoVarrendoNoElixir += deltaTime;
-    mAlvo = Vector2(Flex::XDaVarredura(mTempoVarrendoNoElixir, mXDoComecoDaVarredura,
-                                       NoNivel(Flex::kVarredura, Flex::kVarreduraNoDificil), largura),
-                    Flex::kYDaVarredura);
-
-    // Parado, ele manda as duvidas pelo pipe: cada etapa escorre reta embaixo.
-    if (const float parado = std::fmod(agora, 2.0f) - 1.0f; parado >= 0.0f) {
-        const int parada = static_cast<int>(agora / 2.0f);
-        if (parada != mParadaDoSupervisor) {
-            mParadaDoSupervisor = parada;
-            mEtapasNoPipe = 0;
-            RegistrarAnuncio(Elixir::kFaseDoElixir, Elixir::Pipe());
-        }
-        while (mEtapasNoPipe < mDegrauDoElixir.etapas &&
-               parado >= static_cast<float>(mEtapasNoPipe) * Elixir::kEntreEtapas) {
-            DispararDe(Elixir::kGatilhoDoPipe, GetPosition() + Vector2(0.0f, 40.0f), 90.0f);
-            ++mEtapasNoPipe;
-        }
-    }
-
-    // O worker que caiu: um crash.
-    for (int k = 0; k < Elixir::kWorkers; ++k) {
-        Worker& w = mWorkers[static_cast<size_t>(k)];
-        if (w.reinicio >= 0.0f || !w.p) continue;
-        if (Vivo(w.p, agora - w.nasceu) && w.p->Posto() == Elixir::kPostoDosWorkers) continue;
-        w.p = nullptr;
-        for (const int j : Elixir::Reiniciam(estrategia, k)) {
-            Worker& outro = mWorkers[static_cast<size_t>(j)];
-            if (j != k && outro.p && Vivo(outro.p, agora - outro.nasceu)) {
-                DispararDe(Elixir::kGatilhoDoCrash, outro.p->GetPosition(), 90.0f);
-                outro.p->Kill();
-            }
-            outro.p = nullptr;
-            outro.caixa = 0;
-            outro.reinicio = agora + Elixir::kReinicio;
-        }
-        RegistrarAnuncio(Elixir::kFaseDoElixir, Elixir::Crash(k, estrategia));
-    }
-    for (int k = 0; k < Elixir::kWorkers; ++k) {
-        if (mWorkers[static_cast<size_t>(k)].reinicio >= 0.0f && agora >= mWorkers[static_cast<size_t>(k)].reinicio) {
-            IniciarWorker(k, agora);
-        }
-    }
-
-    // Cada worker vai ate o lugar dele na arvore, embaixo do supervisor.
-    const auto lugar = [&](const int k) {
-        const auto p = Elixir::Lugar(k, GetPosition().x, GetPosition().y, largura);
-        return Vector2(p[0], p[1]);
-    };
-    for (int k = 0; k < Elixir::kWorkers; ++k) {
-        BossProjectile* p = mWorkers[static_cast<size_t>(k)].p;
-        if (!p) continue;
-        p->SetPosition(Ancora::Aproximar(p->GetPosition(), lugar(k), 6.0f, deltaTime));
-        if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-    }
-
-    // Um cast novo, para um worker vivo, correndo pela linha.
-    if (agora >= mProximoCast) {
-        mProximoCast += mDegrauDoElixir.entreMensagens;
-        std::vector<int> vivos;
-        for (int k = 0; k < Elixir::kWorkers; ++k) if (mWorkers[static_cast<size_t>(k)].p) vivos.push_back(k);
-        const int para = Elixir::Destino(mSorteioDoElixir, vivos, mUltimoCast);
-        if (para >= 0) {
-            const auto nascidos = DispararDe(Elixir::kGatilhoDoCast, GetPosition(), 90.0f, true);
-            if (!nascidos.empty()) mCasts.push_back({nascidos.front(), agora, para});
-            mUltimoCast = para;
-            RegistrarAnuncio(Elixir::kFaseDoElixir, Elixir::Cast(para, estrategia));
-        }
-    }
-
-    // A mensagem corre pela linha; chegando, entra na caixa - e a caixa cheia vira o handle_cast.
-    for (auto it = mCasts.begin(); it != mCasts.end();) {
-        Worker& w = mWorkers[static_cast<size_t>(it->para)];
-        const float u = (agora - it->nasceu) / Elixir::kVooDaMensagem;
-        if (!Vivo(it->p, agora - it->nasceu) || !w.p) {
-            if (Vivo(it->p, agora - it->nasceu)) it->p->Kill();
-            it = mCasts.erase(it);
-            continue;
-        }
-        if (u < 1.0f) {
-            it->p->SetPosition(GetPosition() + (w.p->GetPosition() - GetPosition()) * u);
-            if (auto* rb = it->p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-            ++it;
-            continue;
-        }
-        it->p->Kill();
-        if (++w.caixa >= Elixir::kCaixa) {
-            w.caixa = 0;
-            DispararDe(Elixir::kGatilhoDoHandle, w.p->GetPosition(), std::nullopt);
-            RegistrarAnuncio(Elixir::kFaseDoElixir, Elixir::Handle(it->para, estrategia));
-        }
-        it = mCasts.erase(it);
-    }
-    DesenharSupervisao();
+void Lucas::Cara(BossProjectile* p, const std::string& cara) {
+    if (!p || cara.empty()) return;
+    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
 }
 
-void Lucas::DesenharSupervisao() {
-    if (!mLinhas) return;
-    mLinhas->Limpar();
-    // As linhas da arvore, do supervisor a cada worker vivo.
-    constexpr SDL_Color kLigacao{206, 176, 246, 150};
-    constexpr SDL_Color kCaixa{206, 176, 246, 230};
-    for (const Worker& w : mWorkers) {
-        if (!w.p) continue;
-        const Vector2 o = w.p->GetPosition();
-        mLinhas->Acrescentar(GetPosition(), o, kLigacao);
-        for (int c = 0; c < w.caixa; ++c) {
-            const Vector2 a(o.x - 16.0f + static_cast<float>(c) * 12.0f, o.y + 24.0f);
-            mLinhas->Acrescentar(a, a + Vector2(8.0f, 0.0f), kCaixa);
-            mLinhas->Acrescentar(a + Vector2(0.0f, 4.0f), a + Vector2(8.0f, 4.0f), kCaixa);
-        }
-    }
+void Lucas::Andar(BossProjectile* p, const Vector2 velocidade) {
+    if (!p) return;
+    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(velocidade);
 }
 
-// Final - o event loop.
-
-void Lucas::NovoScript(const float agora) {
-    for (Ficha& f : mFichas) {
-        if (Vivo(f.p, agora - f.nasceu)) f.p->Kill();
-    }
-    mScript = EventLoop::Gerar(mSorteioDoLoop);
-    mAgenda = EventLoop::Simular(mScript, mDegrauDoLoop.porLinha, mDegrauDoLoop.porCallback);
-    mInicioDoScript = agora;
-    mProximaExecucao = 0;
-    mFichas.assign(mScript.size(), Ficha{});
+void Lucas::Prender(BossProjectile* p, const Vector2 onde) {
+    if (!p) return;
+    p->SetPosition(onde);
+    Andar(p, Vector2::Zero);
+    p->RenovarTempoDeVida();
 }
 
-void Lucas::AtualizarEventLoop(const float deltaTime) {
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool noLoop = fsm && fsm->GetStateName() == EventLoop::kFaseDoLoop && !EhClone();
-    if (!noLoop) {
-        if (mNoLoop) {
-            // A fase acabou: as filas esvaziam, e o placar volta ao nome dela.
-            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
-                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
-                    if (p && p->GetState() == ActorState::Active && p->Posto() == EventLoop::kPostoDoLoop) p->Kill();
-                }
-            }
-            mFichas.clear();
-            if (mLinhas) mLinhas->Limpar();
-            if (!mAnuncioDoLoop.empty()) RegistrarAnuncio(EventLoop::kFaseDoLoop, mAnuncioDoLoop);
-        }
-        mNoLoop = false;
-        return;
-    }
-    if (!mScene || !mScene->GetGame()) return;
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    const float agora = fsm->GetStateTime();
-
-    if (!mNoLoop) {
-        mNoLoop = true;
-        mFichas.clear();
-        if (mAnuncioDoLoop.empty()) mAnuncioDoLoop = AnuncioDaFase(EventLoop::kFaseDoLoop);
-        RegistrarAnuncio(EventLoop::kFaseDoLoop, mAnuncioDoLoop);
-        CriarLinhas();
-        NovoScript(agora + EventLoop::kPrimeiro);
-    }
-
-    // O script acabou, a pilha e as filas vazias: outro.
-    if (mProximaExecucao >= mAgenda.execucoes.size() &&
-        agora >= mInicioDoScript + mAgenda.fim + EventLoop::kEntreScripts) {
-        NovoScript(agora);
-    }
-    const float t = agora - mInicioDoScript;
-    const auto ponto = [&](const EventLoop::Lugar lugar, const int posicao) {
-        const EventLoop::Ponto p = EventLoop::Posicao(lugar, posicao, largura);
-        return Vector2(p.x, p.y);
-    };
-    const Vector2 pilha = ponto(EventLoop::Lugar::Pilha, 0);
-
-    // O que entra na pilha: a linha do script, que nasce la.
-    while (mProximaExecucao < mAgenda.execucoes.size()) {
-        const EventLoop::Execucao& ex = mAgenda.execucoes[mProximaExecucao];
-        if (t < ex.inicio + (ex.callback ? kChegadaNaPilha : 0.0f)) break;
-        ++mProximaExecucao;
-        const EventLoop::Linha& l = mScript[static_cast<size_t>(ex.linha)];
-        if (!ex.callback) {
-            const auto nascidos = DispararDe(EventLoop::kGatilhoDaFicha, pilha, 90.0f, true);
-            if (!nascidos.empty()) {
-                mFichas[static_cast<size_t>(ex.linha)] = {nascidos.front(), agora};
-                const char* animacao = l.tipo == EventLoop::Tipo::Log     ? "FichaLog"
-                                     : l.tipo == EventLoop::Tipo::Timeout ? "FichaTimeout"
-                                     : l.tipo == EventLoop::Tipo::Fetch   ? "FichaFetch"
-                                                                          : "FichaThen";
-                if (auto* anim = nascidos.front()->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(animacao);
-            }
-            RegistrarAnuncio(EventLoop::kFaseDoLoop, EventLoop::Placar(l));
-            if (l.tipo == EventLoop::Tipo::Log) DispararDe(EventLoop::kGatilhoDoLog, pilha, std::nullopt);
-            continue;
-        }
-        RegistrarAnuncio(EventLoop::kFaseDoLoop, EventLoop::PlacarDoCallback(l));
-        switch (l.tipo) {
-            case EventLoop::Tipo::Then:    DispararDe(EventLoop::kGatilhoDoThen, pilha, 90.0f); break;
-            case EventLoop::Tipo::Fetch:   DispararDe(EventLoop::kGatilhoDoFetch, pilha, 90.0f); break;
-            case EventLoop::Tipo::Timeout: DispararDe(EventLoop::kGatilhoDoTimeout, pilha, 90.0f); break;
-            default: break;
-        }
-    }
-
-    for (size_t i = 0; i < mFichas.size(); ++i) {
-        Ficha& f = mFichas[i];
-        if (!f.p) continue;
-        if (!Vivo(f.p, agora - f.nasceu)) { f.p = nullptr; continue; }
-        const EventLoop::Estado e = EventLoop::Onde(mScript, mAgenda, static_cast<int>(i), t,
-                                                    mDegrauDoLoop.porLinha, mDegrauDoLoop.porCallback);
-        if (e.lugar == EventLoop::Lugar::Nenhum) {
-            f.p->Kill();
-            f.p = nullptr;
-            continue;
-        }
-        f.p->SetPosition(Ancora::Aproximar(f.p->GetPosition(), ponto(e.lugar, e.posicao), kRapidezDasFichas, deltaTime));
-        if (auto* rb = f.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-    }
-    DesenharEventLoop(t);
+Dom::Campo Lucas::CampoPuro() const {
+    const SDL_FRect c = Campo();
+    return Dom::Campo{c.x + kDentroDaMoldura, c.y + 8.0f, c.w - 2.0f * kDentroDaMoldura, c.h - 16.0f};
 }
 
-void Lucas::DesenharEventLoop(const float t) {
-    if (!mLinhas || !mScene || !mScene->GetGame()) return;
-    mLinhas->Limpar();
-    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    constexpr SDL_Color kLoop{238, 206, 86, 70};
-    constexpr SDL_Color kPilha{230, 230, 240, 170};
-    constexpr SDL_Color kApis{150, 160, 190, 150};
-    constexpr SDL_Color kMicro{238, 206, 86, 170};
-    constexpr SDL_Color kTarefa{96, 160, 238, 170};
-    constexpr SDL_Color kTimer{238, 206, 86, 230};
-
-    // O loop: o anel por onde o professor orbita.
-    constexpr int kSegmentos = 48;
-    const Vector2 centro(largura / 2.0f, EventLoop::kYDoLoop);
-    for (int k = 0; k < kSegmentos; ++k) {
-        const float a0 = 2.0f * Math::Pi * static_cast<float>(k) / kSegmentos;
-        const float a1 = 2.0f * Math::Pi * static_cast<float>(k + 1) / kSegmentos;
-        mLinhas->Acrescentar(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * EventLoop::kRaioDoLoop,
-                             centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * EventLoop::kRaioDoLoop, kLoop);
+void Lucas::Sanear() {
+    // A regra que morreu (derrubada, no aluno, fora do campo ou na onda do Ponto Extra) sai da lista.
+    // A que acerta o aluno o prende sozinha (DefinirAcorrentamento, no lance): o CSS pesa, o
+    // JavaScript trava. A que tocou a <div> o Lucas ja matou e esqueceu.
+    for (RegraViva& r : mRegras) if (!Vivo(r.p)) r.p = nullptr;
+    mRegras.erase(std::remove_if(mRegras.begin(), mRegras.end(), [](const RegraViva& r) { return !r.p; }), mRegras.end());
+    for (DivViva& d : mDivs) {
+        for (BossProjectile*& p : d.pecas) if (!Vivo(p)) p = nullptr;
     }
-
-    // As caixas: a pilha, as Web APIs e as duas filas.
-    const auto caixas = EventLoop::Caixas(largura);
-    const SDL_Color cores[] = {kPilha, kApis, kMicro, kTarefa};
-    for (size_t k = 0; k < caixas.size(); ++k) {
-        const EventLoop::Retangulo& r = caixas[k];
-        const Vector2 a(r.x, r.y), b(r.x + r.w, r.y), c(r.x + r.w, r.y + r.h), d(r.x, r.y + r.h);
-        mLinhas->Acrescentar(a, b, cores[k]);
-        mLinhas->Acrescentar(b, c, cores[k]);
-        mLinhas->Acrescentar(c, d, cores[k]);
-        mLinhas->Acrescentar(d, a, cores[k]);
+    // A gosma e a fenix tambem morrem na onda do Ponto Extra, sem passar por OnDerrubou: contam como
+    // derrubadas, e no lugar onde estavam (a posicao do projetil morto vale ate ele voltar do pool).
+    for (BossProjectile*& g : mGosmas) {
+        if (g && !Vivo(g)) {
+            mUltimaGosma = g->GetPosition();
+            g = nullptr;
+        }
     }
-
-    // O timer de cada ficha nas web apis, encolhendo ate zero.
-    for (size_t i = 0; i < mFichas.size(); ++i) {
-        if (!mFichas[i].p) continue;
-        const EventLoop::Estado e = EventLoop::Onde(mScript, mAgenda, static_cast<int>(i), t,
-                                                    mDegrauDoLoop.porLinha, mDegrauDoLoop.porCallback);
-        if (e.lugar != EventLoop::Lugar::Apis) continue;
-        const EventLoop::Ponto p = EventLoop::Posicao(e.lugar, e.posicao, largura);
-        const Vector2 de(p.x - 24.0f, p.y + 28.0f);
-        mLinhas->Acrescentar(de, de + Vector2(48.0f * e.falta, 0.0f), kTimer);
+    if (!Vivo(mBauP)) mBauP = nullptr;
+    if (!Vivo(mChaveP)) mChaveP = nullptr;
+    if (!Vivo(mElixirP)) mElixirP = nullptr;
+    if (mFenixP && !Vivo(mFenixP)) {
+        mOndeCaiu = mFenixP->GetPosition();
+        mFenixDerrubada = true;
     }
-}
-
-// ---------------------------------------------------------------------------
-
-void Lucas::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                 const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoDe) return;
-    for (auto& p : projectiles) {
-        auto* b = dynamic_cast<BossProjectile*>(p.get());
-        if (!b) continue;
-        if (mEnfeiteAoNascer) b->DefinirEnfeite(true);
-        mDisparados.push_back(b);
-    }
+    if (!Vivo(mFenixP)) mFenixP = nullptr;
+    if (!Vivo(mCinzasP)) mCinzasP = nullptr;
 }
 
 void Lucas::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
+    if (!mDisparandoEm) return;
+    params.firePosition = mOndeDisparar;
+    if (mQuantos > 0) params.numProjectiles = mQuantos;
+    if (mCentroEm) params.centralAngle = *mCentroEm;
+    if (mAberturaEm) params.angle = *mAberturaEm;
+    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
+}
 
-    if (mDisparandoDe) {
-        params.firePosition = mOndeDisparar;
-        params.centralAngle = mRumoDoDisparo;
-        return;
+void Lucas::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles, const std::string& stateName) {
+    Boss::OnProjectilesCreated(projectiles, stateName);
+    if (!mDisparandoEm) return;
+    for (auto& p : projectiles) {
+        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
+    }
+}
+
+// ---- O desenho ----
+
+void Lucas::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
+    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
+}
+
+void Lucas::Retangulo(const Vector2 centro, const float largura, const float altura, const SDL_Color cor) {
+    const Vector2 a = centro - Vector2(largura / 2.0f, altura / 2.0f), b = centro + Vector2(largura / 2.0f, altura / 2.0f);
+    Linha(a, Vector2(b.x, a.y), cor);
+    Linha(Vector2(b.x, a.y), b, cor);
+    Linha(b, Vector2(a.x, b.y), cor);
+    Linha(Vector2(a.x, b.y), a, cor);
+}
+
+void Lucas::Preencher(const Vector2 centro, const float largura, const float altura, const SDL_Color cor) {
+    if (mLinhas) mLinhas->Preencher(centro - Vector2(largura / 2.0f, altura / 2.0f), centro + Vector2(largura / 2.0f, altura / 2.0f), cor);
+}
+
+void Lucas::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int lados) {
+    for (int k = 0; k < lados; ++k) {
+        const float a0 = Math::TwoPi * static_cast<float>(k) / static_cast<float>(lados);
+        const float a1 = Math::TwoPi * static_cast<float>(k + 1) / static_cast<float>(lados);
+        Linha(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * raio, centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * raio, cor);
+    }
+}
+
+void Lucas::Disco(const Vector2 centro, const float raio, const SDL_Color cor) {
+    for (float dy = -raio; dy <= raio; dy += 1.0f) {
+        const float dx = std::sqrt(std::max(0.0f, raio * raio - dy * dy));
+        Linha(centro + Vector2(-dx, dy), centro + Vector2(dx, dy), cor);
+    }
+}
+
+void Lucas::Tracejada(const Vector2 de, const Vector2 ate, const SDL_Color cor, const float traco) {
+    const Vector2 d = ate - de;
+    const float comprimento = d.Length();
+    if (comprimento < 1.0f) return;
+    const Vector2 u = d * (1.0f / comprimento);
+    for (float s = 0.0f; s < comprimento; s += traco * 2.0f) Linha(de + u * s, de + u * std::min(comprimento, s + traco), cor);
+}
+
+void Lucas::Coracao(const Vector2 centro, const float tamanho, const SDL_Color cor) {
+    Disco(centro + Vector2(-tamanho * 0.5f, 0.0f), tamanho * 0.55f, cor);
+    Disco(centro + Vector2(tamanho * 0.5f, 0.0f), tamanho * 0.55f, cor);
+    for (float s = 0.0f; s <= tamanho * 1.1f; s += 1.0f) {
+        const float meia = tamanho * 1.05f * (1.0f - s / (tamanho * 1.1f));
+        Linha(centro + Vector2(-meia, s), centro + Vector2(meia, s), cor);
+    }
+}
+
+void Lucas::Etiqueta(const std::string& texto, Vector2 onde, const SDL_Color tinta) {
+    if (!mScene) return;
+    while (mEtiquetas.size() <= mEtiquetasUsadas) {
+        auto nova = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 250, kAlturaDaEtiqueta, kOrdemDasEtiquetas, kLetraDaEtiqueta);
+        nova->Mostrar(false);
+        mEtiquetas.push_back(nova.get());
+        mScene->AddActor(std::move(nova));
+    }
+    EtiquetaDeCodigo* e = mEtiquetas[mEtiquetasUsadas++];
+    const int largura = LarguraDaEtiqueta(texto);
+    e->Redimensionar(largura, kAlturaDaEtiqueta);
+    // Inteira dentro do campo, mesmo a da <div> encostada na borda.
+    const Dom::Campo c = CampoPuro();
+    const float meia = static_cast<float>(largura) / 2.0f, meiaAltura = kAlturaDaEtiqueta / 2.0f;
+    onde = Vector2(std::clamp(onde.x, c.x + meia, std::max(c.x + meia, c.x + c.w - meia)),
+                   std::clamp(onde.y, c.y + meiaAltura, std::max(c.y + meiaAltura, c.y + c.h - meiaAltura)));
+    e->Pintar(SDL_Color{tinta.r, tinta.g, tinta.b, 150}, SDL_Color{12, 16, 28, 215}, tinta);
+    e->Escrever(texto);
+    e->SetPosition(onde);
+    e->Mostrar(true);
+}
+
+void Lucas::EsconderEtiquetas() {
+    for (EtiquetaDeCodigo* e : mEtiquetas) if (e) e->Mostrar(false);
+    mEtiquetasUsadas = 0;
+}
+
+// ---- Fases 1 e 2: a <div> ----
+
+void Lucas::PosicionarPecas(DivViva& d, const float t) {
+    const std::vector<Vector2> onde = Dom::Pecas(d.div, t, kPassoDasPecas);
+    // Sobram pecas: as de mais saem. Faltam: nascem.
+    while (d.pecas.size() > onde.size()) {
+        Matar(d.pecas.back());
+        d.pecas.pop_back();
+    }
+    d.pecas.resize(onde.size(), nullptr);
+    for (size_t i = 0; i < onde.size(); ++i) {
+        if (!d.pecas[i]) d.pecas[i] = Peca("peca", onde[i], "Vazia");
+        Prender(d.pecas[i], onde[i]);
+    }
+}
+
+void Lucas::DesenharDiv(const DivViva& d, const float t, const bool js) {
+    const auto caixas = Dom::Caixas(d.div, t);
+    if (caixas.empty()) return;
+    const auto alfa = [&](const SDL_Color c) {
+        return SDL_Color{c.r, c.g, c.b, static_cast<Uint8>(static_cast<float>(c.a) * d.div.opacidade)};
+    };
+    const SDL_Color borda = alfa(js ? kBordaJs : kBordaCss), fundo = alfa(js ? kFundoJs : kFundoCss);
+    for (const Dom::Caixa& k : caixas) {
+        if (k.redonda) {
+            const float r = std::min(k.largura, k.altura) / 2.0f;
+            Disco(k.centro, r, fundo);
+            Circulo(k.centro, r, borda, 28);
+            Circulo(k.centro, r - 1.0f, borda, 28);
+        } else {
+            Preencher(k.centro, k.largura, k.altura, fundo);
+            Retangulo(k.centro, k.largura, k.altura, borda);
+            Retangulo(k.centro, k.largura - 2.0f, k.altura - 2.0f, borda);
+        }
+    }
+    // A tag em cima, e o comportamento (o que o JavaScript ja ligou) embaixo.
+    const Dom::Caixa& primeira = caixas.front();
+    // A regra que acabou de muda-la aparece um instante no lugar da tag.
+    const bool mudou = t < d.ultimaAte && !d.ultima.empty();
+    Etiqueta(mudou ? d.ultima : "<div>", d.div.centro - Vector2(0.0f, d.div.altura / 2.0f + 18.0f),
+             mudou ? kMudou : (js ? kTintaJs : kTintaCss));
+    std::string comportamento;
+    const auto juntar = [&](const char* s) { comportamento += (comportamento.empty() ? "" : " ") + std::string(s); };
+    if (d.div.intervalo > 0.0f) juntar("setInterval");
+    if (d.div.revida) juntar("onclick");
+    if (d.div.segue) juntar("mousemove");
+    if (d.div.teleporteACada > 0.0f) juntar("random");
+    if (d.div.bombaEm >= t) juntar("setTimeout");
+    if (!comportamento.empty()) Etiqueta(comportamento, d.div.centro + Vector2(0.0f, d.div.altura / 2.0f + 18.0f), kTintaJs);
+    // A bomba do setTimeout pisca mais rapido conforme o pavio acaba.
+    if (d.div.bombaEm >= t) {
+        const float falta = d.div.bombaEm - t;
+        if (std::fmod(t, std::max(0.08f, falta / 6.0f)) < 0.05f) Circulo(d.div.centro, primeira.altura * 0.4f + 6.0f, SDL_Color{255, 90, 60, 255}, 24);
+    }
+}
+
+void Lucas::AtualizarDom(const float t, const float deltaTime, const bool js) {
+    Battle* b = Batalha();
+    if (!b) return;
+    // A <div> fica abaixo do anuncio do professor.
+    Dom::Campo c = CampoPuro();
+    c.y += kAbaixoDoAnuncio;
+    c.h -= kAbaixoDoAnuncio;
+    const Dom::Degrau& g = mDegrauDoDom;
+    Varrer(t, 0.32f, 9.0f);
+
+    // A <div> nova, pequena e previsivel, no comeco da fase.
+    if (!mDomComecou) {
+        mDomComecou = true;
+        mDivs.push_back(DivViva{Dom::Nova(c, g.rapidezDaDiv, mSorteioDoDom), {}, "", -1.0f});
+        mProximoLance = g.calma;
+        mProximaTag = g.calma + 1.0f;
+    }
+
+    const Vector2 aluno = PosicaoDoAluno();
+    const ProjectileManager* tiros = b->GerenteDeProjeteis();
+    std::vector<Dom::Div> clones;
+    for (DivViva& d : mDivs) {
+        Dom::Andar(d.div, deltaTime, t, aluno, c, mSorteioDoDom);
+        // O comportamento: o setTimeout que explode e o setInterval que atira.
+        switch (Dom::Atirar(d.div, t)) {
+            case Dom::Disparo::Explosao:
+                DispararEm("explosao", d.div.centro, g.tirosDaExplosao);
+                SomDoDisparo();
+                break;
+            case Dom::Disparo::Anel:
+                DispararEm("setinterval", d.div.centro, g.tirosDoAnel);
+                break;
+            case Dom::Disparo::Nenhum:
+                break;
+        }
+        // O onclick: o tiro do aluno que passa pela <div> volta como leque.
+        if (d.div.revida && tiros) {
+            for (const auto& tiro : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
+                if (!tiro || tiro->GetState() != ActorState::Active) continue;
+                if (!Dom::Toca(d.div, tiro->GetPosition(), 6.0f, t) || !Dom::Revidar(d.div, t)) continue;
+                Leque("revide", d.div.centro, g.tirosDoRevide, 30.0f, 260.0f);
+                break;
+            }
+        }
+        // As regras que acertaram esta <div>: mudam ela, e somem.
+        for (RegraViva& r : mRegras) {
+            if (!Vivo(r.p) || !Dom::Toca(d.div, r.p->GetPosition(), kRaioDaRegra, t)) continue;
+            if (Dom::Aplicar(d.div, r.efeito, t) && mDivs.size() + clones.size() < static_cast<size_t>(Dom::kMaisDivs)) {
+                // cloneNode: a copia sai para o outro lado.
+                Dom::Div copia = d.div;
+                copia.velocidade = Vector2(-d.div.velocidade.x, d.div.velocidade.y);
+                copia.centro = d.div.centro + Vector2(d.div.velocidade.x < 0.0f ? 40.0f : -40.0f, 0.0f);
+                clones.push_back(copia);
+            }
+            d.ultima = Dom::Texto(r.efeito);
+            d.ultimaAte = t + kMostrarAMudanca;
+            b->Faiscar(r.p->GetPosition(), Hud::Faisca::Dissolvido);
+            Matar(r.p);
+        }
+        PosicionarPecas(d, t);
+        DesenharDiv(d, t, js);
+    }
+    for (const Dom::Div& copia : clones) mDivs.push_back(DivViva{copia, {}, "", -1.0f});
+    mRegras.erase(std::remove_if(mRegras.begin(), mRegras.end(), [](const RegraViva& r) { return !r.p; }), mRegras.end());
+
+    // O lance: o professor joga as regras no campo, e elas entram pelas laterais, rumo a um ponto
+    // dele - as vezes a propria <div>. Pelas laterais, e nao de dentro dele: o aluno que so atira
+    // no professor nao as derruba sem querer, e escolhe o que derrubar.
+    if (t >= mProximoLance) {
+        mProximoLance = t + g.entreLances;
+        for (int k = 0; k < g.regrasPorLance; ++k) {
+            const bool ehJs = js && !mSorteioDoDom.Chance(g.chanceDeCssNoJs);
+            const Dom::Efeito e = Dom::Sortear(ehJs, mSorteioDoDom);
+            const bool daEsquerda = mSorteioDoDom.Chance(0.5f);
+            const Vector2 de(daEsquerda ? c.x + 4.0f : c.x + c.w - 4.0f, c.y + c.h * mSorteioDoDom.Real(0.12f, 0.6f));
+            // A mirada na <div> sai para onde ela vai estar (sem contar os quiques), e faz a curva
+            // atras dela no caminho; a outra vai reta para um ponto da metade de baixo.
+            int qual = -1;
+            Vector2 para = Dom::Destino(c, nullptr, mSorteioDoDom);
+            if (!mDivs.empty() && mSorteioDoDom.Chance(Dom::kChanceDeMirarADiv)) {
+                qual = mSorteioDoDom.Inteiro(0, static_cast<int>(mDivs.size()) - 1);
+                const Dom::Div& alvo = mDivs[static_cast<size_t>(qual)].div;
+                const float chegada = (alvo.centro - de).Length() / std::max(1.0f, g.velocidadeDasRegras);
+                para = t >= alvo.paradaAte ? alvo.centro + alvo.velocidade * chegada : alvo.centro;
+                para = Vector2(std::clamp(para.x, c.x, c.x + c.w), std::clamp(para.y, c.y, c.y + c.h));
+            }
+            Vector2 rumo = para - de;
+            if (rumo.Length() < 1.0f) rumo = Vector2(0.0f, 1.0f);
+            rumo = rumo * (g.velocidadeDasRegras / rumo.Length());
+            if (BossProjectile* p = Um("regra", de, ehJs ? "Js" : "Css", rumo)) {
+                // No aluno, alem da nota, a regra o prende um instante.
+                if (Dom::EhJs(e)) p->DefinirAcorrentamento(Dom::kTravaDoJs, Dom::kFatorDoJs, 1.0f);
+                else p->DefinirAcorrentamento(Dom::kPesoDoCss, Dom::kFatorDoCss, 1.0f);
+                mRegras.push_back(RegraViva{p, e, t, qual});
+            }
+        }
+        SomDoDisparo();
+    }
+    // O leque do proprio professor.
+    if (t >= mProximaTag) {
+        mProximaTag = t + g.entreTags;
+        Leque("tag", GetPosition() + Vector2(0.0f, 40.0f), g.tagsPorLeque, 40.0f, 230.0f);
+    }
+    // A curva atras da <div>, e a etiqueta de cada regra, em cima dela.
+    for (const RegraViva& r : mRegras) {
+        if (!Vivo(r.p)) continue;
+        if (r.div >= 0 && static_cast<size_t>(r.div) < mDivs.size() && t - r.desde < Dom::kCurvaDaRegra &&
+            Dom::Visivel(mDivs[static_cast<size_t>(r.div)].div, t)) {
+            if (auto* rb = r.p->GetComponent<RigidBodyComponent>()) {
+                rb->SetVelocity(Dom::Curvar(rb->GetVelocity(), r.p->GetPosition(), mDivs[static_cast<size_t>(r.div)].div.centro,
+                                            Dom::kGiroDaRegra, deltaTime));
+            }
+        }
+        if (t - r.desde < kTracoDoLance) Tracejada(GetPosition(), r.p->GetPosition(), kLance, 6.0f);
+        Etiqueta(Dom::Texto(r.efeito), r.p->GetPosition() + Vector2(0.0f, -24.0f), Dom::EhJs(r.efeito) ? kTintaJs : kTintaCss);
+    }
+}
+
+// ---- Fase 3: a sala do Elixir ----
+
+void Lucas::NovoCiclo(const float t) {
+    MatarTodos(mGosmas);
+    mRumoDasGosmas.clear();
+    Matar(mBauP);
+    Matar(mChaveP);
+    Matar(mElixirP);
+    const Masmorra::Degrau& g = mDegrauDaMasmorra;
+    const Dom::Campo c = CampoPuro();
+    mBau = Masmorra::LugarDoBau(mSorteioDaMasmorra, c, PosicaoDoAluno());
+    mBauP = Peca("item", mBau, "Bau");
+    if (mBauP) mBauP->DefinirEnfeite(true);
+    for (const Vector2& p : Masmorra::LugaresDasGosmas(mSorteioDaMasmorra, g.gosmas, c, mBau)) {
+        mGosmas.push_back(Peca("gosma", p, "Andando"));
+        const float a = mSorteioDaMasmorra.Real(0.0f, Math::TwoPi);
+        mRumoDasGosmas.push_back(Vector2(Math::Cos(a), Math::Sin(a)) * g.rapidezDasGosmas);
+    }
+    mGosmasDerrubadas = 0;
+    mChaveCaiu = false;
+    mComAChave = -1;
+    mDesfecho = Desfecho::EmAberto;
+    mDeOndeSaiu = GetPosition();
+    mInicioDaFuria = -1.0f;
+    mProximoLeque = t + 1.2f;
+    // \xc3\x89 e o E agudo.
+    TrocarAnuncio(Masmorra::kFase, "\xc3\x89 perigoso ir sozinho!");
+}
+
+void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
+    Battle* b = Batalha();
+    if (!b) return;
+    const Masmorra::Degrau& g = mDegrauDaMasmorra;
+    const Dom::Campo c = CampoPuro();
+    const int ciclo = static_cast<int>(std::floor(t / Masmorra::kCiclo));
+    if (ciclo != mCiclo) {
+        mCiclo = ciclo;
+        NovoCiclo(t);
+    }
+    const float tc = t - static_cast<float>(ciclo) * Masmorra::kCiclo;
+    const std::vector<Player*>& alunos = b->Jogadores();
+
+    // As gosmas andam pela faixa do meio da sala, quicando.
+    for (size_t i = 0; i < mGosmas.size() && i < mRumoDasGosmas.size(); ++i) {
+        BossProjectile* gosma = mGosmas[i];
+        if (!gosma) continue;
+        Vector2 p = gosma->GetPosition() + mRumoDasGosmas[i] * deltaTime;
+        Vector2& v = mRumoDasGosmas[i];
+        if (p.x < c.x + 30.0f || p.x > c.x + c.w - 30.0f) v.x = -v.x;
+        if (p.y < c.y + c.h * 0.2f || p.y > c.y + c.h * 0.72f) v.y = -v.y;
+        p = Vector2(std::clamp(p.x, c.x + 30.0f, c.x + c.w - 30.0f), std::clamp(p.y, c.y + c.h * 0.2f, c.y + c.h * 0.72f));
+        Prender(gosma, p);
+    }
+    // Derrotadas todas, a chave pequena cai onde caiu a ultima.
+    const bool semGosmas = std::none_of(mGosmas.begin(), mGosmas.end(), [](const BossProjectile* p) { return p != nullptr; });
+    if (semGosmas && !mChaveCaiu && mDesfecho == Desfecho::EmAberto) {
+        mChaveCaiu = true;
+        mChaveP = Peca("item", mUltimaGosma, "Chave");
+        if (mChaveP) mChaveP->DefinirEnfeite(true);
+        b->Faiscar(mUltimaGosma, Hud::Faisca::Coleta);
+        TrocarAnuncio(Masmorra::kFase, "{:ok, :chave}");
+    }
+    // A chave: quem encosta pega, e ela vai em cima da cabeca dele.
+    if (mChaveP && mComAChave < 0) {
+        Prender(mChaveP, mChaveP->GetPosition());
+        for (size_t i = 0; i < alunos.size(); ++i) {
+            if (alunos[i] && Masmorra::Alcanca(alunos[i]->GetPosition(), mChaveP->GetPosition())) {
+                mComAChave = static_cast<int>(i);
+                b->Faiscar(mChaveP->GetPosition(), Hud::Faisca::Coleta);
+                break;
+            }
+        }
+    }
+    if (mChaveP && mComAChave >= 0 && static_cast<size_t>(mComAChave) < alunos.size() && alunos[static_cast<size_t>(mComAChave)]) {
+        Prender(mChaveP, alunos[static_cast<size_t>(mComAChave)]->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca));
+    }
+    if (mBauP) Prender(mBauP, mBau);
+
+    if (mDesfecho == Desfecho::EmAberto) {
+        // O bau aberto por quem tem a chave: o Elixir erguido acima da cabeca, e o bonus.
+        if (mComAChave >= 0 && static_cast<size_t>(mComAChave) < alunos.size()) {
+            Player* a = alunos[static_cast<size_t>(mComAChave)];
+            if (a && Masmorra::Alcanca(a->GetPosition(), mBau)) {
+                mDesfecho = Desfecho::DoAluno;
+                mQuemBebeu = mComAChave;
+                Cara(mBauP, "Aberto");
+                Matar(mChaveP);
+                mElixirP = Peca("item", a->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca), "Elixir");
+                if (mElixirP) mElixirP->DefinirEnfeite(true);
+                mErguidoAte = t + Masmorra::kErguido;
+                mElixirAte = mRelogio + g.bonus;
+                a->Proteger(g.bonus);
+                a->Impulsionar(g.bonus, g.impulso);
+                b->Faiscar(a->GetPosition(), Hud::Faisca::Coleta);
+                if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
+                    mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
+                }
+                TrocarAnuncio(Masmorra::kFase, "{:ok, :elixir}");
+            }
+        }
+        // O professor anda ate o bau, pelas beiradas; o tracejado mostra para onde.
+        mAlvo = Masmorra::CaminhoDoProfessor(mDeOndeSaiu, mBau, tc, g.chegada, c);
+        Tracejada(GetPosition(), mBau, kCaminho);
+        if (mDesfecho == Desfecho::EmAberto && tc >= g.chegada) {
+            // Chegou antes: bebe o Elixir.
+            mDesfecho = Desfecho::DoProfessor;
+            Cara(mBauP, "Aberto");
+            mInicioDaFuria = t;
+            mProximaRajada = t + 0.5f;
+            mProximoAnel = t + 0.5f;
+            mElixirP = Peca("item", GetPosition() + Vector2(0.0f, -60.0f), "Elixir");
+            if (mElixirP) mElixirP->DefinirEnfeite(true);
+            mErguidoAte = t + 0.5f;
+            TrocarAnuncio(Masmorra::kFase, "{:error, :furia}");
+        }
+        // O leque com que ele atrapalha a cacada.
+        if (mDesfecho == Desfecho::EmAberto && t >= mProximoLeque) {
+            mProximoLeque = t + g.entreLeques;
+            Leque("leque", GetPosition() + Vector2(0.0f, 40.0f), g.tirosDoLeque, 30.0f, 230.0f);
+        }
+    }
+
+    // O Elixir erguido: em cima de quem abriu o bau (ou do professor), por um instante.
+    if (mElixirP) {
+        if (t >= mErguidoAte) {
+            Matar(mElixirP);
+        } else if (mDesfecho == Desfecho::DoAluno && mQuemBebeu >= 0 && static_cast<size_t>(mQuemBebeu) < alunos.size() &&
+                   alunos[static_cast<size_t>(mQuemBebeu)]) {
+            Prender(mElixirP, alunos[static_cast<size_t>(mQuemBebeu)]->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca));
+        } else {
+            Prender(mElixirP, GetPosition() + Vector2(0.0f, -60.0f));
+        }
+    }
+    // O bonus do aluno: os coracoes em volta dele.
+    if (mRelogio < mElixirAte && mQuemBebeu >= 0 && static_cast<size_t>(mQuemBebeu) < alunos.size() && alunos[static_cast<size_t>(mQuemBebeu)]) {
+        const Vector2 centro = alunos[static_cast<size_t>(mQuemBebeu)]->GetPosition();
+        for (int k = 0; k < 3; ++k) {
+            const float a = mRelogio * 2.5f + Math::TwoPi * static_cast<float>(k) / 3.0f;
+            Coracao(centro + Vector2(Math::Cos(a), Math::Sin(a)) * 34.0f, 4.0f, kCoracao);
+        }
+    }
+    // Depois do desfecho, o professor volta para o alto; na furia, de la ele atira, balancando de um
+    // lado para o outro - a espiral nao sai sempre do mesmo ponto, e ele nao e um alvo parado.
+    if (mDesfecho != Desfecho::EmAberto) {
+        const float balanco = mDesfecho == Desfecho::DoProfessor ? 0.22f * Math::Sin(Math::TwoPi * (t - mInicioDaFuria) / 3.0f) : 0.0f;
+        mAlvo = Vector2(c.x + c.w * (0.5f + balanco), c.y + kYDoProfessor);
+    }
+    if (mDesfecho == Desfecho::DoProfessor && t - mInicioDaFuria < g.furia) {
+        const float tf = t - mInicioDaFuria;
+        const Vector2 de = GetPosition() + Vector2(0.0f, 30.0f);
+        if (t >= mProximaRajada) {
+            mProximaRajada = t + g.entreRajadas;
+            for (const float rumo : Masmorra::RumosDaEspiral(g.bracos, tf, g.giro)) {
+                const float a = Math::ToRadians(rumo);
+                Um("furia", de, "Pipe", Vector2(Math::Cos(a), Math::Sin(a)) * g.velocidadeDaFuria);
+            }
+        }
+        if (t >= mProximoAnel) {
+            mProximoAnel = t + g.entreAneis;
+            DispararEm("anel_furia", de, g.tirosDoAnel);
+            SomDoDisparo();
+        }
+    }
+}
+
+// ---- A final: o Phoenix ----
+
+void Lucas::FazerRenascer(const float t, const bool comAnel) {
+    const Dom::Campo c = CampoPuro();
+    const Vector2 onde = comAnel ? mOndeCaiu : Vector2(c.x + c.w / 2.0f, c.y + c.h * 0.3f);
+    Matar(mCinzasP);
+    mFenixP = Peca("fenix", onde, "Voando");
+    mFenixDerrubada = false;
+    mEstado = EstadoDaFenix::Voando;
+    mVoo = 0.0f;
+    mMeioX = onde.x;
+    mProximaPena = t + 0.8f;
+    if (comAnel) {
+        ++mVersao;
+        DispararEm("renascer", onde, mDegrauDaFenix.tirosDoRenascimento, std::nullopt, std::nullopt,
+                   mDegrauDaFenix.velocidadeDoRenascimento);
+        SomDoDisparo();
+        TrocarAnuncio(Fenix::kFase, "Phoenix 1." + std::to_string(7 + mVersao) + " - renasceu");
+    } else {
+        TrocarAnuncio(Fenix::kFase, "mix phx.server");
+    }
+}
+
+void Lucas::AtualizarFenix(const float t, const float deltaTime) {
+    Battle* b = Batalha();
+    if (!b) return;
+    const Fenix::Degrau& g = mDegrauDaFenix;
+    const Dom::Campo c = CampoPuro();
+    Varrer(t, 0.18f, 11.0f);
+
+    if (mEstado == EstadoDaFenix::Nenhuma) {
+        mProximoBroadcast = t + g.entreBroadcasts;
+        mProximaTagDaFinal = t + 2.0f;
+        FazerRenascer(t, false);
+    }
+    const float rapidez = std::pow(std::max(1.0f, g.maisRapidaPorVersao), static_cast<float>(mVersao));
+
+    // Os sockets do PubSub, sempre no campo.
+    const auto sockets = Fenix::Sockets(c);
+    for (const Vector2& s : sockets) {
+        Circulo(s, 12.0f, kSocket, 16);
+        Circulo(s, 6.0f + 3.0f * std::sin(mRelogio * 4.0f), kSocket, 12);
+    }
+
+    if (mEstado == EstadoDaFenix::Voando) {
+        if (mFenixDerrubada || !mFenixP) {
+            // Derrubada: vira cinzas, e o aluno ganha.
+            if (mFenixP) mOndeCaiu = mFenixP->GetPosition();
+            Matar(mFenixP);
+            mCinzasP = Peca("cinzas", mOndeCaiu, "Brasas");
+            mCinzasApagadas = false;
+            mRenasceEm = t + Fenix::kRenascer;
+            mEstado = EstadoDaFenix::Cinzas;
+            b->Conquistar(Fenix::kPremioPorDerrubar);
+            b->Faiscar(mOndeCaiu, Hud::Faisca::Coleta);
+            TrocarAnuncio(Fenix::kFase, "** (EXIT) :fenix");
+        } else {
+            // O voo em oito, com o meio do oito atras do aluno (o LiveView).
+            mVoo += deltaTime;
+            mMeioX = Fenix::SeguirX(mMeioX, PosicaoDoAluno().x, deltaTime);
+            const Vector2 alvo = Fenix::NoVoo(mVoo, mMeioX, c, g.periodoDoOito, mVersao, g.maisRapidaPorVersao);
+            // Logo depois de renascer, ela sai das cinzas ate o oito, sem saltar.
+            const float u = std::clamp(mVoo / 0.8f, 0.0f, 1.0f);
+            Prender(mFenixP, mFenixP->GetPosition() + (alvo - mFenixP->GetPosition()) * (u < 1.0f ? 0.15f : 1.0f));
+            if (t >= mProximaPena) {
+                mProximaPena = t + g.entrePenas / rapidez;
+                const Vector2 de = mFenixP->GetPosition() + Vector2(0.0f, 20.0f);
+                const float centro = AnguloAteOAluno(de);
+                const float velocidade = g.velocidadeDasPenas * rapidez;
+                const auto penas = DispararEm("pena", de, g.penas, centro, 50.0f, velocidade);
+                const size_t n = penas.size();
+                for (size_t i = 0; i < n; ++i) {
+                    const float a = Math::ToRadians(centro - 25.0f + (n > 1 ? 50.0f * static_cast<float>(i) / static_cast<float>(n - 1) : 25.0f));
+                    Andar(penas[i], Vector2(Math::Cos(a), Math::Sin(a)) * velocidade);
+                }
+            }
+            // O broadcast: a linha da fenix a cada socket, e depois o anel de todos ao mesmo tempo.
+            if (mBroadcastEm < 0.0f && t >= mProximoBroadcast) {
+                mBroadcastEm = t + Fenix::kAvisoDoBroadcast;
+                mProximoBroadcast = t + g.entreBroadcasts;
+            }
+            if (mBroadcastEm >= 0.0f) {
+                for (const Vector2& s : sockets) Tracejada(mFenixP->GetPosition(), s, kBroadcast, 8.0f);
+                if (t >= mBroadcastEm) {
+                    mBroadcastEm = -1.0f;
+                    for (const Vector2& s : sockets) DispararEm("socket", s, g.tirosDoSocket, std::nullopt, std::nullopt, g.velocidadeDoSocket);
+                    SomDoDisparo();
+                }
+            }
+        }
+    } else if (mEstado == EstadoDaFenix::Cinzas) {
+        mBroadcastEm = -1.0f;
+        if (mCinzasApagadas || !mCinzasP) {
+            // Apagadas a tempo: ela demora a voltar, e o aluno ganha de novo.
+            Matar(mCinzasP);
+            mEstado = EstadoDaFenix::Apagada;
+            mRenasceEm = t + Fenix::kApagada;
+            b->Conquistar(Fenix::kPremioPorApagar);
+            TrocarAnuncio(Fenix::kFase, "{:error, :sem_cinzas}");
+        } else {
+            Prender(mCinzasP, mOndeCaiu);
+            // As brasas sobem enquanto ela se refaz.
+            const float falta = std::max(0.0f, mRenasceEm - t);
+            Circulo(mOndeCaiu, 14.0f + 26.0f * (1.0f - falta / Fenix::kRenascer), kBroadcast, 20);
+            if (t >= mRenasceEm) FazerRenascer(t, true);
+        }
+    } else if (mEstado == EstadoDaFenix::Apagada) {
+        if (t >= mRenasceEm) FazerRenascer(t, false);
+    }
+
+    // O professor, no alto, tambem atira.
+    if (t >= mProximaTagDaFinal) {
+        mProximaTagDaFinal = t + (NivelDeDificuldade() == Dificuldade::Nivel::Dificil ? 1.8f : 2.6f);
+        Leque("tag", GetPosition() + Vector2(0.0f, 40.0f), 3, 30.0f, 230.0f);
     }
 }

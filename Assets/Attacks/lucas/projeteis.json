@@ -1,6 +1,7 @@
 {
-  // Os projeteis do Lucas (INF 321 - Programacao Web) Um tipo para o que so voa, e um para cada
-  // coisa que o aluno derruba.
+  // Os projeteis do Lucas (INF 321 - Programacao Web). A folha antiga (DPIBHLucasCodigo, de
+  // gerar_lucas.py) da os leques; a nova (DPIBHLucasWeb e DPIBHLucasFenix, de gerar_lucas_web.py), o
+  // que as provas novas pedem.
   "Codigo": {
     "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
     "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
@@ -9,41 +10,88 @@
       "Regra":    [4, 5, 6, 7],
       "Promessa": [8, 9, 10, 11],
       "Mensagem": [16, 17, 18, 19],
-      "FichaLog":     [24],
-      "FichaTimeout": [25],
-      "FichaThen":    [26],
-      "FichaFetch":   [27],
-      "Pipe":         [28, 29, 30, 31]
+      "Pipe":     [28, 29, 30, 31]
     },
     "animacaoInicial": "Tag",
     "ordemDeDesenho": 90
   },
 
-  // O cursor do mouse da pagina da fase 1: voa do professor ate o <button> e clica. Derrubavel - um
-  // tiro e o clique nao acontece (event.preventDefault()).
-  "Cursor": {
-    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
-    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
-    "animacoes": {
-      "Voando": [20, 21, 22],
-      "Clique": [23]
-    },
-    "animacaoInicial": "Voando",
-    "ordemDeDesenho": 92,
+  // A peca invisivel da <div>: o desenho dela e o Lucas.cpp quem faz, e cada peca so machuca. O
+  // colisor e um pouco maior que o passo entre elas: a <div> nao tem fresta.
+  "Peca": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Vazia": [0] },
+    "animacaoInicial": "Vazia",
+    "colisorDivisor": 1.9,
+    "ordemDeDesenho": 80
+  },
+
+  // A regra de CSS ou de JavaScript: o aluno a derruba com um tiro. A cara diz a linguagem, e a
+  // etiqueta em cima dela, o que a regra faz.
+  "Regra": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Css": [1], "Js": [2] },
+    "animacaoInicial": "Css",
+    "escala": 1.4,
+    "ordemDeDesenho": 93,
     "derrubavel": true
   },
 
-  // O worker da fase 3. Uma Duvida que o acerta some junto com ele, e nao chega ao chefe - limpar o
-  // caminho custa nota.
-  "Processo": {
-    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
-    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
-    "animacoes": {
-      "Rodando": [12, 13, 14, 15]
-    },
-    "animacaoInicial": "Rodando",
+  // A gosma da sala do Elixir: dois tiros a derrubam, e a ultima solta a chave.
+  "Gosma": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Andando": [3, 4] },
+    "animacaoInicial": "Andando",
+    "escala": 1.5,
     "ordemDeDesenho": 91,
     "derrubavel": true,
-    "resistencia": 3
+    "resistencia": 2
+  },
+
+  // A chave, o bau e o Elixir: enfeites (nao machucam), que o aluno pega encostando.
+  "Item": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Chave": [5], "Bau": [6], "Aberto": [7], "Elixir": [8] },
+    "animacaoInicial": "Bau",
+    "escala": 1.6,
+    "ordemDeDesenho": 88
+  },
+
+  // A pena de fogo da fenix, e o anel do renascimento.
+  "Pena": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Queimando": [9, 10] },
+    "animacaoInicial": "Queimando",
+    "ordemDeDesenho": 90
+  },
+
+  // As cinzas da fenix derrubada: tiros as apagam antes de ela renascer.
+  "Cinzas": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Brasas": [11] },
+    "animacaoInicial": "Brasas",
+    "escala": 1.6,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 12
+  },
+
+  // A fenix: aguenta muitos tiros (Fenix.h), e encostar nela machuca.
+  "Fenix": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasFenix.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasFenix.json",
+    "animacoes": { "Voando": [0, 1, 2, 3] },
+    "animacaoInicial": "Voando",
+    "escala": 1.3,
+    "colisorDivisor": 3.2,
+    "ordemDeDesenho": 94,
+    "derrubavel": true,
+    "resistencia": 8
   }
 }

@@ -21,6 +21,7 @@ public:
 
     void SetMoldura(const SDL_Color cor) { mMoldura = cor; }
     void SetFundo(const SDL_Color cor) { mFundo = cor; }
+    void SetTamanho(const int largura, const int altura) { mLargura = largura; mAltura = altura; }
 
 private:
     int mLargura;

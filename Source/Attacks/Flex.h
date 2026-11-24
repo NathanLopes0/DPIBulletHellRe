@@ -10,7 +10,7 @@
 
 #include "../Regras/Variacao.h"
 
-/// A fase 2 do Lucas e o CSS, e a grade do DevTools dela (Estilo.h) poe cada linha de cartoes pelo
+/// Nasceu na fase 2 antiga do Lucas (o CSS, a grade do DevTools), que punha cada linha de cartoes pelo
 /// justify-content da regra em vigor.
 namespace Flex {
 

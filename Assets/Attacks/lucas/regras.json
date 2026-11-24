@@ -1,20 +1,17 @@
 {
   // As regras de projetil do Lucas. Um conjunto por camada da web.
 
-  // HTML: a tag vai reta. A estrutura nao corre atras de ninguem - ela ocupa
-  // espaco.
+  // HTML: a tag vai reta. A estrutura nao corre atras de ninguem - ela ocupa espaco.
   "html": [
     { "animacao": "Tag" }
   ],
 
-  // CSS: a regra tambem vai reta. O que o CSS faz e rearranjar o que ja esta na tela, e isso e da
-  // estrategia, nao do projetil.
+  // CSS: a regra tambem vai reta (o revide do onclick).
   "css": [
     { "animacao": "Regra" }
   ],
 
-  // JavaScript: a promessa - o leque do .then e o anel da resposta do fetch, no event loop da
-  // final.
+  // JavaScript: a promessa do setInterval da <div> - para, e depois vai de vez.
   "promessas": [
     { "animacao": "Promessa",
       "modifiers": [
@@ -22,38 +19,13 @@
         { "tipo": "Promessa", "atraso": 1.5, "resolve": 0.6, "velocidade": 280, "escreve": "Tag" } ] }
   ],
 
-  // A pagina da fase 1: o cursor e o spinner ficam no posto "pagina".
-  "pagina": [
-    { "posto": "pagina" }
-  ],
-  "spinner": [
-    { "posto": "pagina", "animacao": "Promessa" }
-  ],
-
-  "grade": [
-    { "posto": "grade", "animacao": "Regra" }
-  ],
-
-  // O HANDLE_CAST da fase 3: o leque de envelopes do worker que processou a caixa cheia.
+  // Elixir: a mensagem - o leque da cacada, o anel da furia e o do socket do Phoenix.
   "mensagem": [
     { "animacao": "Mensagem" }
   ],
 
-  // O pipe da fase 3: cada etapa do |> que escorre embaixo do supervisor parado.
+  // Elixir: o |> de cada braco da espiral da furia.
   "pipe": [
     { "animacao": "Pipe" }
-  ],
-
-  // A arvore de supervisao da fase 3.
-  "worker": [
-    { "posto": "supervisao" }
-  ],
-  "cast": [
-    { "posto": "supervisao", "animacao": "Mensagem" }
-  ],
-
-  // A animacao e a do tipo da linha, posta por ele.
-  "ficha": [
-    { "posto": "eventloop" }
   ]
 }

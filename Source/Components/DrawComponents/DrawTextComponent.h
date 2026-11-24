@@ -29,6 +29,9 @@ public:
     /// Em que largura o texto quebra linha.
     void SetLarguraDeQuebra(unsigned largura);
 
+    /// A caixa em que o texto cabe: maior que ele, o texto fica no tamanho natural; menor, encolhe.
+    void SetTamanho(const int largura, const int altura) { mWidth = largura; mHeight = altura; }
+
     /// A cor do texto.
     void SetColor(const Vector3& cor);
 
