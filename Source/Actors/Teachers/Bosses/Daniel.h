@@ -215,4 +215,6 @@ private:
     /// O modelo riscado: os pedacos da curva, que caem.
     std::vector<std::pair<Vector2, Vector2>> mPedacos;
     bool mRiscou = false;
+    /// O veredito da validacao, acima da curva: a culpa e do modelo, e nao do aluno.
+    EtiquetaDeCodigo* mVeredito = nullptr;
 };

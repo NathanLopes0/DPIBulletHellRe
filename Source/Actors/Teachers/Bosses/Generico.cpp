@@ -237,6 +237,25 @@ void Generico::OnUpdate(const float deltaTime) {
         Visto(Vector2(c.x + c.w / 2.0f, c.y + c.h / 2.0f), 30.0f + 50.0f * u);
         for (int k = 0; k < 3; ++k) Circulo(GetPosition(), 30.0f + std::fmod(te * 120.0f + k * 40.0f, 120.0f), kAmarelo, 28);
     }
+    // O letreiro: na chegada, que isto e o tutorial; no fim, que ele acabou - com um som de vitoria.
+    {
+        const SDL_FRect c = Campo();
+        if (etapa == Tutorial::Etapa::Chegada) {
+            Letreiro(true, "TUTORIAL", "INF 191 \xc2\xb7 aprenda a jogar em um minuto", SDL_Color{255, 255, 255, 255},
+                     c.y + c.h * 0.42f);
+        } else if (etapa == Tutorial::Etapa::Fim) {
+            if (!mTocouNoFim) {
+                mTocouNoFim = true;
+                if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
+                    mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
+                }
+            }
+            Letreiro(true, "TUTORIAL CONCLU\xc3\x8d" "DO!", "agora \xc3\xa9 com voc\xc3\xaa: as mat\xc3\xa9rias te esperam",
+                     SDL_Color{255, 215, 80, 255}, c.y + c.h * 0.5f + 115.0f);   // embaixo do visto, longe do professor
+        } else {
+            Letreiro(false);
+        }
+    }
     if (Tutorial::Acabou(t) && !mEncerrou) {
         mEncerrou = true;
         b->EncerrarBatalha(true);
@@ -399,6 +418,34 @@ EtiquetaDeCodigo* Generico::Tecla(const size_t k) {
 
 void Generico::EsconderTeclas() {
     for (EtiquetaDeCodigo* e : mTeclas) if (e) e->Mostrar(false);
+}
+
+void Generico::Letreiro(const bool mostrar, const std::string& titulo, const std::string& subtitulo,
+                        const SDL_Color cor, const float y) {
+    if (!mostrar) {
+        if (mTitulo) mTitulo->Mostrar(false);
+        if (mSubtitulo) mSubtitulo->Mostrar(false);
+        return;
+    }
+    if (!mScene) return;
+    if (!mTitulo) {
+        auto t = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 520, 70, kOrdemDasLinhas + 3, 54);
+        mTitulo = t.get();
+        mScene->AddActor(std::move(t));
+        auto s = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 520, 32, kOrdemDasLinhas + 3, 22);
+        s->Pintar(SDL_Color{0, 0, 0, 0}, SDL_Color{10, 12, 24, 200}, SDL_Color{225, 232, 250, 255});
+        mSubtitulo = s.get();
+        mScene->AddActor(std::move(s));
+    }
+    const SDL_FRect c = Campo();
+    const float x = c.x + c.w / 2.0f;
+    mTitulo->Pintar(SDL_Color{cor.r, cor.g, cor.b, 220}, SDL_Color{10, 12, 24, 225}, cor);
+    mTitulo->Escrever(titulo);
+    mTitulo->SetPosition(Vector2(x, y));
+    mTitulo->Mostrar(true);
+    mSubtitulo->Escrever(subtitulo);
+    mSubtitulo->SetPosition(Vector2(x, y + 56.0f));
+    mSubtitulo->Mostrar(true);
 }
 
 void Generico::EscreverTecla(size_t& k, const std::string& texto, const Vector2 onde) {

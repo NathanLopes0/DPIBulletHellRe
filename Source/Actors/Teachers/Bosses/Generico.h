@@ -89,6 +89,13 @@ private:
     bool mEtapasSemTexto = false;
     bool mEncerrou = false;
     bool mLimpouNoFim = false;
+    /// O letreiro do comeco ("TUTORIAL") e o do fim ("TUTORIAL CONCLUIDO!"): sem eles, ninguem
+    /// sabia que tinha entrado no tutorial, nem que tinha terminado.
+    EtiquetaDeCodigo* mTitulo = nullptr;
+    EtiquetaDeCodigo* mSubtitulo = nullptr;
+    bool mTocouNoFim = false;
+    void Letreiro(bool mostrar, const std::string& titulo = "", const std::string& subtitulo = "",
+                  SDL_Color cor = SDL_Color{255, 255, 255, 255}, float y = 0.0f);
     /// Onde o Ponto Extra de cada aluno caiu, na etapa dele: a seta aponta para la.
     std::vector<Vector2> mOndeDoPontoExtra;
 };

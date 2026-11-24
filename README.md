@@ -299,7 +299,9 @@ Silva, um professor genérico de óculos e gravata. Ela dura pouco mais de um
 minuto — e menos para quem já joga bem: cada etapa acaba antes quando o aluno já
 mostrou o que ela ensina (seis segundos sem levar tiro para desviar e para o
 foco, oito acertos para atirar, os dois juntos na nota que sobe e desce, e o
-Ponto Extra gasto), e quem desvia e acerta tudo termina em uns 40 segundos. Ela não tem uma palavra na tela: primeiro cai uma chuva lenta com o **manche**
+Ponto Extra gasto), e quem desvia e acerta tudo termina em uns 40 segundos. Ela abre com um letreiro, **TUTORIAL**
+("INF 191 · aprenda a jogar em um minuto"), e fora ele e o do fim não tem uma palavra na
+tela: primeiro cai uma chuva lenta com o **manche**
 desenhado acima do aluno, apontando para cada lado (desviar); depois o professor
 para, e aparece o **Botão 1** sendo apertado e uma linha tracejada até ele
 (atirar); a cada acerto, um **"+" verde** voa até a ponta da barra da nota, que
@@ -307,7 +309,8 @@ ganha uma seta para cima, e a cada tiro levado, um **"−" vermelho** e a seta
 para baixo; então vêm anéis cheios e lentos com o **Botão 4** segurado (o
 foco); depois o professor solta um **Ponto Extra** acima do aluno, com uma seta
 verde tracejada até ele, e quem já tem um vê o **Botão 2** piscando no meio de
-uma chuva cheia — o botão que a limpa; e no fim, um visto verde. Fora do gabinete, a tecla de cada botão
+uma chuva cheia — o botão que a limpa; e no fim, um visto verde, o som de vitória e o
+letreiro **TUTORIAL CONCLUÍDO!**, por quatro segundos. Fora do gabinete, a tecla de cada botão
 aparece numa plaquinha embaixo do desenho. Ninguém reprova (a nota não desce
 de 15), e a prova acaba sozinha, sem tela de resultado: a nota não vai para a
 ficha, não conta tentativa e a INF 191 não aparece na seleção, no boletim nem
@@ -823,9 +826,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   **núcleos** do modelo, um de cada tipo, giram em volta dele e atiram juntos
   para onde você estava indo, e também no lugar por onde você mais passou (a
   mira aparece antes) — quem muda o caminho faz o modelo errar. Um núcleo abre
-  por vez; o fechado só faz "tim". Na **validação**, o modelo não generaliza: a
-  curva treme e fica vermelha, e o professor — que não gosta de overfitting —
-  risca o modelo com um X; a curva se desfaz em pedaços, os tiros do modelo
+  por vez; o fechado só faz "tim". Na **validação**, o modelo não generaliza:
+  chegam dados novos (os pontos verdes, longe da curva), e o tracejado mostra o
+  erro do modelo até cada um. A culpa é dele, e não sua: "overfitting: o modelo
+  decorou, não generalizou", e um brilho dourado sai de você. A curva se desfaz em pedaços, os tiros do modelo
   param e os três núcleos ficam abertos: quebrá-los vale muita nota, e o tipo
   certo quebra em metade do tempo. O exame é o **conjunto de teste**: dados que
   o modelo nunca viu, vindo das laterais, e as espécies morando em outros

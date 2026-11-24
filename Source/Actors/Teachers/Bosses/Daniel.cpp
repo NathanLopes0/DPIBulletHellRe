@@ -30,7 +30,10 @@ namespace {
     constexpr SDL_Color kGrade{110, 125, 160, 40};
     constexpr SDL_Color kMemoria{235, 240, 255, 210};
     constexpr SDL_Color kCurva{150, 225, 255, 200};
-    constexpr SDL_Color kRisco{255, 70, 60, 240};
+    /// Na validacao, os dados novos (verdes, como quem acertou) e o erro do modelo ate eles.
+    constexpr SDL_Color kDadoNovo{120, 235, 140, 240};
+    constexpr SDL_Color kErroDoModelo{200, 205, 220, 150};
+    constexpr int kDadosNovos = 5;
     constexpr SDL_Color kTim{190, 195, 210, 220};
 
     SDL_Color CorDo(const int tipo) {
@@ -173,6 +176,7 @@ void Daniel::Desmontar(const bool manterOsPontos) {
     mProximaAmostra = 0.0f;
     mProximoLeque = 0.0f;
     for (EtiquetaDeCodigo* e : mEtiquetas) if (e) e->Mostrar(false);
+    if (mVeredito) mVeredito->Mostrar(false);
     mAlvo.reset();
     if (mLinhas) mLinhas->Limpar();
     if (mEfeitos) mEfeitos->Limpar();
@@ -991,7 +995,8 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
         for (const Vector2& p : pontos) Disco(p, 2.0f, kMemoria);
         const float tremor = validando ? 3.0f * Math::Sin(mRelogio * 40.0f) : 0.0f;
         const auto curva = Sobreajuste::Curva(pontos, 6, 12.0f + (validando ? 10.0f : 0.0f));
-        const SDL_Color cor = validando ? kRisco : kCurva;
+        // Na validacao ela treme, na cor dela: quem falhou foi o modelo, e nao o aluno.
+        const SDL_Color cor = kCurva;
         for (size_t k = 1; k < curva.size(); ++k) {
             Linha(curva[k - 1] + Vector2(0.0f, tremor), curva[k] + Vector2(0.0f, tremor), cor);
             Linha(curva[k - 1] + Vector2(0.0f, tremor + 1.0f), curva[k] + Vector2(0.0f, tremor + 1.0f), Alfa(cor, 0.5f));
@@ -1058,8 +1063,9 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             }
         }
     } else {
-        // A validacao: o modelo nao generaliza, e o professor - que nao gosta de overfitting - o
-        // risca com um X. Depois a curva cai aos pedacos.
+        // A validacao: chegam dados novos - o aluno de verdade, que mudou de caminho -, e o modelo,
+        // que so decorou o treino, erra todos: o tracejado e o erro dele ate cada um. Quem falha e o
+        // modelo, e o aluno ganhou: a curva se desfaz na cor dela, e um brilho dourado sai dele.
         const float desde = t - Sobreajuste::kValidacao;
         Vector2 de(1e9f, 1e9f), ate(-1e9f, -1e9f);
         for (const auto& m : mMemorias) {
@@ -1069,37 +1075,36 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             }
         }
         const bool temCurva = de.x <= ate.x;
-        // O X tem um tamanho minimo: mesmo o modelo de quem ficou parado e riscado de longe.
-        if (temCurva) {
-            const Vector2 meio = (de + ate) * 0.5f;
-            const Vector2 meia(std::max(70.0f, (ate.x - de.x) / 2.0f), std::max(45.0f, (ate.y - de.y) / 2.0f));
-            de = meio - meia;
-            ate = meio + meia;
-        }
         if (!mRiscou && temCurva) {
             const float u = std::clamp(desde / Sobreajuste::kRiscando, 0.0f, 1.0f);
-            const Vector2 a1(de.x - 20.0f, de.y - 20.0f), b1(ate.x + 20.0f, ate.y + 20.0f);
-            const Vector2 a2(ate.x + 20.0f, de.y - 20.0f), b2(de.x - 20.0f, ate.y + 20.0f);
-            const auto grosso = [&](const Vector2 p, const Vector2 q) {
-                for (float o = -2.0f; o <= 2.0f; o += 1.0f) Linha(p + Vector2(o, 0.0f), q + Vector2(o, 0.0f), kRisco, true);
-            };
-            const Vector2 ponta1 = a1 + (b1 - a1) * std::min(1.0f, u * 2.0f);
-            grosso(a1, ponta1);
-            Vector2 caneta = ponta1;
-            if (u > 0.5f) {
-                caneta = a2 + (b2 - a2) * ((u - 0.5f) * 2.0f);
-                grosso(a2, caneta);
+            for (const auto& m : mMemorias) {
+                const auto curva = Sobreajuste::Curva(m.pontos, 6, 22.0f);
+                if (curva.size() < 3) continue;
+                // Os dados novos aparecem um a um, cada um de um lado da curva, longe dela.
+                for (int k = 0; k < kDadosNovos; ++k) {
+                    if (u < static_cast<float>(k) / static_cast<float>(kDadosNovos)) break;
+                    const size_t i = 1 + (curva.size() - 2) * static_cast<size_t>(k) / static_cast<size_t>(kDadosNovos);
+                    Vector2 tangente = curva[i + 1] - curva[i - 1];
+                    const float comprimento = std::max(1.0f, tangente.Length());
+                    tangente = tangente * (1.0f / comprimento);
+                    const Vector2 normal(-tangente.y, tangente.x);
+                    const float lado = (k % 2 == 0 ? 1.0f : -1.0f) * (42.0f + 14.0f * static_cast<float>(k % 3));
+                    const Vector2 novo = curva[i] + normal * lado;
+                    Tracejada(curva[i], novo, kErroDoModelo, 5.0f);
+                    Disco(novo, 5.0f, kDadoNovo, true);
+                    Circulo(novo, 9.0f, kDadoNovo, 16, true);
+                }
             }
-            // A caneta do professor: o traco dele ate a ponta do risco.
-            Tracejada(professor + Vector2(0.0f, 30.0f), caneta, Alfa(kRisco, 0.6f), 7.0f);
             if (u >= 1.0f) {
-                // Riscou: a curva vira pedacos, que caem.
+                // Nao generalizou: a curva vira pedacos, que caem.
                 mRiscou = true;
                 for (const auto& m : mMemorias) {
                     const auto curva = Sobreajuste::Curva(m.pontos, 6, 22.0f);
                     for (size_t k = 1; k < curva.size(); k += 2) mPedacos.emplace_back(curva[k - 1], curva[k]);
                 }
-                if (Battle* bb = Batalha()) bb->Faiscar(professor, Hud::Faisca::Coleta);
+                if (Battle* bb = Batalha()) {
+                    for (const Player* aluno : jogadores) if (aluno) bb->Faiscar(aluno->GetPosition(), Hud::Faisca::Coleta);
+                }
             }
         }
         if (mRiscou) {
@@ -1114,9 +1119,27 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
                     const Vector2 d(lado, y);
                     const Vector2 meio = (mPedacos[k].first + mPedacos[k].second) * 0.5f;
                     const Vector2 giro = (mPedacos[k].second - meio) * std::max(0.2f, 1.0f - caiu);
-                    Linha(meio - giro + d, meio + giro + d, Alfa(kRisco, a));
+                    Linha(meio - giro + d, meio + giro + d, Alfa(kCurva, a));
                 }
             }
+        }
+        // O veredito, acima da curva, enquanto ela se desfaz: o overfitting e do modelo.
+        if (mScene && !mVeredito) {
+            auto nova = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 340, 26, kOrdemDasLinhas + 2, 20);
+            nova->Pintar(SDL_Color{150, 225, 255, 200}, SDL_Color{10, 18, 32, 215}, SDL_Color{180, 235, 255, 255});
+            nova->Escrever("overfitting: o modelo decorou, n\xc3\xa3o generalizou");
+            mVeredito = nova.get();
+            mScene->AddActor(std::move(nova));
+        }
+        if (mVeredito) {
+            const bool mostrar = temCurva && desde < Sobreajuste::kRiscando + Sobreajuste::kCaindo + 0.8f;
+            if (mostrar) {
+                const SDL_FRect c = Campo();
+                const float x = std::clamp((de.x + ate.x) * 0.5f, c.x + 180.0f, c.x + c.w - 180.0f);
+                const float y = std::clamp(de.y - 60.0f, c.y + 200.0f, c.y + c.h - 40.0f);
+                mVeredito->SetPosition(Vector2(x, y));
+            }
+            mVeredito->Mostrar(mostrar);
         }
         // Sem o modelo, o professor atira ele mesmo, sem tipo.
         if (t >= mProximoLeque) {

@@ -59,7 +59,7 @@ namespace Tutorial {
     constexpr float kPrimeiroTiro = 0.6f;
 
     /// O professor encerra a prova kAplausos segundos depois de o Fim comecar: o tempo da festa.
-    constexpr float kAplausos = 3.0f;
+    constexpr float kAplausos = 4.0f;
     bool Acabou(float t);
 
     /// Ninguem reprova no tutorial: a nota nunca fica abaixo disto.
