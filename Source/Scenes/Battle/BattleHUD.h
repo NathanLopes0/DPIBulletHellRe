@@ -15,7 +15,7 @@ class BattleHUD {
 public:
     BattleHUD(Scene* scene);
 
-    /// 'relogioParado': o chefe esta congelado (o hlt), e a fase nao corre.
+    /// 'relogioParado': o chefe esta congelado, e a fase nao corre.
     void OnUpdate(float deltaTime, bool relogioParado = false);
     void SetTimeBar(Actor* barActor, DrawRelogioDaFaseComponent* barComp);
 
