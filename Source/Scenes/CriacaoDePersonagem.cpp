@@ -280,38 +280,44 @@ void CriacaoDePersonagem::AtualizarRodape() const {
 
     if (!mRodapeAtor) return;
 
-    std::string dicaBotaoTres;
+    std::vector<Painel::Acao> acoes;
 
-    // Quando o foco esta no CONFIRMAR, nao existe outra coluna.
-    if (NoBotao()) {
-        dicaBotaoTres = "sem alternancia aqui";
-    }
-    else {
-        // Descobre qual seria a outra coluna.
-        const int outraColuna =
-            mColunaEmFoco == kObjeto ? kCor : kObjeto;
+    // O Botao 3 so aparece quando as duas colunas
+    // podem ser selecionadas nesta linha.
+    const bool podeAlternar =
+        !NoBotao() &&
+        Editavel(mLinhaEmFoco, kObjeto) &&
+        Editavel(mLinhaEmFoco, kCor);
 
-        // Algumas categorias possuem apenas uma opcao editavel.
-        // Nesse caso, o Botao 3 nao produz nenhuma mudanca.
-        if (!Editavel(mLinhaEmFoco, outraColuna)) {
-            dicaBotaoTres = "sem alternancia nesta linha";
-        }
-        else if (mColunaEmFoco == kObjeto) {
-            dicaBotaoTres = "Objeto ativo; alternar para COR";
-        }
-        else {
-            dicaBotaoTres = "Cor ativa; alternar para OBJETO";
-        }
+    if (podeAlternar) {
+        const std::string destino =
+            mColunaEmFoco == kCor ? "OBJETO" : "COR";
+
+        acoes.emplace_back(
+            PainelDaVez(),
+            Painel::Botao::Tres,
+            "Alternar para " + destino
+        );
     }
 
-    // Reconstroi o texto utilizando o sistema de rodape do projeto.
-    const std::string texto = Painel::Rodape({
-        {PainelDaVez(), Painel::Botao::Tres, dicaBotaoTres},
-        {PainelDaVez(), Painel::Botao::Um, "confirmar"},
-        {PainelDaVez(), Painel::Botao::Dois, "voltar"}
-    }, mGame->JeitoDoRodape());
+    // Estas duas acoes sempre aparecem.
+    acoes.emplace_back(
+        PainelDaVez(),
+        Painel::Botao::Um,
+        "confirmar"
+    );
 
-    // Atualiza a textura do texto existente.
+    acoes.emplace_back(
+        PainelDaVez(),
+        Painel::Botao::Dois,
+        "voltar"
+    );
+
+    const std::string texto = Painel::Rodape(
+        acoes,
+        mGame->JeitoDoRodape()
+    );
+
     if (auto* dc = mRodapeAtor->GetComponent<DrawTextComponent>()) {
         dc->SetText(texto);
     }
