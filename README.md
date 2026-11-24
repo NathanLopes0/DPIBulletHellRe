@@ -267,7 +267,7 @@ valem para todos que jogarem ali até alguém trocar.
 
 Uma partida começa pela matrícula. Depois de escolher **Modo Solo** ou **Modo
 Dupla**, cada aluno digita a sua no teclado da tela — o manche escolhe a tecla, o
-botão 1 digita e o botão 2 apaga — e confirma em **ENTRAR**. Não é preciso dizer
+botão 1 digita e o botão 2 apaga (com o campo vazio, volta ao menu) — e confirma em **ENTRAR**. Não é preciso dizer
 se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e traz
 de volta a aparência escolhida; se não existe, o aluno passa pela criação de
 personagem, e o perfil só é gravado quando ela é confirmada. Na primeira vez de

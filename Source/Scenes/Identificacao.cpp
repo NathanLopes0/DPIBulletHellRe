@@ -114,7 +114,7 @@ void Identificacao::CriarTextos() {
     // Linhas proprias em vez de uma longa.
     Texto(Painel::Rodape({Painel::Manche(PainelDaVez(), "escolher"),
                           {PainelDaVez(), Painel::Botao::Um,   "digitar"},
-                          {PainelDaVez(), Painel::Botao::Dois, "apagar"}},
+                          {PainelDaVez(), Painel::Botao::Dois, "apagar / voltar"}},
                          mGame->JeitoDoRodape()),
           altura * 0.955f, 22, 1100, 34);
 
@@ -310,10 +310,16 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
         }
     }
 
-    // Botao 2 do gabinete, junto com o backspace.
-    const bool apagar = Painel::Apertado(keyState, PainelDaVez(), Painel::Botao::Dois)
-                        || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
+    // Botao 2 do gabinete, junto com o backspace. Com o campo vazio, o Botao 2 volta (como o Esc):
+    // no gabinete nao ha outra saida desta tela.
+    const bool botaoDois = Painel::Apertado(keyState, PainelDaVez(), Painel::Botao::Dois);
+    const bool apagar = botaoDois || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
     if (mBordaApagar.Bateu(apagar)) {
+        if (mDigitado.empty() && botaoDois) {
+            mGame->CancelarEntrada();
+            mGame->RequestSceneChange(SceneType::MainMenu);
+            return;
+        }
         mDigitado = Matricula::Apagar(mDigitado);
         mErro.clear();
     }
