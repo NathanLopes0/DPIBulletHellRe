@@ -39,7 +39,7 @@ namespace Dom {
     constexpr float kMaiorAltura = 240.0f;
     /// Nunca mais rapida que 80% do aluno (Player::kVelocidade, 300): a <div> que o segue e alcancavel
     /// de fugir.
-    constexpr float kMaiorRapidez = 240.0f;
+    constexpr float kMaiorRapidez = 220.0f;
     /// display: grid: as quatro caixas, com este vao entre elas.
     constexpr float kVaoDaGrade = 18.0f;
     /// cloneNode: nunca mais que isto na tela.
@@ -50,7 +50,7 @@ namespace Dom {
     constexpr float kPulso = 0.3f;
     constexpr float kPeriodoDoPulso = 1.2f;
     /// overflow: scroll encurta o intervalo do transbordo, ate este piso.
-    constexpr float kMenorTransbordo = 1.5f;
+    constexpr float kMenorTransbordo = 1.8f;
 
     struct Div {
         Vector2 centro;
@@ -196,19 +196,19 @@ namespace Dom {
     /// O ritmo de cada modo.
     struct Degrau {
         float calma = 2.0f;               ///< a <div> sozinha no comeco da fase
-        float entreLances = 2.0f;         ///< entre um lance de regras e o seguinte
+        float entreLances = 2.3f;         ///< entre um lance de regras e o seguinte
         int regrasPorLance = 3;
-        float velocidadeDasRegras = 180.0f;
-        float rapidezDaDiv = 110.0f;
-        float entreTransbordos = 2.8f;    ///< o overflow da <div> nova
-        float velocidadeDasGotas = 120.0f;
-        int tirosDoAnel = 10;             ///< setInterval
-        int tirosDaExplosao = 14;         ///< setTimeout
+        float velocidadeDasRegras = 170.0f;
+        float rapidezDaDiv = 100.0f;
+        float entreTransbordos = 3.2f;    ///< o overflow da <div> nova
+        float velocidadeDasGotas = 110.0f;
+        int tirosDoAnel = 8;              ///< setInterval
+        int tirosDaExplosao = 12;         ///< setTimeout
         int tirosDoRevide = 3;            ///< onclick
-        int tirosDoLeque = 4;             ///< forEach
-        float velocidadeDaQueda = 300.0f; ///< onmouseover
-        float entreTags = 2.0f;           ///< o leque do proprio professor
-        int tagsPorLeque = 6;
+        int tirosDoLeque = 3;             ///< forEach
+        float velocidadeDaQueda = 270.0f; ///< onmouseover
+        float entreTags = 2.3f;           ///< o leque do proprio professor
+        int tagsPorLeque = 5;
         /// Na fase 2, quantas regras saem de CSS ainda (o resto e JavaScript).
         float chanceDeCssNoJs = 0.2f;
     };

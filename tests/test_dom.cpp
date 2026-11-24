@@ -233,7 +233,7 @@ TEST_CASE("Dom: as pecas cobrem a div, e a redonda so o circulo") {
     CHECK(df.velocidadeDasRegras > n.velocidadeDasRegras);
     CHECK(df.entreTransbordos < n.entreTransbordos);
     // Mesmo no Normal, as regras chegam em quantidade: mais de uma por segundo.
-    CHECK(static_cast<float>(n.regrasPorLance) / n.entreLances >= 1.5f);
+    CHECK(static_cast<float>(n.regrasPorLance) / n.entreLances > 1.0f);
 }
 
 TEST_CASE("Dom: a regra mirada na div faz a curva, mas nao vira de uma vez") {

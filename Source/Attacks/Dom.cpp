@@ -345,19 +345,19 @@ namespace Dom {
         Degrau g;
         if (nivel == Dificuldade::Nivel::Dificil) {
             g.calma = 1.5f;
-            g.entreLances = 1.8f;
+            g.entreLances = 2.0f;
             g.regrasPorLance = 3;
-            g.velocidadeDasRegras = 215.0f;
-            g.rapidezDaDiv = 140.0f;
-            g.entreTransbordos = 2.4f;
-            g.velocidadeDasGotas = 140.0f;
-            g.tirosDoAnel = 12;
-            g.tirosDaExplosao = 12;
+            g.velocidadeDasRegras = 200.0f;
+            g.rapidezDaDiv = 125.0f;
+            g.entreTransbordos = 2.7f;
+            g.velocidadeDasGotas = 130.0f;
+            g.tirosDoAnel = 10;
+            g.tirosDaExplosao = 11;
             g.tirosDoRevide = 4;
-            g.tirosDoLeque = 5;
-            g.velocidadeDaQueda = 360.0f;
-            g.entreTags = 1.9f;
-            g.tagsPorLeque = 7;
+            g.tirosDoLeque = 4;
+            g.velocidadeDaQueda = 330.0f;
+            g.entreTags = 2.1f;
+            g.tagsPorLeque = 6;
         }
         return g;
     }
