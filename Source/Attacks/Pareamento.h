@@ -106,6 +106,13 @@ namespace Pareamento {
     /// todas igualmente espacadas, girando 'rapidez' radianos por segundo.
     Vector2 NaOrbita(int k, int n, float t, Vector2 centro, Vector2 raios, float rapidez);
 
+    /// A elipse das capsulas, em fracoes do campo: achatada, no quarto de baixo. Mais alto, a parede
+    /// de tiros que desce cobria as que subiam, e nao dava para pega-las; mais baixo, elas passariam
+    /// por quem esta parado no chao e trocariam a base dele sem ele querer.
+    constexpr float kAlturaDaOrbita = 0.79f;   ///< o centro, da altura do campo
+    constexpr float kLarguraDaOrbita = 0.40f;  ///< o raio de um lado ao outro, da largura
+    constexpr float kAchatamentoDaOrbita = 0.05f; ///< o raio de cima a baixo, da altura
+
     // ---- O ritmo ----
 
     struct Degrau {

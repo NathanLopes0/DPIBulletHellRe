@@ -889,7 +889,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   selo ao seu lado, e o anel na cor dela): a base que pareia com a sua (A com
   T, C com G; no RNA, A com U) não machuca — encaixa em você pelas pontes de
   hidrogênio, tracejadas até os tiros que pareiam, e vale nota —, e as outras
-  machucam. As **cápsulas** de nucleotídeo livre giram na metade de baixo, e
+  machucam. As **cápsulas** de nucleotídeo livre giram no quarto de baixo do campo, e
   encostar numa troca a sua base. No **pareamento**, a professora anuncia a
   base da próxima onda, e a onda é quase toda dela; na **transcrição**, a
   polimerase lê a fita molde no alto e solta o RNA — com U no lugar de T, e o
