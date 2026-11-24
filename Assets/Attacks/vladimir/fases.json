@@ -5,7 +5,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "L: termina em ab",
+    "anuncio": "Autômatos finitos",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
@@ -37,7 +37,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "compilador",
+    "anuncio": "Compiladores",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Conduzido", "a": 450 },
     "ataques": [
@@ -73,7 +73,7 @@
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "castor ocupado: 4 estados",
+    "anuncio": "Máquina de Turing",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Conduzido", "a": 150 },
     "ataques": [
@@ -99,7 +99,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "while (x ≠ 1) … para?",
+    "anuncio": "O problema da parada",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Conduzido", "a": 260 },
     "ataques": [

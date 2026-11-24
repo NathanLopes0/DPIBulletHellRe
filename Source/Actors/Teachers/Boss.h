@@ -165,9 +165,22 @@ public:
     /// Com 't' negativo, o da fase.
     [[nodiscard]] std::string AnuncioDaFaseEm(const std::string& fase, float t) const;
 
+    /// O titulo da fase, como o arquivo o escreveu ("anuncio" em fases.json): e so ele que o quadro da
+    /// batalha mostra. O que o professor reescreve durante a luta (RegistrarAnuncio, TrocarAnuncio) nao
+    /// vai para o quadro - mudava rapido demais para alguem ler desviando.
+    void RegistrarTitulo(const std::string& fase, const std::string& texto);
+    /// O que o quadro mostra agora: o texto da etapa em curso, se ela dura ao menos kEtapaLegivel
+    /// segundos (uma parte da fase, como "Programacao dinamica"); senao, o titulo da fase. Sem titulo
+    /// registrado, o anuncio do arquivo de antes de qualquer troca.
+    [[nodiscard]] std::string TituloDaFase(const std::string& fase) const;
+    static constexpr float kEtapaLegivel = 6.0f;
+
     /// Anota as etapas da fase: onde cada uma acaba, em segundos desde o comeco da fase, e o que o
     /// placar diz durante ela.
     void RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);
+    /// Reescreve o que as etapas dizem durante a luta (o placar de cada coisa que acontece), sem mudar o
+    /// titulo de cada uma - o que o quadro mostra (TituloDaFase) continua o de RegistrarEtapas.
+    void ReescreverEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);
 
     /// As etapas registradas da fase (onde cada uma acaba e o texto dela), ou vazia.
     [[nodiscard]] std::vector<std::pair<float, std::string>> EtapasDa(const std::string& fase) const;
@@ -293,6 +306,8 @@ private:
 
     /// Por fase, o texto do placar.
     std::map<std::string, std::string> mAnuncioPorFase;
+    std::map<std::string, std::string> mTituloPorFase;
+    std::map<std::string, std::vector<std::string>> mTitulosDasEtapas;
 
     /// Por fase, as etapas: onde cada uma acaba e o texto dela.
     std::map<std::string, std::vector<std::pair<float, std::string>>> mEtapasPorFase;

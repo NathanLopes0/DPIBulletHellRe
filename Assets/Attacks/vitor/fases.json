@@ -6,7 +6,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "semáforos",
+    "anuncio": "Semáforos",
     "movimento": { "tipo": "Conduzido", "a": 520 },
     "ataques": [
       { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
@@ -24,7 +24,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "TCP · congestionamento",
+    "anuncio": "TCP: controle de congestionamento",
     "movimento": { "tipo": "Varredura", "a": 90, "b": 380 },
     "ataques": [
       { "gatilho": "nuvens", "estrategia": "WaveAttack", "projetil": "Nuvem",
@@ -45,7 +45,7 @@
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "fork · dois processos",
+    "anuncio": "Processos: fork e troca de mensagens",
     "movimento": { "tipo": "Conduzido", "a": 420 },
     "ataques": [
       { "gatilho": "envelope", "estrategia": "WaveAttack", "projetil": "Envelope",
@@ -63,7 +63,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "jantar dos filósofos",
+    "anuncio": "Deadlock: o jantar dos filósofos",
     "movimento": { "tipo": "Conduzido", "a": 400 },
     "ataques": [
       { "gatilho": "garfo", "estrategia": "WaveAttack", "projetil": "Garfo",

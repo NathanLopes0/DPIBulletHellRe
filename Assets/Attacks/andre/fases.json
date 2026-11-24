@@ -5,7 +5,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "if / else",
+    "anuncio": "Condicionais: if / else",
     "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
       { "gatilho": "rotulo", "estrategia": "WaveAttack", "projetil": "Rotulo",
@@ -22,7 +22,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "for / while",
+    "anuncio": "Laços: for / while",
     "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
       { "gatilho": "indice", "estrategia": "WaveAttack", "projetil": "Indice",
@@ -38,7 +38,7 @@
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "funcoes",
+    "anuncio": "Funções",
     "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
       { "gatilho": "indice", "estrategia": "WaveAttack", "projetil": "Indice",
@@ -58,7 +58,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "BOCA",
+    "anuncio": "Maratona: o BOCA",
     "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
       { "gatilho": "rotulo", "estrategia": "WaveAttack", "projetil": "Rotulo",

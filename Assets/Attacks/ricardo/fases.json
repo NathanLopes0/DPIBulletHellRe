@@ -78,7 +78,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "void loop()",
+    "anuncio": "Arduino: o Blink",
     "etapas": [
       { "nome": "Lento",  "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(1000);" },
       { "nome": "Medio",  "duracao": 7, "anuncio": "digitalWrite(13, HIGH); delay(500);" },

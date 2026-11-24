@@ -254,6 +254,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         // O anuncio tambem.
         if (!fase.anuncio.empty()) {
             boss->RegistrarAnuncio(fase.nome, fase.anuncio);
+            boss->RegistrarTitulo(fase.nome, fase.anuncio);
         }
 
         // E as etapas: onde cada uma acaba, e o que o placar diz durante ela.

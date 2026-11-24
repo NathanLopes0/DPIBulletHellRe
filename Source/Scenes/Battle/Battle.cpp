@@ -270,9 +270,10 @@ void Battle::CriarJogadores() {
 void Battle::AtualizarPlacar() {
     if (!mPlacar || !mChefe) return;
 
-    // FaseAtual, e nao o nome que a maquina de estados acabou de trocar.
+    // FaseAtual, e nao o nome que a maquina de estados acabou de trocar. O quadro mostra so o titulo
+    // da parte da fase (Boss::TituloDaFase), e nao cada coisa que o professor escreve durante ela.
     mPlacar->Mostrar(Intercambio::Avisando(mRelogioDoIntercambio) ? mChefe->AvisoDoIntercambio()
-                                                                  : mChefe->AnuncioDaFase(mChefe->FaseAtual()));
+                                                                  : mChefe->TituloDaFase(mChefe->FaseAtual()));
 }
 
 void Battle::CriarIntercambio() {

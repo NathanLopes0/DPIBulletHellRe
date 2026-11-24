@@ -7,7 +7,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "<div id=\"prova\"></div>",
+    "anuncio": "CSS: as regras mudam a forma",
     "movimento": { "tipo": "Conduzido", "a": 320 },
     "ataques": [
       // Cada peca invisivel que faz a <div> machucar em toda a area dela.
@@ -30,7 +30,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "document.querySelector(\"div\")",
+    "anuncio": "JavaScript: as regras mudam o comportamento",
     "movimento": { "tipo": "Conduzido", "a": 320 },
     "ataques": [
       { "gatilho": "peca", "estrategia": "WaveAttack", "projetil": "Peca",
@@ -69,7 +69,7 @@
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "É perigoso ir sozinho!",
+    "anuncio": "Elixir · É perigoso ir sozinho!",
     "movimento": { "tipo": "Conduzido", "a": 420 },
     "ataques": [
       { "gatilho": "gosma", "estrategia": "WaveAttack", "projetil": "Gosma",
@@ -98,7 +98,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "mix phx.server",
+    "anuncio": "Phoenix · a fênix renasce",
     "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
       { "gatilho": "fenix", "estrategia": "WaveAttack", "projetil": "Fenix",

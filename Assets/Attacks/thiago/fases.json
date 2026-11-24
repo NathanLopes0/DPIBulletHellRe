@@ -5,7 +5,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "SELECT",
+    "anuncio": "Consultas: SELECT",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
@@ -33,7 +33,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "INSERT, UPDATE, DELETE",
+    "anuncio": "Modificação: INSERT, UPDATE, DELETE",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
@@ -57,7 +57,7 @@
     "duracao": 20,
     // Vazio: e aqui que a batalha e decidida.
     "proximo": "",
-    "anuncio": "BEGIN TRANSACTION",
+    "anuncio": "Transações",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
@@ -86,7 +86,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "SELECT * FROM alunos, cursos",
+    "anuncio": "Junção: o produto cartesiano",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",

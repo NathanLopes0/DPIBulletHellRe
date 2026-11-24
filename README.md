@@ -550,8 +550,17 @@ lógicas do Ricardo, a temperatura de cada etapa do Júlio (escrita no placar),
 o *planning poker* das sprints da Maria Lúcia, as regras que o Lucas
 joga na `<div>`, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
 em toda luta; o que muda é o exemplo — como uma lista de exercícios em que cada
-aluno pega outros números. Decorar o padrão não serve, e o placar continua
-sendo a regra: ele diz o que vai acontecer.
+aluno pega outros números. Decorar o padrão não serve.
+
+**O quadro diz só o que a parte da prova é.** O quadro-negro do canto de cima
+mostra o título da fase ("Pilha: LIFO", "Tabela hash") ou o da etapa em curso,
+quando ela é uma parte de verdade, de ao menos 6 s ("Programação dinâmica",
+"temperatura = 0,8"). O que o professor anuncia a cada ataque — cada `insert`
+do Salles, cada `SELECT` do Thiago, cada `{:ok, :chave}` do Lucas — mudava
+rápido demais para alguém ler desviando, e não vai mais para o quadro: nas
+descrições abaixo, "o placar diz" é esse anúncio do professor, que segue no
+código (`Boss::AnuncioDaFase`) mas não é desenhado. O quadro lê
+`Boss::TituloDaFase`.
 
 **No Difícil**, cada professor sobe um degrau dentro da mesma ideia — mais
 tokens, leques mais largos, relógios mais curtos —, medido para cobrar de quem

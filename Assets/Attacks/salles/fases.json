@@ -5,7 +5,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "pilha: LIFO",
+    "anuncio": "Pilha: LIFO",
     "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
@@ -23,7 +23,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "h(k) = k mod m",
+    "anuncio": "Tabela hash",
     "movimento": { "tipo": "Conduzido", "a": 220, "dificil": { "a": 280 } },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
@@ -46,7 +46,7 @@
     "duracao": 20,
     // Vazio: e aqui que a batalha e decidida.
     "proximo": "",
-    "anuncio": "árvore binária de busca",
+    "anuncio": "Árvore binária de busca",
     "movimento": { "tipo": "Varredura", "a": 60, "b": 380 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
@@ -69,7 +69,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "bubble sort",
+    "anuncio": "Ordenação: bubble sort",
     "movimento": { "tipo": "Conduzido", "a": 500 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",

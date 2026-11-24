@@ -165,7 +165,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 |---|---|
 | `duracao` | segundos. **Toda fase dura 20** (`Fase::kDuracao`, em `Source/Attacks/Fase.h`), e um teste confere — há módulos que cortam a fase em pedaços contando com isso |
 | `proximo` | a próxima fase. **Vazio significa "a batalha é decidida aqui"**, não "fim do arquivo". |
-| `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
+| `anuncio` | opcional. O **título** da fase, no quadro do canto de cima, enquanto ela dura: o que a parte da prova é ("Tabela hash"), e não o que acontece a cada ataque. A etapa de ao menos 6 s (`Boss::kEtapaLegivel`) com `anuncio` troca o quadro pelo dela enquanto dura; o que o professor reescreve durante a luta não chega ao quadro (`Boss::TituloDaFase`). Sem ele o quadro fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
 | `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 4.0, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`). A leitura recusa etapas que passam da fase, e um teste cobra que elas a **cubram inteira** |
 | `movimento` | como o professor anda. Um bloco `"dificil": { "a": 280 }` dentro dele troca o `a` e/ou o `b` no modo Difícil (o Salles vai aos baldes a 220 no Normal e a 280 no Difícil); chave que não é `a` nem `b` é avisada e ignorada |

@@ -279,7 +279,7 @@ void Sabrina::PlacarDaEtapa(const std::string& fase, const size_t etapa, const s
     auto etapas = EtapasDa(fase);
     if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
     etapas[etapa].second = texto;
-    RegistrarEtapas(fase, etapas);
+    ReescreverEtapas(fase, etapas);
 }
 
 void Sabrina::Avisar(const std::string& texto, const float duracao) {

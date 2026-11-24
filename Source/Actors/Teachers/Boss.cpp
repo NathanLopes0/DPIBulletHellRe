@@ -438,7 +438,42 @@ std::string Boss::AnuncioDaFaseEm(const std::string& fase, const float t) const 
     return it == mAnuncioPorFase.end() ? std::string{} : it->second;
 }
 
+void Boss::RegistrarTitulo(const std::string& fase, const std::string& texto) {
+    mTituloPorFase[fase] = texto;
+}
+
+std::string Boss::TituloDaFase(const std::string& fase) const {
+    // A etapa em curso, se for uma parte de verdade (longa o bastante para ser lida).
+    const auto etapas = mEtapasPorFase.find(fase);
+    const auto* fsm = GetComponent<FSMComponent>();
+    if (etapas != mEtapasPorFase.end() && fsm && fase == mLastStateName) {
+        const float t = fsm->GetStateTime();
+        const auto titulos = mTitulosDasEtapas.find(fase);
+        float inicio = 0.0f;
+        for (size_t i = 0; i < etapas->second.size(); ++i) {
+            const float fim = etapas->second[i].first;
+            if (t < fim) {
+                const std::string* texto = titulos != mTitulosDasEtapas.end() && i < titulos->second.size()
+                                               ? &titulos->second[i] : nullptr;
+                if (texto && fim - inicio >= kEtapaLegivel && !texto->empty()) return *texto;
+                break;
+            }
+            inicio = fim;
+        }
+    }
+    if (const auto it = mTituloPorFase.find(fase); it != mTituloPorFase.end()) return it->second;
+    if (const auto it = mAnunciosDoArquivo.find(fase); it != mAnunciosDoArquivo.end()) return it->second;
+    return AnuncioDaFaseEm(fase, -1.0f);
+}
+
 void Boss::RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto) {
+    auto& titulos = mTitulosDasEtapas[fase];
+    titulos.clear();
+    for (const auto& e : fimETexto) titulos.push_back(e.second);
+    mEtapasPorFase[fase] = std::move(fimETexto);
+}
+
+void Boss::ReescreverEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto) {
     mEtapasPorFase[fase] = std::move(fimETexto);
 }
 
