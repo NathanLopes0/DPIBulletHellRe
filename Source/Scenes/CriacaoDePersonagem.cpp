@@ -182,7 +182,7 @@ void CriacaoDePersonagem::Load() {
     // Uma linha so para o manche, e o rodape saindo dos botoes.
     Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam",
           largura / 2.0f, altura * 0.88f, 22, 1100);
-    Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "Alternar objeto / cor"},
+    mRodapeAtor = Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "Alternar objeto / cor"},
                           {PainelDaVez(), Painel::Botao::Um,   "confirmar"},
                           {PainelDaVez(), Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
@@ -271,6 +271,49 @@ void CriacaoDePersonagem::Redesenhar() const {
         mSelecaoAtor->SetPosition(Vector2(
             largura * (mColunaEmFoco == kCor ? kCorX : kObjetoX),
             altura * (kPrimeiraLinha + static_cast<float>(mLinhaEmFoco) * kEspacoEntreLinhas)));
+    }
+
+    AtualizarRodape();
+}
+
+void CriacaoDePersonagem::AtualizarRodape() const {
+
+    if (!mRodapeAtor) return;
+
+    std::string dicaBotaoTres;
+
+    // Quando o foco esta no CONFIRMAR, nao existe outra coluna.
+    if (NoBotao()) {
+        dicaBotaoTres = "sem alternancia aqui";
+    }
+    else {
+        // Descobre qual seria a outra coluna.
+        const int outraColuna =
+            mColunaEmFoco == kObjeto ? kCor : kObjeto;
+
+        // Algumas categorias possuem apenas uma opcao editavel.
+        // Nesse caso, o Botao 3 nao produz nenhuma mudanca.
+        if (!Editavel(mLinhaEmFoco, outraColuna)) {
+            dicaBotaoTres = "sem alternancia nesta linha";
+        }
+        else if (mColunaEmFoco == kObjeto) {
+            dicaBotaoTres = "Objeto ativo; alternar para COR";
+        }
+        else {
+            dicaBotaoTres = "Cor ativa; alternar para OBJETO";
+        }
+    }
+
+    // Reconstroi o texto utilizando o sistema de rodape do projeto.
+    const std::string texto = Painel::Rodape({
+        {PainelDaVez(), Painel::Botao::Tres, dicaBotaoTres},
+        {PainelDaVez(), Painel::Botao::Um, "confirmar"},
+        {PainelDaVez(), Painel::Botao::Dois, "voltar"}
+    }, mGame->JeitoDoRodape());
+
+    // Atualiza a textura do texto existente.
+    if (auto* dc = mRodapeAtor->GetComponent<DrawTextComponent>()) {
+        dc->SetText(texto);
     }
 }
 

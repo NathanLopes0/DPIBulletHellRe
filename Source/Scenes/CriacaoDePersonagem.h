@@ -60,6 +60,8 @@ private:
     /// Atualiza os rotulos, as amostras de cor e a moldura da celula em foco.
     void Redesenhar() const;
 
+    void AtualizarRodape() const;
+
     std::unique_ptr<Font> mFonte;
 
     /// Qual posicao esta montando a personagem. Cada jogador monta a sua, e esta tela roda uma vez
@@ -79,6 +81,8 @@ private:
 
     Actor* mPersonagemAtor{};
     Actor* mSelecaoAtor{};
+    Actor* mRodapeAtor{};
+
     /// O botao CONFIRMAR, depois da ultima linha: so nele o Botao 1 grava a personagem.
     Actor* mBotaoAtor{};
     /// O foco esta no botao, e nao numa linha da tabela.
