@@ -72,3 +72,25 @@ TEST_CASE("Masmorra: pegar e a espiral da furia") {
     const auto depois = RumosDaEspiral(4, 1.0f, 90.0f);
     CHECK(depois[0] == doctest::Approx(90.0f));               // a espiral gira
 }
+
+TEST_CASE("Masmorra: a fadinha vai ao inimigo mais perto, e a mira cerca o alvo") {
+    const std::vector<Vector2> alvos{Vector2(500.0f, 100.0f), Vector2(120.0f, 300.0f), Vector2(900.0f, 600.0f)};
+    CHECK(MaisPerto(Vector2(100.0f, 400.0f), alvos) == 1);
+    CHECK(MaisPerto(Vector2(950.0f, 650.0f), alvos) == 2);
+    CHECK(MaisPerto(Vector2(0.0f, 0.0f), {}) == -1);
+    // Ela paira em cima do alvo, perto dele.
+    for (float t = 0.0f; t < 3.0f; t += 0.1f) {
+        const Vector2 p = PousoDaFada(Vector2(300.0f, 300.0f), t);
+        CHECK(p.y < 300.0f);
+        CHECK((p - Vector2(300.0f, 300.0f)).Length() < kAcimaDoAlvo + 20.0f);
+    }
+    // A mira: quatro setas com a ponta para dentro, em volta do alvo.
+    const Vector2 alvo(400.0f, 400.0f);
+    const auto setas = Mira(alvo, 30.0f, 1.3f);
+    REQUIRE(setas.size() == 4u);
+    for (const Seta& s : setas) {
+        CHECK((s.ponta - alvo).Length() < (s.esquerda - alvo).Length());
+        CHECK((s.ponta - alvo).Length() < (s.direita - alvo).Length());
+        CHECK((s.ponta - alvo).Length() == doctest::Approx(30.0f).epsilon(0.1));
+    }
+}

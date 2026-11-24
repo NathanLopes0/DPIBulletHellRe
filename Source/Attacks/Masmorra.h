@@ -87,4 +87,26 @@ namespace Masmorra {
     /// o gesto dura (o aluno nao para; so o desenho).
     constexpr float kErguido = 1.2f;
     constexpr float kAcimaDaCabeca = 46.0f;
+
+    // ---- A fadinha e a mira ----
+    //
+    // Outra homenagem: uma fadinha de luz sai do aluno, voa ate o inimigo mais perto e fica pairando
+    // em cima dele, e uma mira amarela aparece em volta - quem jogou os jogos de aventura reconhece.
+    // Ela ensina sem uma palavra: primeiro as gosmas (a chave), depois o professor.
+
+    /// O indice do alvo mais perto de 'de' entre 'alvos', ou -1 sem alvos.
+    [[nodiscard]] int MaisPerto(Vector2 de, const std::vector<Vector2>& alvos);
+
+    /// A fada: a rapidez do voo, quanto acima do alvo ela paira, e o balanco de quem paira.
+    constexpr float kRapidezDaFada = 420.0f;
+    constexpr float kAcimaDoAlvo = 30.0f;
+    /// Onde a fada quer estar 't' segundos depois: em cima do alvo, num oito pequeno.
+    Vector2 PousoDaFada(Vector2 alvo, float t);
+
+    /// A mira: as quatro setas em volta do alvo, cada uma com a ponta (para dentro) e as duas
+    /// pontas de tras. Elas giram devagar e respiram.
+    struct Seta {
+        Vector2 ponta, esquerda, direita;
+    };
+    std::vector<Seta> Mira(Vector2 alvo, float raio, float t);
 }

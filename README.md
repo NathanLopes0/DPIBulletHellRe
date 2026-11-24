@@ -1064,7 +1064,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   teletransporta, o `setTimeout` a faz estourar e o `cloneNode` a duplica. No
   aluno, a regra de JavaScript o trava um instante. O Elixir é uma sala de
   masmorra, uma homenagem aos jogos de aventura de que ele gosta: "É perigoso
-  ir sozinho!". A cada rodada aparecem um baú, gosmas e duas tochas apagadas.
+  ir sozinho!". Uma fadinha de luz sai do aluno e voa até o inimigo mais perto,
+  e uma mira amarela aparece em volta dele. A cada rodada aparecem um baú,
+  gosmas e duas tochas apagadas.
   O aluno derrota as gosmas, pega a chave pequena e abre o baú: ergue o
   Elixir acima da cabeça e fica protegido, mais rápido e ganhando mais nota
   por uns segundos, com corações em volta. O professor também quer o Elixir,

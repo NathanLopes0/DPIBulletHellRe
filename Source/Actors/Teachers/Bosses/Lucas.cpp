@@ -44,6 +44,12 @@ namespace {
     constexpr float kAbaixoDaTocha = 44.0f;
     constexpr float kAcimaDoBau = 40.0f;
     constexpr SDL_Color kCoracao{255, 90, 110, 255};
+    // A fadinha e a mira amarela.
+    constexpr SDL_Color kMira{255, 222, 60, 235};
+    constexpr SDL_Color kMiraEscura{170, 120, 20, 235};
+    constexpr float kRaioDaMiraNaGosma = 30.0f;
+    constexpr float kRaioDaMiraNoProfessor = 62.0f;
+    constexpr size_t kRastroDaFada = 14;
     // O Phoenix.
     constexpr SDL_Color kSocket{180, 140, 255, 220};
     constexpr SDL_Color kBroadcast{255, 170, 80, 200};
@@ -138,6 +144,8 @@ void Lucas::Desmontar(const bool manterADiv) {
     Matar(mElixirP);
     MatarTodos(mTochasP);
     mTochas.clear();
+    mFadas.clear();
+    mRastros.clear();
     mAcesas.clear();
     mAcendendo = -1;
     mRodadaNaSala = false;
@@ -805,6 +813,7 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
         const float balanco = mDesfecho == Desfecho::DoProfessor ? 0.22f * Math::Sin(Math::TwoPi * (t - mInicioDaFuria) / 3.0f) : 0.0f;
         mAlvo = Vector2(c.x + c.w * (0.5f + balanco), c.y + kYDoProfessor);
     }
+    AtualizarFadas(deltaTime);
     if (mDesfecho == Desfecho::DoProfessor && t - mInicioDaFuria < g.furia) {
         const float tf = t - mInicioDaFuria;
         const Vector2 de = GetPosition() + Vector2(0.0f, 30.0f);
@@ -819,6 +828,63 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
             mProximoAnel = t + g.entreAneis;
             DispararEm("anel_furia", de, g.tirosDoAnel);
             SomDoDisparo();
+        }
+    }
+}
+
+void Lucas::AtualizarFadas(const float deltaTime) {
+    const Battle* b = Batalha();
+    if (!b) return;
+    const std::vector<Player*>& alunos = b->Jogadores();
+    // Os inimigos: as gosmas vivas, e o professor. A fada de cada aluno vai ao mais perto dele.
+    std::vector<Vector2> alvos;
+    std::vector<float> raios;
+    for (const BossProjectile* g : mGosmas) {
+        if (!Vivo(g)) continue;
+        alvos.push_back(g->GetPosition());
+        raios.push_back(kRaioDaMiraNaGosma);
+    }
+    alvos.push_back(GetPosition());
+    raios.push_back(kRaioDaMiraNoProfessor);
+
+    mFadas.resize(alunos.size(), Vector2::Zero);
+    mRastros.resize(alunos.size());
+    for (size_t i = 0; i < alunos.size(); ++i) {
+        if (!alunos[i]) continue;
+        const Vector2 aluno = alunos[i]->GetPosition();
+        // A fada nasce no aluno (e volta a ele se ficou para tras de uma fase anterior).
+        if (mRastros[i].empty()) mFadas[i] = aluno + Vector2(0.0f, -20.0f);
+        const int qual = Masmorra::MaisPerto(aluno, alvos);
+        if (qual < 0) continue;
+        const Vector2 alvo = alvos[static_cast<size_t>(qual)];
+        const float tempo = mRelogio + static_cast<float>(i) * 1.7f;
+        mFadas[i] = Masmorra::Passo(mFadas[i], Masmorra::PousoDaFada(alvo, tempo), Masmorra::kRapidezDaFada, deltaTime);
+        // O rastro: os ultimos lugares por onde ela passou.
+        auto& rastro = mRastros[i];
+        rastro.insert(rastro.begin(), mFadas[i]);
+        if (rastro.size() > kRastroDaFada) rastro.pop_back();
+        for (size_t k = 1; k < rastro.size(); k += 2) {
+            const float u = 1.0f - static_cast<float>(k) / static_cast<float>(kRastroDaFada);
+            Disco(rastro[k], 1.0f + 1.5f * u, SDL_Color{190, 235, 255, static_cast<Uint8>(150.0f * u)});
+        }
+        // A fada: o brilho, o corpo de luz e as asas batendo.
+        const Vector2 f = mFadas[i];
+        Circulo(f, 10.0f + 1.5f * std::sin(tempo * 8.0f), SDL_Color{170, 225, 255, 90}, 16);
+        Disco(f, 6.0f, SDL_Color{150, 215, 255, 120});
+        Disco(f, 3.5f, SDL_Color{245, 252, 255, 255});
+        const float bate = 0.5f + 0.5f * std::sin(tempo * 32.0f);
+        for (const float lado : {-1.0f, 1.0f}) {
+            Disco(f + Vector2(lado * (6.0f + 2.0f * bate), -3.0f - 2.0f * bate), 2.5f + bate, SDL_Color{220, 245, 255, 170});
+        }
+        // A mira amarela no alvo, quando a fada ja chegou perto.
+        if ((f - Masmorra::PousoDaFada(alvo, tempo)).Length() < 40.0f) {
+            for (const Masmorra::Seta& s : Masmorra::Mira(alvo, raios[static_cast<size_t>(qual)], mRelogio)) {
+                for (float k = 0.0f; k <= 1.0f; k += 0.25f) {
+                    // A seta cheia: linhas da ponta ate a base, e o contorno.
+                    Linha(s.ponta, s.esquerda + (s.direita - s.esquerda) * k, kMira);
+                }
+                Linha(s.esquerda, s.direita, kMiraEscura);
+            }
         }
     }
 }

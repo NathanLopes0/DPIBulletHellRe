@@ -120,4 +120,32 @@ namespace Masmorra {
         }
         return v;
     }
+
+    int MaisPerto(const Vector2 de, const std::vector<Vector2>& alvos) {
+        int melhor = -1;
+        for (size_t i = 0; i < alvos.size(); ++i) {
+            if (melhor < 0 || (alvos[i] - de).Length() < (alvos[static_cast<size_t>(melhor)] - de).Length()) {
+                melhor = static_cast<int>(i);
+            }
+        }
+        return melhor;
+    }
+
+    Vector2 PousoDaFada(const Vector2 alvo, const float t) {
+        return alvo + Vector2(10.0f * std::sin(t * 2.6f), -kAcimaDoAlvo + 4.0f * std::sin(t * 5.2f));
+    }
+
+    std::vector<Seta> Mira(const Vector2 alvo, const float raio, const float t) {
+        std::vector<Seta> v;
+        const float r = raio * (1.0f + 0.08f * std::sin(t * 6.0f));
+        const float giro = t * 0.9f;
+        for (int k = 0; k < 4; ++k) {
+            const float a = giro + 1.5707963f * static_cast<float>(k);
+            const Vector2 fora(std::cos(a), std::sin(a)), lado(-fora.y, fora.x);
+            const Vector2 ponta = alvo + fora * r;
+            const Vector2 tras = alvo + fora * (r + 12.0f);
+            v.push_back({ponta, tras + lado * 7.5f, tras - lado * 7.5f});
+        }
+        return v;
+    }
 }

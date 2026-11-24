@@ -152,6 +152,10 @@ private:
     std::vector<bool> mAcesas;
     int mAcendendo = -1;            ///< a tocha que ele esta acendendo agora
     float mAcendeEm = 0.0f;
+    // A fadinha de cada aluno (Masmorra::MaisPerto): onde ela esta, e o rastro de brilho.
+    std::vector<Vector2> mFadas;
+    std::vector<std::vector<Vector2>> mRastros;
+    void AtualizarFadas(float deltaTime);
     BossProjectile* mBauP = nullptr;
     BossProjectile* mChaveP = nullptr;
     BossProjectile* mElixirP = nullptr;
