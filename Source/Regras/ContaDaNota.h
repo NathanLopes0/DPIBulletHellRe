@@ -20,6 +20,9 @@ namespace Nota {
         explicit Conta(float nota, std::size_t jogadores = 1);
 
         [[nodiscard]] float Valor() const { return mNota; }
+        /// A nota extra, escondida depois do 100: o que o aluno ganharia acima da nota cheia, menos o
+        /// que perdeu quando foi atingido. Nao muda a nota; so desempata os 100 no ranking.
+        [[nodiscard]] float Extra() const { return mExtra; }
         [[nodiscard]] int AcertosSofridos() const { return mAcertosSofridos; }
         /// Quantas fases pagaram o bonus de fase limpa.
         [[nodiscard]] int FasesLimpas() const { return mFasesLimpas; }
@@ -28,11 +31,12 @@ namespace Nota {
         [[nodiscard]] float PorJogador(float bruto) const;
 
         /// Soma um ganho bruto, inteiro: o que e de um jogador passa antes por PorJogador. O teto cai
-        /// com os acertos sofridos (Nota::Somar).
+        /// com os acertos sofridos (Nota::Somar). O que passa da nota cheia vai para a extra.
         void Subir(float bruto);
 
         /// Cobra um acerto sofrido: a perda dividida e aliviada (Nota::PerdaPorJogador), vezes
-        /// 'multiplicador'. Devolve quanto a nota caiu - perto do zero, menos que a perda.
+        /// 'multiplicador'. Devolve quanto a nota caiu - perto do zero, menos que a perda. A extra
+        /// perde o mesmo, sem passar de zero.
         float Descer(float multiplicador = 1.0f);
 
         /// Um aluno gastou o Ponto Extra: a sobrecarga vale os acertos que ele daria nela
@@ -48,8 +52,9 @@ namespace Nota {
         struct Marca {
             float nota = 0.0f;
             int acertosSofridos = 0;
+            float extra = 0.0f;
         };
-        [[nodiscard]] Marca Marcar() const { return {mNota, mAcertosSofridos}; }
+        [[nodiscard]] Marca Marcar() const { return {mNota, mAcertosSofridos, mExtra}; }
 
         /// O fim da transacao. Se a nota caiu desde a marca, e ROLLBACK: ela volta, e os acertos
         /// sofridos desde entao deixam de contar - o teto e a fase limpa voltam junto. Se nao caiu, e
@@ -65,6 +70,7 @@ namespace Nota {
 
     private:
         float mNota;
+        float mExtra = 0.0f;
         float mFatorDaPerda = 1.0f;
         std::size_t mJogadores;
         int mAcertosSofridos = 0;

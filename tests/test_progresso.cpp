@@ -337,3 +337,17 @@ TEST_CASE("Progresso: a medalha do 100 no Dificil e so do Dificil, sozinho ou em
     CHECK(p.CemNoDificil(3));         // uma prova ruim depois nao tira a medalha
     CHECK_FALSE(p.CemNoDificil(4));   // nunca jogada
 }
+
+TEST_CASE("Progresso: entre dois 100, o recorde e o de nota extra maior") {
+    Progresso p;
+    p.RegistrarNota(2, 100.0f, Dificuldade::Nivel::Dificil, "", 12.0f);
+    p.RegistrarNota(2, 100.0f, Dificuldade::Nivel::Dificil, "", 8.0f);    // menor: fica o de antes
+    CHECK(p.Recorde(2, Progresso::Modo::Solo, Dificuldade::Nivel::Dificil).extra == doctest::Approx(12.0f));
+    p.RegistrarNota(2, 100.0f, Dificuldade::Nivel::Dificil, "", 30.0f);
+    CHECK(p.Recorde(2, Progresso::Modo::Solo, Dificuldade::Nivel::Dificil).extra == doctest::Approx(30.0f));
+    // Abaixo do 100 a extra nao existe, nem vale para bater um 100.
+    p.RegistrarNota(3, 90.0f, Dificuldade::Nivel::Normal, "", 50.0f);
+    CHECK(p.Recorde(3, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).extra == doctest::Approx(0.0f));
+    p.RegistrarNotaDeDupla(4, 100.0f, Dificuldade::Nivel::Normal, "parceiro", "", 5.0f);
+    CHECK(p.Recorde(4, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).extra == doctest::Approx(5.0f));
+}

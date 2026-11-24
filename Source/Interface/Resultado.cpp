@@ -3,6 +3,7 @@
 //
 
 #include "Resultado.h"
+#include "../Regras/Nota.h"
 
 #include <cstdio>
 
@@ -52,18 +53,28 @@ namespace Resultado {
     }
 
     bool NovoRecorde(const Resumo& r) {
-        return r.temFicha && r.nota >= r.recordeAntes + 0.01f;
+        if (!r.temFicha) return false;
+        if (::Nota::ECheia(r.nota) && ::Nota::ECheia(r.recordeAntes)) return r.extra >= r.extraAntes + 0.05f;
+        return r.nota >= r.recordeAntes + 0.01f;
+    }
+
+    namespace {
+        /// A nota com a extra ao lado, quando ela e um 100 com extra: "100.00  +37.5".
+        std::string ComExtra(const float nota, const float extra) {
+            if (!::Nota::ECheia(nota) || extra <= 0.0f) return Nota(nota);
+            return Nota(nota) + "  " + ::Nota::TextoDaExtra(extra);
+        }
     }
 
     std::vector<std::string> Linhas(const Resumo& r) {
         std::vector<std::string> linhas;
         // \xc2\xb7 e o ponto do meio.
-        linhas.push_back("Nota final: " + Nota(r.nota) +
+        linhas.push_back("Nota final: " + ComExtra(r.nota, r.extra) +
                          (r.provaDaSemana.empty() ? "" : "  \xc2\xb7  prova da semana: " + r.provaDaSemana));
         if (NovoRecorde(r)) {
             linhas.push_back("NOVO RECORDE!");
         } else if (r.temFicha) {
-            linhas.push_back("Recorde: " + Nota(r.recordeAntes));
+            linhas.push_back("Recorde: " + ComExtra(r.recordeAntes, r.extraAntes));
         }
         linhas.push_back("Fases limpas: " + std::to_string(r.fasesLimpas));
         linhas.push_back("Acertos sofridos: " + std::to_string(r.acertosSofridos));

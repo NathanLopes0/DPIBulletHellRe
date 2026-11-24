@@ -18,6 +18,8 @@ namespace Ranking {
         int posicao = 1;            ///< 1 para o primeiro. Empate repete a posicao.
         std::string matricula;
         float nota = 0.0f;
+        /// A nota extra do recorde 100 (Progresso::Marca::extra): desempata os 100. Zero no geral.
+        float extra = 0.0f;
 
         /// Quantas materias do curso o aluno jogou.
         int materiasJogadas = 1;
@@ -51,6 +53,7 @@ namespace Ranking {
         std::string um;         ///< a matricula que vem antes
         std::string dois;       ///< a outra
         float nota = 0.0f;
+        float extra = 0.0f;     ///< como em Linha::extra
 
         /// Quantas materias esta dupla jogou junta. So tem sentido no geral,
         /// pelo mesmo motivo de Linha::materiasJogadas.

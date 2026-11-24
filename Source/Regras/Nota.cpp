@@ -4,6 +4,7 @@
 
 #include "Nota.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace Nota {
@@ -23,6 +24,12 @@ float Ganho(const float notaAtual, const float ganhoBruto) {
 
 bool PerdeuACheia(const int acertosSofridos) {
     return acertosSofridos >= kAcertosQuePerdemACheia;
+}
+
+std::string TextoDaExtra(const float extra) {
+    // Uma casa, arredondada, sem passar pelo locale.
+    const long decimos = std::lround(std::max(0.0f, extra) * 10.0f);
+    return "+" + std::to_string(decimos / 10) + "." + std::to_string(decimos % 10);
 }
 
 bool ECheia(const float nota) {

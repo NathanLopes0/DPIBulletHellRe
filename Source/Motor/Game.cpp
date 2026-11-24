@@ -1074,6 +1074,11 @@ float Game::RecordeDaPartida(const int materia) const {
     return ProgressoDoMapa().Recorde(materia, modo, NivelDeDificuldade()).nota;
 }
 
+float Game::ExtraDoRecordeDaPartida(const int materia) const {
+    const auto modo = QuantosJogadores() > 1 ? Progresso::Modo::Dupla : Progresso::Modo::Solo;
+    return ProgressoDoMapa().Recorde(materia, modo, NivelDeDificuldade()).extra;
+}
+
 std::vector<std::string> Game::RegistrarAtividades(const size_t posicao, const std::vector<std::string>& chaves) {
     std::vector<std::string> novas;
     if (posicao >= mSessoes.size()) return novas;
@@ -1083,7 +1088,7 @@ std::vector<std::string> Game::RegistrarAtividades(const size_t posicao, const s
     return novas;
 }
 
-void Game::RegistrarNota(const int subject, const float nota) {
+void Game::RegistrarNota(const int subject, const float nota, const float extra) {
 
     // A mesma nota na ficha de cada um.
     const std::string quando = Relogio::Agora();
@@ -1096,10 +1101,10 @@ void Game::RegistrarNota(const int subject, const float nota) {
 
         if (emDupla) {
             mSessoes[quem].progresso.RegistrarNotaDeDupla(
-                subject, nota, NivelDeDificuldade(), Sessao::ParceiroDe(mSessoes, quem), quando);
+                subject, nota, NivelDeDificuldade(), Sessao::ParceiroDe(mSessoes, quem), quando, extra);
         }
         else {
-            mSessoes[quem].progresso.RegistrarNota(subject, nota, NivelDeDificuldade(), quando);
+            mSessoes[quem].progresso.RegistrarNota(subject, nota, NivelDeDificuldade(), quando, extra);
         }
 
         // Aprovado na materia que pede orientador: o professor que orientou entra no curriculo.

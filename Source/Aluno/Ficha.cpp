@@ -46,12 +46,22 @@ namespace {
         const char* nota;
         const char* parceiro;   ///< nullptr no solo
         const char* quando;     ///< nullptr no solo
+        const char* extra;      ///< a nota extra do recorde 100 (versao 12)
     };
     constexpr Campos kOpcionais[] = {
-        {Modo::Dupla, Nivel::Normal,  "recordeDupla",        "parceiro",        "quandoDupla"},
-        {Modo::Solo,  Nivel::Dificil, "recordeDificil",      nullptr,           nullptr},
-        {Modo::Dupla, Nivel::Dificil, "recordeDuplaDificil", "parceiroDificil", "quandoDuplaDificil"},
+        {Modo::Dupla, Nivel::Normal,  "recordeDupla",        "parceiro",        "quandoDupla",        "extraDupla"},
+        {Modo::Solo,  Nivel::Dificil, "recordeDificil",      nullptr,           nullptr,              "extraDificil"},
+        {Modo::Dupla, Nivel::Dificil, "recordeDuplaDificil", "parceiroDificil", "quandoDuplaDificil", "extraDuplaDificil"},
     };
+    /// A nota extra do recorde de solo no normal (versao 12).
+    constexpr const char* kExtra = "extra";
+
+    /// A nota extra so existe num recorde 100, e nao e negativa: o resto e descartado em silencio.
+    float LerExtra(const nlohmann::json& m, const char* chave, const float nota) {
+        if (!Nota::ECheia(nota) || !m.contains(chave) || !m[chave].is_number()) return 0.0f;
+        const float extra = m[chave].get<float>();
+        return std::isfinite(extra) && extra > 0.0f ? extra : 0.0f;
+    }
 }
 
 namespace Ficha {
@@ -102,6 +112,9 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         s << "    { \"materia\": \"" << codigo
           << "\", \"" << kRecorde << "\": " << Numero(e.De(Modo::Solo, Nivel::Normal).nota)
           << ", \"retomada\": " << Numero(e.retomada);
+        if (e.De(Modo::Solo, Nivel::Normal).extra > 0.0f) {
+            s << ", \"" << kExtra << "\": " << Numero(e.De(Modo::Solo, Nivel::Normal).extra);
+        }
 
         // Um recorde opcional so aparece se existir.
         for (const Campos& c : kOpcionais) {
@@ -112,6 +125,7 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
             // O parceiro pode faltar mesmo havendo recorde: visitante nao tem matricula.
             if (c.parceiro && !m.parceiro.empty()) s << ", \"" << c.parceiro << "\": \"" << m.parceiro << "\"";
             if (c.quando && !m.quando.empty()) s << ", \"" << c.quando << "\": \"" << m.quando << "\"";
+            if (m.extra > 0.0f) s << ", \"" << c.extra << "\": " << Numero(m.extra);
         }
 
         // So escreve a data quando ha uma.
@@ -271,6 +285,7 @@ namespace {
         e.materia = materia;
         e.retomada = retomada;
         e.De(Modo::Solo, Nivel::Normal).nota = recorde;
+        e.De(Modo::Solo, Nivel::Normal).extra = LerExtra(m, kExtra, recorde);
 
         // ---- Os outros recordes, opcionais (dupla: versao 5; Dificil: 6) ----
         for (const Campos& c : kOpcionais) {
@@ -285,6 +300,7 @@ namespace {
             }
             Progresso::Marca& marca = e.De(c.modo, c.nivel);
             marca.nota = nota;
+            marca.extra = LerExtra(m, c.extra, nota);
 
             // O parceiro e a data so fazem sentido havendo recorde.
             if (nota <= 0.0f) continue;

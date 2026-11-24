@@ -899,3 +899,33 @@ TEST_CASE("Ficha: as reprovacoes seguidas vao e voltam (versao 11), e a ficha de
     REQUIRE(demais.ok);
     CHECK(demais.dados.progresso.ReprovacoesSeguidas(0) == 2);
 }
+
+TEST_CASE("Ficha: a nota extra dos recordes 100 vai e volta, nos quatro recordes") {
+    Ficha::Dados d;
+    d.matricula = "89384";
+    d.progresso.RegistrarNota(0, 100.0f, Dificuldade::Nivel::Normal, "", 12.5f);
+    d.progresso.RegistrarNota(0, 100.0f, Dificuldade::Nivel::Dificil, "", 3.0f);
+    d.progresso.RegistrarNotaDeDupla(1, 100.0f, Dificuldade::Nivel::Normal, "12345", "", 7.0f);
+    d.progresso.RegistrarNotaDeDupla(1, 100.0f, Dificuldade::Nivel::Dificil, "12345", "", 9.5f);
+    const std::string texto = Ficha::Serializar(d, Curso());
+    CHECK(texto.find("\"extra\": 12.5") != std::string::npos);
+    const auto lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    const Progresso& p = lida.dados.progresso;
+    CHECK(p.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).extra == doctest::Approx(12.5f));
+    CHECK(p.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Dificil).extra == doctest::Approx(3.0f));
+    CHECK(p.Recorde(1, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).extra == doctest::Approx(7.0f));
+    CHECK(p.Recorde(1, Progresso::Modo::Dupla, Dificuldade::Nivel::Dificil).extra == doctest::Approx(9.5f));
+}
+
+TEST_CASE("Ficha: a nota extra fora de um 100, ou negativa, e descartada; o save antigo le sem ela") {
+    const auto lida = Ficha::Desserializar(R"({ "versao": 12, "matricula": "89384", "materias": [
+        { "materia": "AAA", "recorde": 90, "retomada": 90, "extra": 40 },
+        { "materia": "BBB", "recorde": 100, "retomada": 100, "extra": -3 },
+        { "materia": "CCC", "recorde": 100, "retomada": 100 } ] })", Curso());
+    REQUIRE(lida.ok);
+    for (const int m : {0, 1, 2}) {
+        CAPTURE(m);
+        CHECK(lida.dados.progresso.Recorde(m, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).extra == doctest::Approx(0.0f));
+    }
+}

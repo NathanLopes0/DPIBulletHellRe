@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
 
 #include "../Attacks/Fase.h"
 
@@ -60,6 +61,10 @@ namespace Nota {
 
     /// Se esta nota E a nota cheia - a que vale o dourado e o teste final.
     bool ECheia(float nota);
+
+    /// A nota extra escondida depois do 100 (Nota::Conta::Extra), como o ranking e o resultado a
+    /// mostram: "+37.5", com uma casa.
+    std::string TextoDaExtra(float extra);
 
     /// O que acontece ao fim da terceira fase de um chefe.
     enum class Desfecho {

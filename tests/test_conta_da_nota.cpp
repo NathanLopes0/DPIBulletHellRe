@@ -124,3 +124,54 @@ TEST_CASE("Conta: a transacao - ROLLBACK se a nota caiu (e os acertos deixam de 
     CHECK(e.Valor() == doctest::Approx(subiu));
     CHECK(e.AcertosSofridos() == 1);
 }
+
+// ---- A nota extra, escondida depois do 100 ----
+
+TEST_CASE("Conta: a nota extra junta o que passaria do 100, e nao muda a nota") {
+    Nota::Conta conta(99.0f);
+    conta.Subir(30.0f);
+    CHECK(Nota::ECheia(conta.Valor()));
+    const float naChegada = conta.Extra();
+    CHECK(naChegada > 0.0f);
+    CHECK(naChegada == doctest::Approx(99.0f + Nota::Ganho(99.0f, 30.0f) - 100.0f));   // so o que passou
+    conta.Subir(3.0f);
+    CHECK(conta.Valor() == doctest::Approx(100.0f));
+    CHECK(conta.Extra() == doctest::Approx(naChegada + 3.0f));   // ja na cheia, o ganho inteiro
+}
+
+TEST_CASE("Conta: longe do 100 nao ha extra, e quem perdeu a cheia nao junta mais") {
+    Nota::Conta conta(50.0f);
+    conta.Subir(5.0f);
+    CHECK(conta.Extra() == doctest::Approx(0.0f));
+
+    Nota::Conta ferido(100.0f);
+    for (int i = 0; i < Nota::kAcertosQuePerdemACheia; ++i) ferido.Descer();
+    for (int i = 0; i < 200; ++i) ferido.Subir(5.0f);
+    CHECK_FALSE(Nota::ECheia(ferido.Valor()));
+    CHECK(ferido.Extra() == doctest::Approx(0.0f));
+}
+
+TEST_CASE("Conta: o acerto sofrido tira da extra o mesmo que da nota, sem passar de zero") {
+    Nota::Conta conta(100.0f);
+    conta.Subir(10.0f);
+    REQUIRE(conta.Extra() == doctest::Approx(10.0f));
+    conta.Descer();
+    CHECK(conta.Extra() == doctest::Approx(10.0f - Nota::kPerdaPorAcerto));
+    conta.Descer();
+    CHECK(conta.Extra() == doctest::Approx(0.0f));
+}
+
+TEST_CASE("Conta: o ROLLBACK devolve a extra da marca") {
+    Nota::Conta conta(100.0f);
+    conta.Subir(10.0f);
+    const Nota::Conta::Marca marca = conta.Marcar();
+    conta.Descer();
+    CHECK(conta.Desfazer(marca));
+    CHECK(conta.Extra() == doctest::Approx(10.0f));
+}
+
+TEST_CASE("Nota: a extra aparece com uma casa e o sinal") {
+    CHECK(Nota::TextoDaExtra(37.46f) == "+37.5");
+    CHECK(Nota::TextoDaExtra(0.0f) == "+0.0");
+    CHECK(Nota::TextoDaExtra(120.04f) == "+120.0");
+}

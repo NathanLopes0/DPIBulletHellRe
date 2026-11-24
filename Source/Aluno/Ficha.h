@@ -16,7 +16,9 @@
 namespace Ficha {
 
     /// A versao do formato, gravada em todo arquivo.
-    inline constexpr int kVersaoAtual = 11;
+    /// 12: a nota extra dos recordes 100 ("extra", "extraDupla", "extraDificil",
+    /// "extraDuplaDificil"), que desempata os 100 no ranking.
+    inline constexpr int kVersaoAtual = 12;
 
     struct Dados {
         std::string matricula;   ///< A forma canonica, ver Matricula.h.

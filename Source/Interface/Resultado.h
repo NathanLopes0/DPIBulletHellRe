@@ -32,6 +32,10 @@ namespace Resultado {
         /// O aluno tem ficha gravada (o visitante nao tem recorde a bater).
         bool temFicha = false;
         float recordeAntes = 0.0f;
+        /// A nota extra escondida depois do 100 (Nota::Conta::Extra), desta luta e do recorde de
+        /// antes: so vale na nota cheia, e e ela que decide entre dois 100.
+        float extra = 0.0f;
+        float extraAntes = 0.0f;
         int fasesLimpas = 0;
         int acertosSofridos = 0;
 
@@ -82,7 +86,7 @@ namespace Resultado {
     bool Formou(const Resumo& r);
 
     /// A nota desta luta passou o recorde? So para quem tem ficha, e por mais que o arredondamento
-    /// da tela (0,01).
+    /// da tela (0,01). Entre dois 100, passa quem tem a extra maior (por mais que 0,05, a casa dela).
     bool NovoRecorde(const Resumo& r);
 
     /// As linhas do resumo, de cima para baixo: a nota, o recorde (ou o aviso de recorde novo), as

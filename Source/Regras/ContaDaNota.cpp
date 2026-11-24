@@ -17,6 +17,12 @@ namespace Nota {
     }
 
     void Conta::Subir(const float bruto) {
+        // A extra so existe acima da nota cheia: com o teto de quem levou dano, nao ha.
+        if (bruto > 0.0f && TetoCom(mAcertosSofridos) >= kNotaMaxima) {
+            // Ja na cheia, o ganho bruto inteiro; chegando nela, so o que passa do 100.
+            if (ECheia(mNota)) mExtra += bruto;
+            else mExtra += std::max(0.0f, mNota + Ganho(mNota, bruto) - kNotaMaxima);
+        }
         mNota = Somar(mNota, bruto, mAcertosSofridos);
     }
 
@@ -25,7 +31,9 @@ namespace Nota {
         ++mAcertosSofridos;
         ++mAcertosNaFase;
         const float antes = mNota;
-        mNota = Subtrair(mNota, PerdaPorJogador(kPerdaPorAcerto, mJogadores) * multiplicador * mFatorDaPerda);
+        const float perda = PerdaPorJogador(kPerdaPorAcerto, mJogadores) * multiplicador * mFatorDaPerda;
+        mNota = Subtrair(mNota, perda);
+        mExtra = std::max(0.0f, mExtra - perda);
         return antes - mNota;
     }
 
@@ -38,6 +46,7 @@ namespace Nota {
         if (mNota >= marca.nota) return false;
         const int desfeitos = std::max(0, mAcertosSofridos - marca.acertosSofridos);
         mNota = marca.nota;
+        mExtra = std::max(mExtra, marca.extra);
         mAcertosSofridos -= desfeitos;
         mAcertosNaFase = std::max(0, mAcertosNaFase - desfeitos);
         return true;

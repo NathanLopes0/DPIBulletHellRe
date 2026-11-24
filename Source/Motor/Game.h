@@ -127,6 +127,8 @@ public:
     /// O recorde do jogador 1 no modo e no nivel desta partida: o que a tela de resultado compara
     /// para dizer "NOVO RECORDE!".
     [[nodiscard]] float RecordeDaPartida(int materia) const;
+    /// E a nota extra desse recorde (Progresso::Marca::extra): zero se ele nao e um 100.
+    [[nodiscard]] float ExtraDoRecordeDaPartida(int materia) const;
 
     /// Como os rodapes nomeiam os botoes nesta sessao.
     [[nodiscard]] Painel::Jeito JeitoDoRodape() const {
@@ -176,7 +178,8 @@ public:
 
     /// Registra o resultado de uma batalha: a retomada passa a ser esta nota, e o recorde so sobe.
     /// Chamado uma vez, ao fim da batalha.
-    void RegistrarNota(int subject, float nota);
+    /// 'extra': a nota extra escondida depois do 100 (Nota::Conta::Extra), que desempata os 100.
+    void RegistrarNota(int subject, float nota, float extra = 0.0f);
 
     /// Passa a jogar como este aluno, carregando a ficha dele do disco. A matricula ja deve vir
     /// canonica.

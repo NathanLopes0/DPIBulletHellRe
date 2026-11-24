@@ -989,9 +989,11 @@ void Battle::EncerrarBatalha(bool aprovado) {
     // O resumo da tela de resultado.
     Resultado::Resumo resumo;
     resumo.nota = mConta.Valor();
+    resumo.extra = mConta.Extra();
     resumo.aprovado = aprovado;
     resumo.temFicha = mGame->ProgressoEGravado(0);
     resumo.recordeAntes = mGame->RecordeDaPartida(mMateria);
+    resumo.extraAntes = mGame->ExtraDoRecordeDaPartida(mMateria);
     resumo.fasesLimpas = mConta.FasesLimpas();
     resumo.acertosSofridos = mConta.AcertosSofridos();
     resumo.fraseDoFim = mFraseDoFim;
@@ -1082,7 +1084,7 @@ void Battle::EncerrarBatalha(bool aprovado) {
         resumo.rival = Rival::FraseDoResultado(turma.colegas, turma.nota, std::max(turma.nota, mConta.Valor()),
                                                resumo.temFicha);
     }
-    mGame->RegistrarNota(mMateria, mConta.Valor());
+    mGame->RegistrarNota(mMateria, mConta.Valor(), mConta.Extra());
 
     // O que esta luta deu alem da nota: as mencoes novas de quem jogou (na dupla, as de qualquer um
     // dos dois), e o orientador novo no curriculo - pelo nome da materia dele.

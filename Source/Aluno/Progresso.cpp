@@ -23,7 +23,7 @@ float Progresso::Entrada::MaiorRecorde() const {
 
 void Progresso::Registrar(const int materia, const float nota, const Modo modo,
                           const Dificuldade::Nivel nivel, const std::string& parceiro,
-                          const std::string& quando) {
+                          const std::string& quando, const float extra) {
 
     Entrada& r = mPorMateria[materia];
     r.materia = materia;
@@ -40,10 +40,13 @@ void Progresso::Registrar(const int materia, const float nota, const Modo modo,
     // A primeira aprovacao fica datada, e nao muda mais: o recorde so sobe.
     if (!jaAprovada && nota >= kNotaDeAprovacao && r.aprovadaEm.empty()) r.aprovadaEm = quando;
 
-    // O recorde so sobe.
+    // O recorde so sobe. Entre dois 100, sobe a nota extra (Nota::Conta::Extra).
     Marca& recorde = r.De(modo, nivel);
-    if (nota <= recorde.nota) return;
+    const float extraDaNota = Nota::ECheia(nota) ? std::max(0.0f, extra) : 0.0f;
+    const bool melhor = nota > recorde.nota || (Nota::ECheia(nota) && nota >= recorde.nota && extraDaNota > recorde.extra);
+    if (!melhor) return;
     recorde.nota = nota;
+    recorde.extra = extraDaNota;
 
     // Na dupla, o parceiro e a data acompanham a nota.
     if (modo == Modo::Dupla) {
@@ -53,13 +56,14 @@ void Progresso::Registrar(const int materia, const float nota, const Modo modo,
 }
 
 void Progresso::RegistrarNota(const int materia, const float nota, const Dificuldade::Nivel nivel,
-                              const std::string& quando) {
-    Registrar(materia, nota, Modo::Solo, nivel, "", quando);
+                              const std::string& quando, const float extra) {
+    Registrar(materia, nota, Modo::Solo, nivel, "", quando, extra);
 }
 
 void Progresso::RegistrarNotaDeDupla(const int materia, const float nota, const Dificuldade::Nivel nivel,
-                                     const std::string& parceiro, const std::string& quando) {
-    Registrar(materia, nota, Modo::Dupla, nivel, parceiro, quando);
+                                     const std::string& parceiro, const std::string& quando,
+                                     const float extra) {
+    Registrar(materia, nota, Modo::Dupla, nivel, parceiro, quando, extra);
 }
 
 float Progresso::MelhorNota(const int materia) const {

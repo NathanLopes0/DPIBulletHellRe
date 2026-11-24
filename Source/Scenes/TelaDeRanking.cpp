@@ -226,6 +226,7 @@ void TelaDeRanking::Redesenhar() {
 
         const int  posicao  = temLinha ? (duplas ? deDupla[i].posicao : linhas[i].posicao) : 0;
         const float nota    = temLinha ? (duplas ? deDupla[i].nota : linhas[i].nota) : 0.0f;
+        const float extra   = temLinha ? (duplas ? deDupla[i].extra : linhas[i].extra) : 0.0f;
         const int  jogadas  = temLinha ? (duplas ? deDupla[i].materiasJogadas
                                                  : linhas[i].materiasJogadas) : 0;
 
@@ -247,11 +248,12 @@ void TelaDeRanking::Redesenhar() {
                  (temLinha && duplas) ? deDupla[i].um + kEntreOsDois + deDupla[i].dois : "");
 
         // So no geral: no ranking de uma materia a contagem seria sempre "1 de
-        // 11" e nao diria nada.
+        // 11" e nao diria nada. La, a coluna mostra a nota extra de quem tirou 100: "+37.5".
+        const bool comExtra = temLinha && !mPedido.geral && Nota::ECheia(nota) && extra > 0.0f;
         escrever(mJogadasAtores[i],
                  (temLinha && mPedido.geral)
                      ? std::to_string(jogadas) + " de " + std::to_string(contadas.size())
-                     : "");
+                     : comExtra ? Nota::TextoDaExtra(extra) : "");
 
         // O dourado so vale no ranking de materia.
         const bool cheia = temLinha && !mPedido.geral && Nota::ECheia(nota);
@@ -260,7 +262,7 @@ void TelaDeRanking::Redesenhar() {
         pintar(mMatriculaAtores[i], cor);
         pintar(mDuplaAtores[i], cor);
         pintar(mNotaAtores[i], cor);
-        pintar(mJogadasAtores[i], Color::LightBlue);
+        pintar(mJogadasAtores[i], comExtra ? Color::LightYellow : Color::LightBlue);
     }
 
     // A lista vazia diz de qual lista fala.

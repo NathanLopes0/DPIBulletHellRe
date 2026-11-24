@@ -325,3 +325,20 @@ TEST_CASE("Resultado: a frase do chefe toma o lugar da devolutiva, com ou sem a 
     r.aprovado = true;
     CHECK(LinhaDaFraseDoFim(r) == -1);
 }
+
+TEST_CASE("Resultado: entre dois 100, a nota extra maior e o recorde novo, e aparece ao lado da nota") {
+    Resultado::Resumo r;
+    r.temFicha = true;
+    r.aprovado = true;
+    r.nota = 100.0f;
+    r.recordeAntes = 100.0f;
+    r.extra = 20.0f;
+    r.extraAntes = 12.0f;
+    CHECK(Resultado::NovoRecorde(r));
+    r.extra = 12.0f;
+    CHECK_FALSE(Resultado::NovoRecorde(r));   // empatar nao e bater
+    const auto linhas = Resultado::Linhas(r);
+    REQUIRE_FALSE(linhas.empty());
+    CHECK(linhas[0].find("+12.0") != std::string::npos);
+    CHECK(linhas[1].find("+12.0") != std::string::npos);   // o recorde de antes, tambem com a dela
+}

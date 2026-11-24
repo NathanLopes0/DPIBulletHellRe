@@ -29,6 +29,8 @@ public:
     /// Um recorde: a nota, e - na dupla - com quem e quando foi feito.
     struct Marca {
         float nota = 0.0f;
+        /// A nota extra do recorde (Nota::Conta::Extra): so na nota cheia, e so desempata os 100.
+        float extra = 0.0f;
         std::string parceiro;
         /// Quando a dupla fez o recorde: e ele que data a linha do ranking de duplas. No solo fica
         /// vazio - "quando jogou" e Entrada::quando.
@@ -36,11 +38,13 @@ public:
     };
 
     /// Registra o resultado de uma batalha jogada sozinho.
-    void RegistrarNota(int materia, float nota, Dificuldade::Nivel nivel, const std::string& quando = "");
+    /// 'extra' e a nota extra escondida depois do 100: entre dois 100, o recorde e o de extra maior.
+    void RegistrarNota(int materia, float nota, Dificuldade::Nivel nivel, const std::string& quando = "",
+                       float extra = 0.0f);
 
     /// Registra o resultado de uma batalha jogada em dupla.
     void RegistrarNotaDeDupla(int materia, float nota, Dificuldade::Nivel nivel,
-                              const std::string& parceiro, const std::string& quando = "");
+                              const std::string& parceiro, const std::string& quando = "", float extra = 0.0f);
 
     /// A maior nota que o jogador ja tirou nesta materia, em qualquer modo e nivel. Zero quando
     /// nunca jogou.
@@ -140,7 +144,7 @@ private:
 
     /// O que as duas formas de registrar tem em comum.
     void Registrar(int materia, float nota, Modo modo, Dificuldade::Nivel nivel,
-                   const std::string& parceiro, const std::string& quando);
+                   const std::string& parceiro, const std::string& quando, float extra);
 
     /// Um registro por materia, e nao mapas paralelos.
     std::map<int, Entrada> mPorMateria;

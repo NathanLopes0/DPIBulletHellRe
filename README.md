@@ -211,6 +211,17 @@ cartão diz o que falta. Aprovado nela, o professor dela vira **orientador** do
 TCC: ele aparece **a mais**, além dos três candidatos das maiores notas — e,
 com mais de três cartões, a tela do orientador desliza para mostrar os outros.
 
+**A nota extra, depois do 100.** A nota para em 100, mas a prova continua
+contando por trás: o que o aluno ganharia acima da nota cheia vira a **nota
+extra**, e cada acerto sofrido tira dela o mesmo que tiraria da nota (sem
+passar de zero). Quem levou dano demais e perdeu a cheia não junta extra. Ela
+não muda a nota, a aprovação, as menções nem a medalha: só desempata os 100.
+No ranking de cada matéria, quem tem 100 aparece com ela ao lado ("+37.5"), e
+entre dois 100 vem antes a extra maior; no resultado, ela vai ao lado da nota
+final, e um 100 com extra maior que a do recorde é um recorde novo
+(`Nota::Conta::Extra`). O ranking geral, o rival da turma e a prova da semana
+continuam olhando só a nota.
+
 **O rival da turma.** O cartão da matéria, na seleção de fases, mostra quem
 está logo acima de você no ranking dela — na lista do modo e da dificuldade da
 vez — e quanto falta para passá-lo ("Rival: 90112 (2º) · faltam 2.41"). Quem
@@ -520,7 +531,7 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   professor de cada matéria orientou (desde a versão 9: o currículo de
   orientações), e as atividades complementares cumpridas (desde a versão 10), e
   as reprovações seguidas em cada matéria, de onde sai o ajuste de dificuldade
-  (desde a versão 11).
+  (desde a versão 11), e a nota extra de cada recorde 100 (desde a versão 12).
   A nota vai para o disco **uma vez, no fim da batalha**, e não durante.
 - **`prova_da_semana.csv`** — as notas da prova da semana: a semana (a data da
   segunda-feira), a matéria, o modo, a dificuldade, a matrícula, o parceiro, a

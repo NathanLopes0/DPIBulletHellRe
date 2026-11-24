@@ -703,3 +703,36 @@ TEST_CASE("Ranking: a dupla do Dificil fica na lista de duplas do Dificil") {
     CHECK(Ranking::PosicaoDaDupla(fichas, 0, Nivel::Dificil, "2", "1") == 1);
     CHECK(Ranking::DuplasGeral(fichas, Primeiras(1), Nivel::Dificil).size() == 1u);
 }
+
+TEST_CASE("Ranking: entre os 100, a nota extra decide; a mesma extra divide a posicao") {
+    std::vector<Exportacao::FichaDeAluno> fichas(4);
+    const float extras[4] = {5.0f, 40.0f, 12.0f, 12.0f};
+    for (int i = 0; i < 4; ++i) {
+        fichas[static_cast<size_t>(i)].matricula = std::to_string(i + 1);
+        fichas[static_cast<size_t>(i)].progresso.RegistrarNota(0, 100.0f, Dificuldade::Nivel::Normal, "", extras[i]);
+    }
+    const auto r = Ranking::DaMateria(fichas, 0, Dificuldade::Nivel::Normal);
+    REQUIRE(r.size() == 4);
+    CHECK(r[0].matricula == "2");
+    CHECK(r[0].posicao == 1);
+    CHECK(r[1].posicao == 2);
+    CHECK(r[2].posicao == 2);   // 3 e 4, com a mesma extra
+    CHECK(r[3].matricula == "1");
+    CHECK(r[3].posicao == 4);
+    CHECK(r[0].extra == doctest::Approx(40.0f));
+}
+
+TEST_CASE("Ranking: na dupla, a nota extra tambem desempata os 100") {
+    std::vector<Exportacao::FichaDeAluno> fichas(4);
+    const char* nomes[4] = {"1", "2", "3", "4"};
+    for (int i = 0; i < 4; ++i) fichas[static_cast<size_t>(i)].matricula = nomes[i];
+    fichas[0].progresso.RegistrarNotaDeDupla(0, 100.0f, Dificuldade::Nivel::Normal, "2", "", 3.0f);
+    fichas[1].progresso.RegistrarNotaDeDupla(0, 100.0f, Dificuldade::Nivel::Normal, "1", "", 3.0f);
+    fichas[2].progresso.RegistrarNotaDeDupla(0, 100.0f, Dificuldade::Nivel::Normal, "4", "", 20.0f);
+    fichas[3].progresso.RegistrarNotaDeDupla(0, 100.0f, Dificuldade::Nivel::Normal, "3", "", 20.0f);
+    const auto r = Ranking::DuplasDaMateria(fichas, 0, Dificuldade::Nivel::Normal);
+    REQUIRE(r.size() == 2);
+    CHECK(r[0].um == "3");
+    CHECK(r[0].posicao == 1);
+    CHECK(r[1].posicao == 2);
+}

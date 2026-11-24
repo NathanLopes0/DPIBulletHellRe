@@ -12,21 +12,29 @@ namespace Ranking {
 
 namespace {
 
-    /// Numera as posicoes de uma lista ja ordenada por nota decrescente. A regra de empate e uma
-    /// so, e todas as listas passam por aqui.
+    /// Quem vem antes: a nota maior e, entre notas iguais (os 100), a extra maior. Todas as listas
+    /// ordenam por aqui.
+    template <typename L>
+    bool Antes(const L& a, const L& b) {
+        if (a.nota != b.nota) return a.nota > b.nota;
+        return a.extra > b.extra;
+    }
+
+    /// Numera as posicoes de uma lista ja ordenada por Antes. A regra de empate e uma so - a mesma
+    /// nota e a mesma extra -, e todas as listas passam por aqui.
     template <typename L>
     void Numerar(std::vector<L>& linhas) {
         for (size_t i = 0; i < linhas.size(); ++i) {
-            linhas[i].posicao = (i > 0 && linhas[i].nota == linhas[i - 1].nota)
+            linhas[i].posicao = (i > 0 && linhas[i].nota == linhas[i - 1].nota && linhas[i].extra == linhas[i - 1].extra)
                                     ? linhas[i - 1].posicao
                                     : static_cast<int>(i) + 1;
         }
     }
 
     /// Ordena e numera as linhas de um aluno so.
-    template <typename NotaDe, typename JogadasDe>
+    template <typename NotaDe, typename JogadasDe, typename ExtraDe>
     std::vector<Linha> Ordenar(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                               NotaDe notaDe, JogadasDe jogadasDe) {
+                               NotaDe notaDe, JogadasDe jogadasDe, ExtraDe extraDe) {
 
         std::vector<Linha> linhas;
         linhas.reserve(fichas.size());
@@ -34,12 +42,12 @@ namespace {
         for (const auto& f : fichas) {
             // Nao disputou: fora.
             if (const float nota = notaDe(f); nota > 0.0f) {
-                linhas.push_back(Linha{1, f.matricula, nota, jogadasDe(f)});
+                linhas.push_back(Linha{1, f.matricula, nota, extraDe(f), jogadasDe(f)});
             }
         }
 
         std::sort(linhas.begin(), linhas.end(), [](const Linha& a, const Linha& b) {
-            if (a.nota != b.nota) return a.nota > b.nota;
+            if (a.nota != b.nota || a.extra != b.extra) return Antes(a, b);
             return a.matricula < b.matricula;
         });
 
@@ -56,7 +64,10 @@ namespace {
                                 const int materia, const Dificuldade::Nivel nivel) {
         return Ordenar(fichas,
             [materia, nivel](const Exportacao::FichaDeAluno& f) { return NotaDeSolo(f, materia, nivel); },
-            [](const Exportacao::FichaDeAluno&) { return 1; });
+            [](const Exportacao::FichaDeAluno&) { return 1; },
+            [materia, nivel](const Exportacao::FichaDeAluno& f) {
+                return f.progresso.Recorde(materia, Progresso::Modo::Solo, nivel).extra;
+            });
     }
 
     std::vector<Linha> CompletaGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
@@ -79,7 +90,8 @@ namespace {
             return n;
         };
 
-        return Ordenar(fichas, media, jogadas);
+        // A media nao tem extra: o geral desempata pela matricula, como antes.
+        return Ordenar(fichas, media, jogadas, [](const Exportacao::FichaDeAluno&) { return 0.0f; });
     }
 
     /// Template pelo mesmo motivo de Numerar: "zero devolve todas" e uma regra,
@@ -101,10 +113,13 @@ namespace {
     }
 
     /// As duplas que jogaram uma materia, e a nota de cada uma.
-    std::map<Chave, float> DuplasDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                    const int materia, const Dificuldade::Nivel nivel) {
+    /// A nota de uma dupla numa materia, e a extra dela.
+    struct NotaDaDupla { float nota = 0.0f; float extra = 0.0f; };
 
-        std::map<Chave, float> porDupla;
+    std::map<Chave, NotaDaDupla> DuplasDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                                          const int materia, const Dificuldade::Nivel nivel) {
+
+        std::map<Chave, NotaDaDupla> porDupla;
 
         for (const auto& f : fichas) {
 
@@ -121,8 +136,12 @@ namespace {
             if (parceiro == f.matricula) continue;
 
             const Chave chave = ChaveDa(f.matricula, parceiro);
-            const auto [it, nova] = porDupla.try_emplace(chave, nota);
-            if (!nova) it->second = std::max(it->second, nota);
+            // As duas fichas guardam a mesma prova; vale a melhor, pela mesma regra do ranking.
+            const NotaDaDupla esta{nota, recorde.extra};
+            const auto [it, nova] = porDupla.try_emplace(chave, esta);
+            if (!nova && (esta.nota > it->second.nota || (esta.nota == it->second.nota && esta.extra > it->second.extra))) {
+                it->second = esta;
+            }
         }
 
         return porDupla;
@@ -132,7 +151,7 @@ namespace {
 
         // Quem reparte a posicao entre empatados e Numerar.
         std::sort(linhas.begin(), linhas.end(), [](const LinhaDeDupla& a, const LinhaDeDupla& b) {
-            if (a.nota != b.nota) return a.nota > b.nota;
+            if (a.nota != b.nota || a.extra != b.extra) return Antes(a, b);
             if (a.um != b.um) return a.um < b.um;
             return a.dois < b.dois;
         });
@@ -176,8 +195,8 @@ std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeA
 
     std::vector<LinhaDeDupla> linhas;
 
-    for (const auto& [chave, nota] : DuplasDe(fichas, materia, nivel)) {
-        linhas.push_back(LinhaDeDupla{1, chave.first, chave.second, nota, 1});
+    for (const auto& [chave, d] : DuplasDe(fichas, materia, nivel)) {
+        linhas.push_back(LinhaDeDupla{1, chave.first, chave.second, d.nota, d.extra, 1});
     }
 
     return Cortar(OrdenarDuplas(std::move(linhas)), quantas);
@@ -224,9 +243,9 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
     std::map<Chave, Acumulado> porDupla;
 
     for (const int m : contadas) {
-        for (const auto& [chave, nota] : DuplasDe(fichas, m, nivel)) {
+        for (const auto& [chave, d] : DuplasDe(fichas, m, nivel)) {
             Acumulado& a = porDupla[chave];
-            a.soma += nota;
+            a.soma += d.nota;
             ++a.jogadas;
         }
     }
@@ -236,7 +255,7 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
 
     for (const auto& [chave, a] : porDupla) {
         linhas.push_back(LinhaDeDupla{1, chave.first, chave.second,
-                                      a.soma / static_cast<float>(contadas.size()),
+                                      a.soma / static_cast<float>(contadas.size()), 0.0f,
                                       a.jogadas});
     }
 
