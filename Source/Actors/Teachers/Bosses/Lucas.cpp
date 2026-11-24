@@ -39,6 +39,10 @@ namespace {
 
     // A sala do Elixir.
     constexpr SDL_Color kCaminho{255, 160, 70, 170};
+    /// Acendendo, o professor fica logo abaixo da tocha: o corpo dele a protege do tiro do aluno, que
+    /// so a apaga depois que ele sai - voltar para apaga-la e uma escolha. No bau, ele chega por cima.
+    constexpr float kAbaixoDaTocha = 44.0f;
+    constexpr float kAcimaDoBau = 40.0f;
     constexpr SDL_Color kCoracao{255, 90, 110, 255};
     // O Phoenix.
     constexpr SDL_Color kSocket{180, 140, 255, 220};
@@ -51,6 +55,7 @@ namespace {
     /// O traco do professor ate a regra que ele acabou de lancar.
     constexpr float kTracoDoLance = 0.35f;
     constexpr float kAbaixoDoAnuncio = 64.0f;
+    constexpr float kTagsNoJs = 1.6f;
     constexpr SDL_Color kLance{200, 210, 255, 120};
 
     /// Quanto o texto de uma etiqueta ocupa, com a folga da caixa.
@@ -88,7 +93,9 @@ void Lucas::OnUpdate(const float deltaTime) {
     const std::string fase = fsm ? fsm->GetStateName() : std::string();
     const float t = fsm ? fsm->GetStateTime() : 0.0f;
     if (fase != mFase) {
-        Desmontar();
+        // document.querySelector("div"): a fase 2 pega a MESMA <div> da fase 1, com tudo o que o
+        // CSS fez nela. Ela nunca some nem e destruida no meio da luta.
+        Desmontar(mFase == Dom::kFaseDoCss && fase == Dom::kFaseDoJs);
         mFase = fase;
     }
     if (!mLinhas && mScene) {
@@ -111,19 +118,29 @@ void Lucas::AoTerminarABatalha() {
     Desmontar();
 }
 
-void Lucas::Desmontar() {
-    for (DivViva& d : mDivs) MatarTodos(d.pecas);
-    mDivs.clear();
-    for (RegraViva& r : mRegras) Matar(r.p);
-    mRegras.clear();
-    mDomComecou = false;
+void Lucas::Desmontar(const bool manterADiv) {
+    if (manterADiv) {
+        // A fase 2 recomeca os lances (e a demonstracao), mas com a mesma <div> e as regras no ar.
+        mLancesNaFase = 0;
+        mProximoLance = mRelogio + 1.0f;
+    } else {
+        for (DivViva& d : mDivs) MatarTodos(d.pecas);
+        mDivs.clear();
+        for (RegraViva& r : mRegras) Matar(r.p);
+        mRegras.clear();
+        mDomComecou = false;
+    }
 
     MatarTodos(mGosmas);
     mRumoDasGosmas.clear();
     Matar(mBauP);
     Matar(mChaveP);
     Matar(mElixirP);
-    mCiclo = -1;
+    MatarTodos(mTochasP);
+    mTochas.clear();
+    mAcesas.clear();
+    mAcendendo = -1;
+    mRodadaNaSala = false;
     mDesfecho = Desfecho::EmAberto;
     mComAChave = -1;
     mInicioDaFuria = -1.0f;
@@ -270,8 +287,17 @@ void Lucas::Sanear() {
     // JavaScript trava. A que tocou a <div> o Lucas ja matou e esqueceu.
     for (RegraViva& r : mRegras) if (!Vivo(r.p)) r.p = nullptr;
     mRegras.erase(std::remove_if(mRegras.begin(), mRegras.end(), [](const RegraViva& r) { return !r.p; }), mRegras.end());
+    // A peca da <div> que morreu sem o Lucas mata-la acertou um aluno (ou foi a onda do Ponto Extra):
+    // a <div> recua, em vez de ficar colada nele.
     for (DivViva& d : mDivs) {
-        for (BossProjectile*& p : d.pecas) if (!Vivo(p)) p = nullptr;
+        bool acertou = false;
+        for (BossProjectile*& p : d.pecas) {
+            if (p && !Vivo(p)) {
+                acertou = true;
+                p = nullptr;
+            }
+        }
+        if (acertou) Dom::Recuar(d.div, PosicaoDoAluno(), mRelogio);
     }
     // A gosma e a fenix tambem morrem na onda do Ponto Extra, sem passar por OnDerrubou: contam como
     // derrubadas, e no lugar onde estavam (a posicao do projetil morto vale ate ele voltar do pool).
@@ -281,6 +307,8 @@ void Lucas::Sanear() {
             g = nullptr;
         }
     }
+    // A tocha acesa derrubada (o tiro do aluno a apagou): a sala poe a apagada no lugar.
+    for (BossProjectile*& p : mTochasP) if (!Vivo(p)) p = nullptr;
     if (!Vivo(mBauP)) mBauP = nullptr;
     if (!Vivo(mChaveP)) mChaveP = nullptr;
     if (!Vivo(mElixirP)) mElixirP = nullptr;
@@ -389,8 +417,8 @@ void Lucas::EsconderEtiquetas() {
 
 // ---- Fases 1 e 2: a <div> ----
 
-void Lucas::PosicionarPecas(DivViva& d, const float t) {
-    const std::vector<Vector2> onde = Dom::Pecas(d.div, t, kPassoDasPecas);
+void Lucas::PosicionarPecas(DivViva& d, const float agora) {
+    const std::vector<Vector2> onde = Dom::Pecas(d.div, agora, kPassoDasPecas);
     // Sobram pecas: as de mais saem. Faltam: nascem.
     while (d.pecas.size() > onde.size()) {
         Matar(d.pecas.back());
@@ -403,49 +431,62 @@ void Lucas::PosicionarPecas(DivViva& d, const float t) {
     }
 }
 
-void Lucas::DesenharDiv(const DivViva& d, const float t, const bool js) {
-    const auto caixas = Dom::Caixas(d.div, t);
+void Lucas::DesenharDiv(const DivViva& d, const float agora, const bool js) {
+    const auto caixas = Dom::Caixas(d.div, agora);
     if (caixas.empty()) return;
-    const auto alfa = [&](const SDL_Color c) {
-        return SDL_Color{c.r, c.g, c.b, static_cast<Uint8>(static_cast<float>(c.a) * d.div.opacidade)};
-    };
-    const SDL_Color borda = alfa(js ? kBordaJs : kBordaCss), fundo = alfa(js ? kFundoJs : kFundoCss);
+    const SDL_Color borda = js ? kBordaJs : kBordaCss, fundo = js ? kFundoJs : kFundoCss;
+    // O aviso do transbordo: a borda que vai transbordar acende logo antes.
+    const bool vaiTransbordar = d.div.proximoTransbordo - agora < Dom::kAvisoDoTransbordo;
     for (const Dom::Caixa& k : caixas) {
         if (k.redonda) {
             const float r = std::min(k.largura, k.altura) / 2.0f;
             Disco(k.centro, r, fundo);
-            Circulo(k.centro, r, borda, 28);
+            Circulo(k.centro, r, vaiTransbordar ? kMudou : borda, 28);
             Circulo(k.centro, r - 1.0f, borda, 28);
+            if (vaiTransbordar) Circulo(k.centro, r + 2.0f, kMudou, 28);
         } else {
             Preencher(k.centro, k.largura, k.altura, fundo);
             Retangulo(k.centro, k.largura, k.altura, borda);
             Retangulo(k.centro, k.largura - 2.0f, k.altura - 2.0f, borda);
+            if (vaiTransbordar) {
+                const float y = k.centro.y + k.altura / 2.0f;
+                for (float dy = 0.0f; dy < 3.0f; dy += 1.0f) {
+                    Linha(Vector2(k.centro.x - k.largura / 2.0f, y + dy), Vector2(k.centro.x + k.largura / 2.0f, y + dy), kMudou);
+                }
+            }
         }
     }
     // A tag em cima, e o comportamento (o que o JavaScript ja ligou) embaixo.
-    const Dom::Caixa& primeira = caixas.front();
+    const float meiaAltura = d.div.altura * Dom::Escala(d.div, agora) / 2.0f;
     // A regra que acabou de muda-la aparece um instante no lugar da tag.
-    const bool mudou = t < d.ultimaAte && !d.ultima.empty();
-    Etiqueta(mudou ? d.ultima : "<div>", d.div.centro - Vector2(0.0f, d.div.altura / 2.0f + 18.0f),
+    const bool mudou = agora < d.ultimaAte && !d.ultima.empty();
+    Etiqueta(mudou ? d.ultima : "<div>", d.div.centro - Vector2(0.0f, meiaAltura + 18.0f),
              mudou ? kMudou : (js ? kTintaJs : kTintaCss));
     std::string comportamento;
     const auto juntar = [&](const char* s) { comportamento += (comportamento.empty() ? "" : " ") + std::string(s); };
     if (d.div.intervalo > 0.0f) juntar("setInterval");
+    if (d.div.entreLeques > 0.0f) juntar("forEach");
     if (d.div.revida) juntar("onclick");
     if (d.div.segue) juntar("mousemove");
+    if (d.div.sobre) juntar("onmouseover");
     if (d.div.teleporteACada > 0.0f) juntar("random");
-    if (d.div.bombaEm >= t) juntar("setTimeout");
-    if (!comportamento.empty()) Etiqueta(comportamento, d.div.centro + Vector2(0.0f, d.div.altura / 2.0f + 18.0f), kTintaJs);
+    if (d.div.bombaEm >= agora) juntar("setTimeout");
+    if (!comportamento.empty()) Etiqueta(comportamento, d.div.centro + Vector2(0.0f, meiaAltura + 18.0f), kTintaJs);
     // A bomba do setTimeout pisca mais rapido conforme o pavio acaba.
-    if (d.div.bombaEm >= t) {
-        const float falta = d.div.bombaEm - t;
-        if (std::fmod(t, std::max(0.08f, falta / 6.0f)) < 0.05f) Circulo(d.div.centro, primeira.altura * 0.4f + 6.0f, SDL_Color{255, 90, 60, 255}, 24);
+    if (d.div.bombaEm >= agora) {
+        const float falta = d.div.bombaEm - agora;
+        if (std::fmod(agora, std::max(0.08f, falta / 6.0f)) < 0.05f) {
+            Circulo(d.div.centro, caixas.front().altura * 0.4f + 6.0f, SDL_Color{255, 90, 60, 255}, 24);
+        }
     }
 }
 
 void Lucas::AtualizarDom(const float t, const float deltaTime, const bool js) {
     Battle* b = Batalha();
     if (!b) return;
+    // O relogio da <div> e o do chefe, que nao zera entre as fases: a mesma <div> passa da fase 1
+    // para a 2, com os relogios dela.
+    const float agora = mRelogio;
     // A <div> fica abaixo do anuncio do professor.
     Dom::Campo c = CampoPuro();
     c.y += kAbaixoDoAnuncio;
@@ -453,82 +494,101 @@ void Lucas::AtualizarDom(const float t, const float deltaTime, const bool js) {
     const Dom::Degrau& g = mDegrauDoDom;
     Varrer(t, 0.32f, 9.0f);
 
-    // A <div> nova, pequena e previsivel, no comeco da fase.
+    // A <div> nova, pequena e previsivel, no comeco da fase 1.
     if (!mDomComecou) {
         mDomComecou = true;
-        mDivs.push_back(DivViva{Dom::Nova(c, g.rapidezDaDiv, mSorteioDoDom), {}, "", -1.0f});
-        mProximoLance = g.calma;
-        mProximaTag = g.calma + 1.0f;
+        mDivs.push_back(DivViva{Dom::Nova(c, g.rapidezDaDiv, g.entreTransbordos, agora, mSorteioDoDom), {}, "", -1.0f});
+        mProximoLance = agora + g.calma;
+        mProximaTag = agora + g.calma + 1.0f;
+        mLancesNaFase = 0;
     }
 
     const Vector2 aluno = PosicaoDoAluno();
     const ProjectileManager* tiros = b->GerenteDeProjeteis();
     std::vector<Dom::Div> clones;
     for (DivViva& d : mDivs) {
-        Dom::Andar(d.div, deltaTime, t, aluno, c, mSorteioDoDom);
-        // O comportamento: o setTimeout que explode e o setInterval que atira.
-        switch (Dom::Atirar(d.div, t)) {
-            case Dom::Disparo::Explosao:
-                DispararEm("explosao", d.div.centro, g.tirosDaExplosao);
-                SomDoDisparo();
-                break;
-            case Dom::Disparo::Anel:
-                DispararEm("setinterval", d.div.centro, g.tirosDoAnel);
-                break;
-            case Dom::Disparo::Nenhum:
-                break;
+        Dom::Andar(d.div, deltaTime, agora, aluno, c, mSorteioDoDom);
+        const Vector2 centro = d.div.centro;
+        const Dom::Tiros disparos = Dom::Atirar(d.div, agora, aluno);
+        // O overflow, sempre: o conteudo transborda da <div>.
+        if (disparos.transbordo) {
+            for (const Dom::Gota& gota : Dom::Gotas(d.div, agora)) {
+                Um("transbordo", gota.onde + gota.rumo * 6.0f, "", gota.rumo * g.velocidadeDasGotas);
+            }
+        }
+        // O comportamento: o setTimeout que estoura, o setInterval, o forEach e o onmouseover.
+        if (disparos.explosao) {
+            DispararEm("explosao", centro, g.tirosDaExplosao);
+            SomDoDisparo();
+        }
+        if (disparos.anel) DispararEm("setinterval", centro, g.tirosDoAnel);
+        if (disparos.leque) Leque("foreach", centro, g.tirosDoLeque, 36.0f, 240.0f);
+        if (disparos.queda) {
+            const Vector2 base = centro + Vector2(0.0f, d.div.altura * Dom::Escala(d.div, agora) / 2.0f);
+            for (int k = 0; k < 3; ++k) Um("mouseover", base + Vector2(0.0f, -14.0f * static_cast<float>(k)), "", Vector2(0.0f, g.velocidadeDaQueda));
         }
         // O onclick: o tiro do aluno que passa pela <div> volta como leque.
         if (d.div.revida && tiros) {
             for (const auto& tiro : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
                 if (!tiro || tiro->GetState() != ActorState::Active) continue;
-                if (!Dom::Toca(d.div, tiro->GetPosition(), 6.0f, t) || !Dom::Revidar(d.div, t)) continue;
-                Leque("revide", d.div.centro, g.tirosDoRevide, 30.0f, 260.0f);
+                if (!Dom::Toca(d.div, tiro->GetPosition(), 6.0f, agora) || !Dom::Revidar(d.div, agora)) continue;
+                Leque("revide", centro, g.tirosDoRevide, 30.0f, 230.0f);
                 break;
             }
         }
         // As regras que acertaram esta <div>: mudam ela, e somem.
         for (RegraViva& r : mRegras) {
-            if (!Vivo(r.p) || !Dom::Toca(d.div, r.p->GetPosition(), kRaioDaRegra, t)) continue;
-            if (Dom::Aplicar(d.div, r.efeito, t) && mDivs.size() + clones.size() < static_cast<size_t>(Dom::kMaisDivs)) {
+            if (!Vivo(r.p) || !Dom::Toca(d.div, r.p->GetPosition(), kRaioDaRegra, agora)) continue;
+            if (Dom::Aplicar(d.div, r.efeito, agora) && mDivs.size() + clones.size() < static_cast<size_t>(Dom::kMaisDivs)) {
                 // cloneNode: a copia sai para o outro lado.
                 Dom::Div copia = d.div;
                 copia.velocidade = Vector2(-d.div.velocidade.x, d.div.velocidade.y);
-                copia.centro = d.div.centro + Vector2(d.div.velocidade.x < 0.0f ? 40.0f : -40.0f, 0.0f);
+                // Do lado de onde ela vem, a uma largura dela: as duas nao nascem uma em cima da outra.
+                const float lado = d.div.largura * Dom::Escala(d.div, agora) + 30.0f;
+                copia.centro = d.div.centro + Vector2(d.div.velocidade.x < 0.0f ? lado : -lado, 0.0f);
                 clones.push_back(copia);
             }
             d.ultima = Dom::Texto(r.efeito);
-            d.ultimaAte = t + kMostrarAMudanca;
+            d.ultimaAte = agora + kMostrarAMudanca;
             b->Faiscar(r.p->GetPosition(), Hud::Faisca::Dissolvido);
             Matar(r.p);
         }
-        PosicionarPecas(d, t);
-        DesenharDiv(d, t, js);
+        PosicionarPecas(d, agora);
+        DesenharDiv(d, agora, js);
     }
     for (const Dom::Div& copia : clones) mDivs.push_back(DivViva{copia, {}, "", -1.0f});
     mRegras.erase(std::remove_if(mRegras.begin(), mRegras.end(), [](const RegraViva& r) { return !r.p; }), mRegras.end());
 
     // O lance: o professor joga as regras no campo, e elas entram pelas laterais, rumo a um ponto
     // dele - as vezes a propria <div>. Pelas laterais, e nao de dentro dele: o aluno que so atira
-    // no professor nao as derruba sem querer, e escolhe o que derrubar.
-    if (t >= mProximoLance) {
-        mProximoLance = t + g.entreLances;
+    // no professor nao as derruba sem querer, e escolhe o que derrubar. Os primeiros lances de cada
+    // fase vao todos na <div>, e na fase 2 todos de JavaScript: a mecanica se mostra.
+    if (agora >= mProximoLance) {
+        mProximoLance = agora + g.entreLances;
+        const bool demonstracao = mLancesNaFase < Dom::kLancesDeDemonstracao;
+        ++mLancesNaFase;
         for (int k = 0; k < g.regrasPorLance; ++k) {
-            const bool ehJs = js && !mSorteioDoDom.Chance(g.chanceDeCssNoJs);
-            const Dom::Efeito e = Dom::Sortear(ehJs, mSorteioDoDom);
+            const bool ehJs = js && (demonstracao || !mSorteioDoDom.Chance(g.chanceDeCssNoJs));
             const bool daEsquerda = mSorteioDoDom.Chance(0.5f);
             const Vector2 de(daEsquerda ? c.x + 4.0f : c.x + c.w - 4.0f, c.y + c.h * mSorteioDoDom.Real(0.12f, 0.6f));
             // A mirada na <div> sai para onde ela vai estar (sem contar os quiques), e faz a curva
             // atras dela no caminho; a outra vai reta para um ponto da metade de baixo.
             int qual = -1;
-            Vector2 para = Dom::Destino(c, nullptr, mSorteioDoDom);
-            if (!mDivs.empty() && mSorteioDoDom.Chance(Dom::kChanceDeMirarADiv)) {
+            if (!mDivs.empty() && (demonstracao || mSorteioDoDom.Chance(Dom::kChanceDeMirarADiv))) {
                 qual = mSorteioDoDom.Inteiro(0, static_cast<int>(mDivs.size()) - 1);
+            }
+            Vector2 para;
+            if (qual >= 0) {
                 const Dom::Div& alvo = mDivs[static_cast<size_t>(qual)].div;
                 const float chegada = (alvo.centro - de).Length() / std::max(1.0f, g.velocidadeDasRegras);
-                para = t >= alvo.paradaAte ? alvo.centro + alvo.velocidade * chegada : alvo.centro;
+                para = alvo.centro + alvo.velocidade * chegada;
                 para = Vector2(std::clamp(para.x, c.x, c.x + c.w), std::clamp(para.y, c.y, c.y + c.h));
+            } else {
+                para = Dom::Destino(c, nullptr, mSorteioDoDom);
             }
+            // A regra que muda alguma coisa na <div> que ela persegue (ou na primeira).
+            const Dom::Div* quem = qual >= 0 ? &mDivs[static_cast<size_t>(qual)].div : (mDivs.empty() ? nullptr : &mDivs.front().div);
+            const Dom::Efeito e = Dom::Sortear(ehJs, mSorteioDoDom, quem);
             Vector2 rumo = para - de;
             if (rumo.Length() < 1.0f) rumo = Vector2(0.0f, 1.0f);
             rumo = rumo * (g.velocidadeDasRegras / rumo.Length());
@@ -536,27 +596,26 @@ void Lucas::AtualizarDom(const float t, const float deltaTime, const bool js) {
                 // No aluno, alem da nota, a regra o prende um instante.
                 if (Dom::EhJs(e)) p->DefinirAcorrentamento(Dom::kTravaDoJs, Dom::kFatorDoJs, 1.0f);
                 else p->DefinirAcorrentamento(Dom::kPesoDoCss, Dom::kFatorDoCss, 1.0f);
-                mRegras.push_back(RegraViva{p, e, t, qual});
+                mRegras.push_back(RegraViva{p, e, agora, qual});
             }
         }
         SomDoDisparo();
     }
-    // O leque do proprio professor.
-    if (t >= mProximaTag) {
-        mProximaTag = t + g.entreTags;
+    // O leque do proprio professor - mais espacado na fase 2, em que a <div> ja atira por conta dela.
+    if (agora >= mProximaTag) {
+        mProximaTag = agora + g.entreTags * (js ? kTagsNoJs : 1.0f);
         Leque("tag", GetPosition() + Vector2(0.0f, 40.0f), g.tagsPorLeque, 40.0f, 230.0f);
     }
     // A curva atras da <div>, e a etiqueta de cada regra, em cima dela.
     for (const RegraViva& r : mRegras) {
         if (!Vivo(r.p)) continue;
-        if (r.div >= 0 && static_cast<size_t>(r.div) < mDivs.size() && t - r.desde < Dom::kCurvaDaRegra &&
-            Dom::Visivel(mDivs[static_cast<size_t>(r.div)].div, t)) {
+        if (r.div >= 0 && static_cast<size_t>(r.div) < mDivs.size() && agora - r.desde < Dom::kCurvaDaRegra) {
             if (auto* rb = r.p->GetComponent<RigidBodyComponent>()) {
                 rb->SetVelocity(Dom::Curvar(rb->GetVelocity(), r.p->GetPosition(), mDivs[static_cast<size_t>(r.div)].div.centro,
                                             Dom::kGiroDaRegra, deltaTime));
             }
         }
-        if (t - r.desde < kTracoDoLance) Tracejada(GetPosition(), r.p->GetPosition(), kLance, 6.0f);
+        if (agora - r.desde < kTracoDoLance) Tracejada(GetPosition(), r.p->GetPosition(), kLance, 6.0f);
         Etiqueta(Dom::Texto(r.efeito), r.p->GetPosition() + Vector2(0.0f, -24.0f), Dom::EhJs(r.efeito) ? kTintaJs : kTintaCss);
     }
 }
@@ -569,6 +628,7 @@ void Lucas::NovoCiclo(const float t) {
     Matar(mBauP);
     Matar(mChaveP);
     Matar(mElixirP);
+    MatarTodos(mTochasP);
     const Masmorra::Degrau& g = mDegrauDaMasmorra;
     const Dom::Campo c = CampoPuro();
     mBau = Masmorra::LugarDoBau(mSorteioDaMasmorra, c, PosicaoDoAluno());
@@ -579,11 +639,16 @@ void Lucas::NovoCiclo(const float t) {
         const float a = mSorteioDaMasmorra.Real(0.0f, Math::TwoPi);
         mRumoDasGosmas.push_back(Vector2(Math::Cos(a), Math::Sin(a)) * g.rapidezDasGosmas);
     }
+    // As tochas, apagadas, na ordem em que o professor vai acende-las.
+    mTochas = Masmorra::LugaresDasTochas(mSorteioDaMasmorra, Masmorra::kTochas, c, mBau, GetPosition());
+    mAcesas.assign(mTochas.size(), false);
+    mTochasP.assign(mTochas.size(), nullptr);
+    mAcendendo = -1;
+    mRodadaNaSala = true;
     mGosmasDerrubadas = 0;
     mChaveCaiu = false;
     mComAChave = -1;
     mDesfecho = Desfecho::EmAberto;
-    mDeOndeSaiu = GetPosition();
     mInicioDaFuria = -1.0f;
     mProximoLeque = t + 1.2f;
     // \xc3\x89 e o E agudo.
@@ -595,12 +660,8 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
     if (!b) return;
     const Masmorra::Degrau& g = mDegrauDaMasmorra;
     const Dom::Campo c = CampoPuro();
-    const int ciclo = static_cast<int>(std::floor(t / Masmorra::kCiclo));
-    if (ciclo != mCiclo) {
-        mCiclo = ciclo;
-        NovoCiclo(t);
-    }
-    const float tc = t - static_cast<float>(ciclo) * Masmorra::kCiclo;
+    // A rodada seguinte comeca um pouco depois do desfecho da anterior.
+    if (!mRodadaNaSala || (mDesfecho != Desfecho::EmAberto && t >= mProximaRodada)) NovoCiclo(t);
     const std::vector<Player*>& alunos = b->Jogadores();
 
     // As gosmas andam pela faixa do meio da sala, quicando.
@@ -638,6 +699,17 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
         Prender(mChaveP, alunos[static_cast<size_t>(mComAChave)]->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca));
     }
     if (mBauP) Prender(mBauP, mBau);
+    // As tochas: a apagada e enfeite; a acesa, o tiro do aluno apaga - e ela volta apagada.
+    for (size_t i = 0; i < mTochas.size() && i < mTochasP.size(); ++i) {
+        if (!mTochasP[i]) {
+            if (mAcesas[i]) b->Faiscar(mTochas[i], Hud::Faisca::Dissolvido);
+            mAcesas[i] = false;
+            mTochasP[i] = Peca("tocha", mTochas[i], "Apagada");
+            if (mTochasP[i]) mTochasP[i]->DefinirEnfeite(true);
+        }
+        Prender(mTochasP[i], mTochas[i]);
+        if (mAcesas[i]) Circulo(mTochas[i] + Vector2(0.0f, -10.0f), 16.0f + 2.0f * std::sin(mRelogio * 9.0f), kCaminho, 16);
+    }
 
     if (mDesfecho == Desfecho::EmAberto) {
         // O bau aberto por quem tem a chave: o Elixir erguido acima da cabeca, e o bonus.
@@ -645,6 +717,7 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
             Player* a = alunos[static_cast<size_t>(mComAChave)];
             if (a && Masmorra::Alcanca(a->GetPosition(), mBau)) {
                 mDesfecho = Desfecho::DoAluno;
+                mProximaRodada = t + Masmorra::kPausaDepoisDoAluno;
                 mQuemBebeu = mComAChave;
                 Cara(mBauP, "Aberto");
                 Matar(mChaveP);
@@ -661,12 +734,36 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
                 TrocarAnuncio(Masmorra::kFase, "{:ok, :elixir}");
             }
         }
-        // O professor anda ate o bau, pelas beiradas; o tracejado mostra para onde.
-        mAlvo = Masmorra::CaminhoDoProfessor(mDeOndeSaiu, mBau, tc, g.chegada, c);
-        Tracejada(GetPosition(), mBau, kCaminho);
-        if (mDesfecho == Desfecho::EmAberto && tc >= g.chegada) {
-            // Chegou antes: bebe o Elixir.
+        // O professor: cada tocha apagada, na ordem, e so entao o bau. O tracejado mostra para onde.
+        const int tocha = mAcendendo >= 0 ? mAcendendo : Masmorra::ProximaTocha(mAcesas);
+        const Vector2 lugar = tocha >= 0 ? mTochas[static_cast<size_t>(tocha)] : mBau;
+        const Vector2 destino = lugar + Vector2(0.0f, tocha >= 0 ? kAbaixoDaTocha : -kAcimaDoBau);
+        mAlvo = Masmorra::Passo(GetPosition(), destino, g.rapidezDoProfessor, deltaTime);
+        Tracejada(GetPosition(), lugar, kCaminho);
+        const bool chegou = (GetPosition() - destino).Length() <= Masmorra::kChegou + 6.0f;
+        if (tocha >= 0 && chegou && mAcendendo < 0) {
+            mAcendendo = tocha;
+            mAcendeEm = t + g.acender;
+        }
+        if (mAcendendo >= 0) {
+            // O fogo que pega, em volta da tocha.
+            const float u = std::clamp(1.0f - (mAcendeEm - t) / std::max(0.05f, g.acender), 0.0f, 1.0f);
+            Circulo(mTochas[static_cast<size_t>(mAcendendo)], 8.0f + 18.0f * u, kCaminho, 18);
+            if (t >= mAcendeEm) {
+                const size_t i = static_cast<size_t>(mAcendendo);
+                mAcesas[i] = true;
+                if (mTochasP[i]) {
+                    Cara(mTochasP[i], "Acesa");
+                    mTochasP[i]->DefinirEnfeite(false);
+                }
+                b->Faiscar(mTochas[i], Hud::Faisca::Coleta);
+                mAcendendo = -1;
+            }
+        }
+        if (mDesfecho == Desfecho::EmAberto && tocha < 0 && chegou) {
+            // Chegou antes, com as tochas acesas: bebe o Elixir.
             mDesfecho = Desfecho::DoProfessor;
+            mProximaRodada = t + g.furia + Masmorra::kPausaDepoisDaFuria;
             Cara(mBauP, "Aberto");
             mInicioDaFuria = t;
             mProximaRajada = t + 0.5f;

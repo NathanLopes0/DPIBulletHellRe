@@ -25,30 +25,42 @@ TEST_CASE("Masmorra: o bau nasce longe do aluno, e as gosmas longe do bau") {
     }
 }
 
-TEST_CASE("Masmorra: o professor anda pelas beiradas e chega ao bau na hora marcada") {
-    const Vector2 de(600.0f, 105.0f), bau(200.0f, 520.0f);
-    const float chegada = 7.0f;
-    CHECK((CaminhoDoProfessor(de, bau, 0.0f, chegada, kCampo) - de).Length() < 30.0f);
-    CHECK((CaminhoDoProfessor(de, bau, chegada, chegada, kCampo) - bau).Length() < 0.5f);
-    CHECK((CaminhoDoProfessor(de, bau, 99.0f, chegada, kCampo) - bau).Length() < 0.5f);
-    // Primeiro de lado (no alto), depois a descida: na metade do tempo ele ainda nao desceu muito.
-    const Vector2 meio = CaminhoDoProfessor(de, bau, chegada * 0.4f, chegada, kCampo);
-    CHECK(meio.y < 150.0f);
-    // Sem saltos.
-    Vector2 antes = de;
-    for (float t = 0.0f; t <= chegada; t += 0.016f) {
-        const Vector2 p = CaminhoDoProfessor(de, bau, t, chegada, kCampo);
-        CHECK((p - antes).Length() < 20.0f);
-        antes = p;
-    }
-    // O Dificil: chega antes, mais gosmas, furia maior.
+TEST_CASE("Masmorra: o professor acende as tochas, uma de cada lado, antes do bau") {
+    Variacao::Sorteio s(13u);
+    const Vector2 professor(600.0f, 95.0f);
     const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
-    CHECK(d.chegada < n.chegada);
+    for (int k = 0; k < 50; ++k) {
+        const Vector2 bau = LugarDoBau(s, kCampo, Vector2(s.Real(100.0f, 1100.0f), 650.0f));
+        const auto tochas = LugaresDasTochas(s, kTochas, kCampo, bau, professor);
+        REQUIRE(tochas.size() == static_cast<size_t>(kTochas));
+        // Uma em cada metade da sala, no alto (o tiro do aluno chega), longe do bau.
+        CHECK(std::min(tochas[0].x, tochas[1].x) < kCampo.w * 0.5f);
+        CHECK(std::max(tochas[0].x, tochas[1].x) > kCampo.w * 0.5f);
+        for (const Vector2& t : tochas) {
+            CHECK(t.y <= kCampo.h * 0.45f);
+            CHECK((t - bau).Length() >= 150.0f);
+        }
+        // A mais perto primeiro.
+        CHECK((tochas[0] - professor).Length() <= (tochas[1] - professor).Length() + 0.01f);
+        // O caminho todo da tempo ao aluno - e o Dificil e mais curto.
+        const float normal = Percurso(professor, tochas, bau, n.rapidezDoProfessor, n.acender);
+        CHECK(normal > 6.0f);
+        CHECK(Percurso(professor, tochas, bau, d.rapidezDoProfessor, d.acender) < normal);
+    }
+    // A proxima: a primeira apagada; todas acesas, o bau.
+    CHECK(ProximaTocha({false, false}) == 0);
+    CHECK(ProximaTocha({true, false}) == 1);
+    CHECK(ProximaTocha({false, true}) == 0);       // a do aluno apagou a primeira: ele volta
+    CHECK(ProximaTocha({true, true}) == -1);
+    // O passo nao passa do destino.
+    CHECK((Passo(Vector2(0.0f, 0.0f), Vector2(100.0f, 0.0f), 190.0f, 0.1f) - Vector2(19.0f, 0.0f)).Length() < 0.01f);
+    CHECK((Passo(Vector2(0.0f, 0.0f), Vector2(10.0f, 0.0f), 190.0f, 0.1f) - Vector2(10.0f, 0.0f)).Length() < 0.01f);
+    // O Dificil: professor mais rapido, mais gosmas, furia maior.
+    CHECK(d.rapidezDoProfessor > n.rapidezDoProfessor);
+    CHECK(d.acender < n.acender);
     CHECK(d.gosmas > n.gosmas);
     CHECK(d.bracos > n.bracos);
     CHECK(d.entreRajadas < n.entreRajadas);
-    CHECK(n.chegada + n.furia < kCiclo + 0.01f);   // a furia acaba dentro do ciclo
-    CHECK(d.chegada + d.furia < kCiclo + 0.01f);
 }
 
 TEST_CASE("Masmorra: pegar e a espiral da furia") {

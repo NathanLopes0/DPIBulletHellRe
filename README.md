@@ -1031,33 +1031,43 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   **créditos** sobem do rodapé, linha por linha, cada uma uma parede de blocos
   com um vão fora do texto ("QA · você, agora", "BUGS · todos de propósito").
 - **Lucas — INF 321.** Programação Web, na ordem da matéria, e tudo gira em
-  torno de uma `<div>`. No CSS ele a invoca pequena e previsível, quicando pelo
-  campo — o contorno dela machuca —, e joga regras de CSS no campo, que entram
-  pelas laterais. Cada regra é derrubável: no aluno, ela machuca e pesa nele
-  por uns segundos; na `<div>`, ela muda a `<div>`, e as mudanças se acumulam —
-  `width: 200%`, `border-radius: 50%`, `display: grid` (vira quatro),
-  `transition: 0.1s` (mais rápida), e também as que aliviam, como
-  `display: none` e `width: 50%`. Boa parte das regras faz a curva atrás da
-  `<div>`: derrubar a regra no caminho, ou deixá-la passar, ou atirar no
-  professor, é escolha do aluno. No JavaScript (`document.querySelector`) o
-  padrão se repete, mas as regras mudam o comportamento dela: o `setInterval`
-  a faz atirar, o `onclick` devolve o tiro que passa por ela, o `mousemove` a
-  faz seguir o aluno, o `Math.random()` a teletransporta, o `setTimeout` arma
-  uma bomba com pavio, o `cloneNode` a duplica e o `div.remove()` a tira do
-  campo um tempo. No aluno, a regra de JavaScript o trava um instante. O
-  Elixir é uma sala de masmorra, uma homenagem aos jogos de aventura de que
-  ele gosta: "É perigoso ir sozinho!". A cada rodada aparece um baú, e o
-  professor anda até ele pelas beiradas (o tracejado mostra o caminho); o
-  aluno derrota as gosmas que guardam a chave pequena, pega a chave e abre o
-  baú antes: ergue o Elixir acima da cabeça e fica protegido, mais rápido e
-  ganhando mais nota por uns segundos, com corações em volta. Se o professor
-  chega primeiro, ele bebe o Elixir e entra em fúria — uma espiral e anéis
-  que no Normal dá para atravessar e no Difícil quase não. A final é o
-  Phoenix (`mix phx.server`): uma fênix voa em oito pelo alto e segue o aluno
-  como o LiveView segue o estado, solta leques de penas e faz broadcast pelos
-  sockets do PubSub, que atiram todos juntos. Derrubada, ela vira cinzas — e
-  o aluno ganha nota; se as cinzas não forem apagadas a tempo, ela renasce num
-  anel de penas, numa versão nova e mais rápida.
+  torno de uma `<div>`, que nunca some e nunca é destruída. No CSS ele a
+  invoca pequena e previsível, quicando pela parte de cima do campo, e ela já
+  é perigo sozinha: o corpo machuca, e o conteúdo transborda (o `overflow`),
+  gotas que caem da borda de baixo — a borda acende logo antes. Ele joga
+  regras de CSS no campo, muitas, que entram pelas laterais; os primeiros
+  lances vão todos na `<div>`, para a mecânica se mostrar. Cada regra é
+  derrubável: no aluno, machuca e pesa nele por uns segundos; na `<div>`, a
+  muda, sempre para pior, e as mudanças se acumulam — `width: 200%`,
+  `display: grid` (vira quatro), `border-radius` (transborda em leque),
+  `animation` (pulsa), `margin: 0 auto` (fica em cima do aluno),
+  `overflow: scroll` (transborda mais), `z-index` (desce até o aluno),
+  `transition`. Boa parte das regras faz a curva atrás da `<div>`: derrubar a
+  regra no caminho, ou deixá-la passar, ou atirar no professor, é escolha do
+  aluno. No JavaScript (`document.querySelector`) é a **mesma** `<div>`, com
+  tudo o que o CSS fez nela, e as regras mudam o comportamento dela: o
+  `setInterval` a faz atirar, o `forEach` mira um leque no aluno, o
+  `onclick` devolve o tiro que passa por ela, o `mousemove` a faz seguir o
+  aluno (nunca mais rápida que ele, e depois de acertá-lo ela recua), o
+  `onmouseover` despeja uma coluna em quem está embaixo, o `Math.random()` a
+  teletransporta, o `setTimeout` a faz estourar e o `cloneNode` a duplica. No
+  aluno, a regra de JavaScript o trava um instante. O Elixir é uma sala de
+  masmorra, uma homenagem aos jogos de aventura de que ele gosta: "É perigoso
+  ir sozinho!". A cada rodada aparecem um baú, gosmas e duas tochas apagadas.
+  O aluno derrota as gosmas, pega a chave pequena e abre o baú: ergue o
+  Elixir acima da cabeça e fica protegido, mais rápido e ganhando mais nota
+  por uns segundos, com corações em volta. O professor também quer o Elixir,
+  mas o baú só abre para ele com as tochas acesas: ele vai até cada uma e a
+  acende (o corpo dele a protege enquanto isso), e só então vai ao baú — o
+  tracejado mostra para onde. O tiro do aluno apaga a tocha acesa, e ele tem
+  de voltar. Se o professor chega primeiro, bebe o Elixir e entra em fúria —
+  uma espiral e anéis que no Normal dá para atravessar e no Difícil quase
+  não. A final é o Phoenix (`mix phx.server`): uma fênix voa em oito pelo
+  alto e segue o aluno como o LiveView segue o estado, solta leques de penas
+  e faz broadcast pelos sockets do PubSub, que atiram todos juntos.
+  Derrubada, ela vira cinzas — e o aluno ganha nota; se as cinzas não forem
+  apagadas a tempo, ela renasce num anel de penas, numa versão nova e mais
+  rápida.
 
 - **Hugo — TCC.** A última matéria e a batalha mais difícil do curso (só a
   secreta INF 216 é mais dura): quatro etapas de 30 s. Antes dela você escolhe um **orientador**

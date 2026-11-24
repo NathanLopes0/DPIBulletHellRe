@@ -13,6 +13,9 @@
       // Cada peca invisivel que faz a <div> machucar em toda a area dela.
       { "gatilho": "peca", "estrategia": "WaveAttack", "projetil": "Peca",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      // O overflow: cada gota que transborda da <div> (o rumo vem do Lucas.cpp).
+      { "gatilho": "transbordo", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 1, "velocidade": 130, "angulo": 0, "intervalo": 0, "som": false },
       // A regra de CSS que ele joga no campo (o rumo e a velocidade vem do Lucas.cpp).
       { "gatilho": "regra", "estrategia": "WaveAttack", "projetil": "Regra",
         "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
@@ -23,7 +26,7 @@
     ]
   },
 
-  // Fase 2 - JavaScript: a mesma <div>, agora com comportamento.
+  // Fase 2 - JavaScript: a mesma <div> da fase 1 (document.querySelector), agora com comportamento.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
@@ -37,22 +40,32 @@
       { "gatilho": "tag", "estrategia": "WaveAttack", "projetil": "Codigo",
         "projeteis": 5, "velocidade": 230, "angulo": 40, "intervalo": 0,
         "regras": "html" },
+      // A mesma <div> da fase 1, que continua transbordando.
+      { "gatilho": "transbordo", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 1, "velocidade": 130, "angulo": 0, "intervalo": 0, "som": false },
+      // tiros.forEach(mirar): o leque mirado no aluno, de dentro da <div>.
+      { "gatilho": "foreach", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 4, "velocidade": 240, "angulo": 36, "intervalo": 0,
+        "regras": "css" },
+      // div.onmouseover = despejar: com o aluno embaixo, a <div> despeja uma coluna.
+      { "gatilho": "mouseover", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 1, "velocidade": 300, "angulo": 0, "intervalo": 0, "som": false },
       // setInterval(atirar): o anel de promessas que sai da <div>, para e acelera.
       { "gatilho": "setinterval", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
         "projeteis": 8, "velocidade": 170, "variar": { "giro": 20 },
         "regras": "promessas" },
-      // setTimeout(explodir): a <div> estoura.
+      // setTimeout(explodir): a <div> estoura (e continua la).
       { "gatilho": "explosao", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 14, "velocidade": 210, "variar": { "giro": 12 },
-        "regras": "html" },
+        "projeteis": 14, "velocidade": 200, "variar": { "giro": 12 },
+        "regras": "estouro" },
       // div.onclick = revidar: o tiro do aluno na <div> volta como leque.
       { "gatilho": "revide", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 3, "velocidade": 260, "angulo": 30, "intervalo": 0,
+        "projeteis": 3, "velocidade": 230, "angulo": 30, "intervalo": 0,
         "regras": "css" }
     ]
   },
 
-  // Fase 3 - Elixir: a sala de masmorra | gesto: o professor anda ate o bau.
+  // Fase 3 - Elixir: a sala de masmorra | gesto: o professor acende as tochas e anda ate o bau.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
@@ -60,6 +73,9 @@
     "movimento": { "tipo": "Conduzido", "a": 420 },
     "ataques": [
       { "gatilho": "gosma", "estrategia": "WaveAttack", "projetil": "Gosma",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
+      // As tochas que ele acende antes do bau, e que o tiro do aluno apaga.
+      { "gatilho": "tocha", "estrategia": "WaveAttack", "projetil": "Tocha",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "som": false },
       // A chave, o bau e o Elixir: enfeites, que o aluno pega.
       { "gatilho": "item", "estrategia": "WaveAttack", "projetil": "Item",

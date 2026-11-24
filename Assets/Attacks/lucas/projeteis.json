@@ -39,6 +39,30 @@
     "derrubavel": true
   },
 
+  // A gota do overflow: o conteudo que transborda da <div> (e o que o onmouseover despeja).
+  "Gota": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Texto": [12] },
+    "animacaoInicial": "Texto",
+    // O colisor um pouco menor que o retalho desenhado: a gota que raspa nao acerta.
+    "colisorDivisor": 3.2,
+    "ordemDeDesenho": 90
+  },
+
+  // A tocha da sala do Elixir: o professor acende as duas antes de abrir o bau, e o tiro do aluno
+  // apaga a acesa. Apagada, e enfeite (o Lucas.cpp marca): nem machuca nem se derruba.
+  "Tocha": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasWeb.json",
+    "animacoes": { "Apagada": [13], "Acesa": [14, 15] },
+    "animacaoInicial": "Apagada",
+    "escala": 1.7,
+    "ordemDeDesenho": 87,
+    "derrubavel": true,
+    "resistencia": 3
+  },
+
   // A gosma da sala do Elixir: dois tiros a derrubam, e a ultima solta a chave.
   "Gosma": {
     "sprite": "Teachers/Projectiles/DPIBHLucasWeb.png",

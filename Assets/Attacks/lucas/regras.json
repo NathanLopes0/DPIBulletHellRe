@@ -19,6 +19,11 @@
         { "tipo": "Promessa", "atraso": 1.5, "resolve": 0.6, "velocidade": 280, "escreve": "Tag" } ] }
   ],
 
+  // JavaScript: o estouro do setTimeout - promessas que saem de vez, sem parar.
+  "estouro": [
+    { "animacao": "Promessa" }
+  ],
+
   // Elixir: a mensagem - o leque da cacada, o anel da furia e o do socket do Phoenix.
   "mensagem": [
     { "animacao": "Mensagem" }

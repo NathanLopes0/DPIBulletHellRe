@@ -14,7 +14,8 @@ namespace Masmorra {
         if (nivel == Dificuldade::Nivel::Dificil) {
             g.gosmas = 4;
             g.rapidezDasGosmas = 95.0f;
-            g.chegada = 5.4f;
+            g.rapidezDoProfessor = 240.0f;
+            g.acender = 0.6f;
             g.bonus = 5.0f;
             g.fatorDoGanho = 2.5f;
             g.furia = 4.2f;
@@ -55,26 +56,56 @@ namespace Masmorra {
         return v;
     }
 
-    Vector2 CaminhoDoProfessor(const Vector2 de, const Vector2 bau, const float tc, const float chegada,
-                               const Campo& c) {
-        // Dois trechos: de lado, rente ao alto, e depois a descida. O tempo de cada um e o tamanho dele.
-        const float alto = std::max(c.y + 70.0f, std::min(de.y, c.y + 90.0f));
-        const Vector2 canto(bau.x, alto);
-        const Vector2 comeco(de.x, alto);
-        const float a = std::fabs(canto.x - comeco.x) + std::fabs(alto - de.y);
-        const float b = std::fabs(bau.y - alto);
-        const float total = std::max(1.0f, a + b);
-        const float u = std::clamp(tc / std::max(0.1f, chegada), 0.0f, 1.0f) * total;
-        if (u <= std::fabs(alto - de.y)) {
-            const float f = u / std::max(1.0f, std::fabs(alto - de.y));
-            return de + (comeco - de) * f;
+    std::vector<Vector2> LugaresDasTochas(Variacao::Sorteio& s, const int n, const Campo& c, const Vector2 bau,
+                                          const Vector2 professor) {
+        std::vector<Vector2> v;
+        const int quantas = std::max(1, n);
+        for (int k = 0; k < quantas; ++k) {
+            // Uma por fatia da largura, perto das paredes: o professor atravessa a sala.
+            const float de = static_cast<float>(k) / static_cast<float>(quantas);
+            const float ate = static_cast<float>(k + 1) / static_cast<float>(quantas);
+            const float meio = (de + ate) / 2.0f;
+            const float x = quantas == 1 ? s.Real(0.2f, 0.8f) : (meio < 0.5f ? s.Real(de + 0.08f, meio) : s.Real(meio, ate - 0.08f));
+            Vector2 p(c.x + c.w * x, c.y + c.h * s.Real(0.18f, 0.42f));
+            if ((p - bau).Length() < 160.0f) p.y = std::max(c.y + c.h * 0.15f, bau.y - 180.0f);
+            v.push_back(p);
         }
-        if (u <= a) {
-            const float f = (u - std::fabs(alto - de.y)) / std::max(1.0f, std::fabs(canto.x - comeco.x));
-            return comeco + (canto - comeco) * f;
+        // A ordem: sempre a mais perto de onde ele esta.
+        std::vector<Vector2> ordem;
+        Vector2 daqui = professor;
+        while (!v.empty()) {
+            size_t melhor = 0;
+            for (size_t i = 1; i < v.size(); ++i) if ((v[i] - daqui).Length() < (v[melhor] - daqui).Length()) melhor = i;
+            daqui = v[melhor];
+            ordem.push_back(v[melhor]);
+            v.erase(v.begin() + static_cast<std::ptrdiff_t>(melhor));
         }
-        const float f = (u - a) / std::max(1.0f, b);
-        return canto + (bau - canto) * f;
+        return ordem;
+    }
+
+    int ProximaTocha(const std::vector<bool>& acesas) {
+        for (size_t i = 0; i < acesas.size(); ++i) if (!acesas[i]) return static_cast<int>(i);
+        return -1;
+    }
+
+    Vector2 Passo(const Vector2 de, const Vector2 para, const float rapidez, const float dt) {
+        const Vector2 d = para - de;
+        const float falta = d.Length();
+        const float passo = std::max(0.0f, rapidez) * std::max(0.0f, dt);
+        if (falta <= passo || falta < 1e-4f) return para;
+        return de + d * (passo / falta);
+    }
+
+    float Percurso(const Vector2 de, const std::vector<Vector2>& tochas, const Vector2 bau, const float rapidez,
+                   const float acender) {
+        float distancia = 0.0f;
+        Vector2 daqui = de;
+        for (const Vector2& t : tochas) {
+            distancia += (t - daqui).Length();
+            daqui = t;
+        }
+        distancia += (bau - daqui).Length();
+        return distancia / std::max(1.0f, rapidez) + acender * static_cast<float>(tochas.size());
     }
 
     bool Alcanca(const Vector2 aluno, const Vector2 coisa) {

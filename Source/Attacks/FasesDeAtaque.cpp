@@ -107,7 +107,7 @@ namespace {
                                                 // o bau, o Elixir -, a furia e o anel dela); e o
                                                 // Phoenix (a fenix, as cinzas, a pena, o socket e o
                                                 // renascimento).
-                                                "peca", "regra", "tag", "setinterval", "explosao", "revide",
+                                                "peca", "regra", "tag", "transbordo", "setinterval", "foreach", "mouseover", "explosao", "revide", "tocha",
                                                 "gosma", "item", "furia", "anel_furia",
                                                 "fenix", "cinzas", "pena", "socket", "renascer"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.

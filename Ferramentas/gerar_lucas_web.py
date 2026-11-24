@@ -5,7 +5,7 @@ O cartao do professor (DPIBHLucas.png) e arte de verdade e NAO e tocado aqui; a
 folha antiga dos projeteis (DPIBHLucasCodigo.png, de gerar_lucas.py) continua
 valendo para os leques. Este script so desenha o que as provas novas pedem:
 
-    DPIBHLucasWeb.png (32x32, uma linha de 12 quadros)
+    DPIBHLucasWeb.png (32x32, uma linha de 16 quadros)
         0  Vazia      o quadro transparente das pecas que machucam da <div>
         1  Css        a regra de CSS: um cartao azul com "{ }"
         2  Js         a regra de JavaScript: um cartao amarelo com "( )"
@@ -16,6 +16,9 @@ valendo para os leques. Este script so desenha o que as provas novas pedem:
         8  Elixir     o frasco do Elixir: uma gota roxa
         9-10 Pena     a pena de fogo da fenix
         11 Cinzas     o monte de cinzas, com brasas
+        12 Texto      a gota do overflow: um pedaco de texto que transbordou da <div>
+        13 Apagada    a tocha da sala do Elixir, apagada
+        14-15 Acesa   a tocha acesa, com a chama em dois quadros
     DPIBHLucasFenix.png (64x64, quatro quadros): a fenix batendo as asas.
 
 Tudo desenhado numa grade pequena e ampliado sem suavizar, como o resto.
@@ -122,6 +125,27 @@ def cinzas():
     return g
 
 
+def texto():
+    g, d = grade()
+    # Tres linhas de "texto" claro num retalho escuro: o conteudo que nao coube na <div>.
+    d.rectangle([2, 3, 13, 12], fill=(20, 26, 44, 230), outline=(160, 190, 240, 255))
+    for y, fim in ((5, 11), (7, 9), (9, 12)):
+        d.line([(4, y), (fim, y)], fill=BRANCO)
+    return g
+
+
+def tocha(acesa, quadro=0):
+    g, d = grade()
+    # O pe de pedra e a cuba; acesa, a chama em cima.
+    d.rectangle([6, 9, 9, 15], fill=CINZA, outline=CINZA_E)
+    d.rectangle([4, 7, 11, 9], fill=CINZA_E)
+    if acesa:
+        dx = 1 if quadro else 0
+        d.polygon([(5, 7), (10, 7), (9 + dx, 3), (8, 0), (6 - dx, 3)], fill=FOGO, outline=FOGO_E)
+        d.polygon([(6, 7), (9, 7), (8, 4), (7, 3)], fill=FOGO_C)
+    return g
+
+
 def fenix(quadro):
     g, d = grade(32)
     # O corpo e a cabeca, no meio; as asas sobem e descem com o quadro.
@@ -155,6 +179,7 @@ def grava(quadros, nome, lado, escala):
 if __name__ == "__main__":
     vazia, _ = grade()
     grava([vazia, cartao(AZUL, AZUL_E, "chaves"), cartao(AMARELO, AMARELO_E, "parenteses"),
-           gosma(0), gosma(1), chave(), bau(False), bau(True), elixir(), pena(0), pena(1), cinzas()],
+           gosma(0), gosma(1), chave(), bau(False), bau(True), elixir(), pena(0), pena(1), cinzas(),
+           texto(), tocha(False), tocha(True, 0), tocha(True, 1)],
           "DPIBHLucasWeb", 32, 2)
     grava([fenix(i) for i in range(4)], "DPIBHLucasFenix", 64, 2)

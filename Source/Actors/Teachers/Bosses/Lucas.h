@@ -18,9 +18,9 @@ class DrawLinhasComponent;
 class EtiquetaDeCodigo;
 
 /// O professor de Programacao Web (INF 321). Fase 1: a <div> que as regras de CSS mudam (Dom.h);
-/// fase 2: a mesma, com as regras de JavaScript, que mudam o comportamento dela; fase 3: a sala de
-/// masmorra do Elixir, a corrida pelo bau (Masmorra.h); e a final: o Phoenix, com a fenix que renasce
-/// das cinzas (Fenix.h).
+/// fase 2: a mesma <div>, com as regras de JavaScript, que mudam o comportamento dela; fase 3: a sala
+/// de masmorra do Elixir, a corrida pelo bau - o aluno com a chave das gosmas, o professor acendendo as
+/// tochas (Masmorra.h); e a final: o Phoenix, com a fenix que renasce das cinzas (Fenix.h).
 class Lucas : public Boss {
 public:
     explicit Lucas(Scene* scene);
@@ -32,7 +32,7 @@ public:
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override { return mAlvo; }
     /// O Elixir do aluno: enquanto dura, cada acerto vale mais (Masmorra::Degrau::fatorDoGanho).
     [[nodiscard]] float FatorDoGanho() const override;
-    /// A regra, a gosma, a fenix ou as cinzas que o tiro do aluno derrubou.
+    /// A gosma, a fenix ou as cinzas que o tiro do aluno derrubou.
     void OnDerrubou(BossProjectile* qual) override;
 
 protected:
@@ -90,7 +90,8 @@ private:
     std::string mFase;
     float mRelogio = 0.0f;
     std::optional<Vector2> mAlvo;
-    void Desmontar();
+    /// Desfaz o que a fase deixou no campo; 'manterADiv' guarda a <div> (da fase 1 para a 2).
+    void Desmontar(bool manterADiv = false);
     /// O professor no alto, de um lado ao outro.
     void Varrer(float t, float amplitude, float periodo);
 
@@ -132,18 +133,25 @@ private:
     bool mDomComecou = false;
     float mProximoLance = 0.0f;
     float mProximaTag = 0.0f;
-    void PosicionarPecas(DivViva& d, float t);
-    void DesenharDiv(const DivViva& d, float t, bool js);
+    int mLancesNaFase = 0;          ///< os primeiros sao a demonstracao (Dom::kLancesDeDemonstracao)
+    void PosicionarPecas(DivViva& d, float agora);
+    void DesenharDiv(const DivViva& d, float agora, bool js);
 
     // ---- Fase 3: a sala do Elixir ----
 
     void AtualizarMasmorra(float t, float deltaTime);
     void NovoCiclo(float t);
     enum class Desfecho { EmAberto, DoAluno, DoProfessor };
-    int mCiclo = -1;
+    bool mRodadaNaSala = false;     ///< ja ha uma rodada (bau, gosmas, tochas) na sala
+    float mProximaRodada = 0.0f;    ///< depois do desfecho, quando comeca a seguinte
     Desfecho mDesfecho = Desfecho::EmAberto;
     Vector2 mBau;
-    Vector2 mDeOndeSaiu;
+    // As tochas que o professor acende antes do bau, na ordem dele.
+    std::vector<Vector2> mTochas;
+    std::vector<BossProjectile*> mTochasP;
+    std::vector<bool> mAcesas;
+    int mAcendendo = -1;            ///< a tocha que ele esta acendendo agora
+    float mAcendeEm = 0.0f;
     BossProjectile* mBauP = nullptr;
     BossProjectile* mChaveP = nullptr;
     BossProjectile* mElixirP = nullptr;
