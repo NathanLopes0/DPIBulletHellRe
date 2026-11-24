@@ -45,21 +45,35 @@ TEST_CASE("Hud: o clarao some com a idade") {
     CHECK(Clarao(-1.0f, 0.5f) == 0.0f);   // nunca aceso
 }
 
-TEST_CASE("Hud: o relogio vai do verde ao vermelho, pulsa no fim e tem um dente a cada 5 s") {
-    const Rgb cheio = CorDoRelogio(1.0f), meio = CorDoRelogio(0.5f), fim = CorDoRelogio(0.1f);
-    CHECK(cheio.g > cheio.r);          // verde
-    CHECK(meio.r == 255);              // ambar
-    CHECK(fim.r == 255);
-    CHECK(fim.g < meio.g);             // vermelho
+TEST_CASE("Hud: o relogio e uma ampulheta - a areia cai, ela vira, e pulsa no fim") {
+    // Cheia em cima no comeco, toda embaixo no fim, e sem saltos no meio.
+    CHECK(AreiaDeCima(1.0f) == doctest::Approx(1.0f));
+    CHECK(AreiaDeBaixo(1.0f) == doctest::Approx(0.0f));
+    CHECK(AreiaDeCima(0.0f) == doctest::Approx(0.0f));
+    CHECK(AreiaDeBaixo(0.0f) == doctest::Approx(1.0f));
+    // Perto do gargalo o vidro e fino: um quarto da areia ocupa mais que um quarto da altura.
+    CHECK(AreiaDeCima(0.25f) > 0.25f);
+    CHECK(AreiaDeCima(0.5f) + AreiaDeBaixo(0.5f) == doctest::Approx(1.0f));
+    for (float f = 0.0f; f < 1.0f; f += 0.1f) CHECK(AreiaDeCima(f + 0.1f) >= AreiaDeCima(f));
+    // O vidro: largo nas pontas, fino no gargalo, e simetrico.
+    CHECK(MeiaLarguraDoVidro(0.0f) == doctest::Approx(1.0f));
+    CHECK(MeiaLarguraDoVidro(0.5f) == doctest::Approx(kGargalo));
+    CHECK(MeiaLarguraDoVidro(0.2f) == doctest::Approx(MeiaLarguraDoVidro(0.8f)));
+    // A virada: em pe, de lado no meio, em pe de novo; a areia troca de bulbo no meio.
+    CHECK(EscalaDaVirada(0.0f) == doctest::Approx(1.0f));
+    CHECK(EscalaDaVirada(kVirada * 0.5f) == doctest::Approx(0.0f).epsilon(0.01));
+    CHECK(EscalaDaVirada(kVirada) == doctest::Approx(1.0f));
+    CHECK(EscalaDaVirada(10.0f) == doctest::Approx(1.0f));
+    CHECK_FALSE(JaVirou(kVirada * 0.4f));
+    CHECK(JaVirou(kVirada * 0.6f));
+    // A areia: nada de verde de barra de vida; esquenta so no fim.
+    const Rgb cheia = CorDaAreia(1.0f), fim = CorDaAreia(0.05f);
+    CHECK(cheia.r > cheia.g);
+    CHECK(cheia.g > cheia.b);
+    CHECK(fim.g < cheia.g);
     CHECK(Urgente(2.0f));
     CHECK_FALSE(Urgente(5.0f));
     CHECK_FALSE(Urgente(0.0f));
-    const auto vinte = Marcas(20.0f);
-    REQUIRE(vinte.size() == 3u);
-    CHECK(vinte[0] == doctest::Approx(0.25f));
-    CHECK(vinte[2] == doctest::Approx(0.75f));
-    CHECK(Marcas(30.0f).size() == 5u);
-    CHECK(Marcas(0.0f).empty());
 }
 
 TEST_CASE("Hud: as faiscas crescem, apagam e cada uma tem o seu tamanho") {

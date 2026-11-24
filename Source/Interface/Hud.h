@@ -38,22 +38,40 @@ namespace Hud {
     /// Um clarao da moldura: a cor dele some em 'duracao' segundos.
     float Clarao(float idade, float duracao);
 
-    // ---- O relogio da fase ----
+    // ---- O relogio da fase: a ampulheta ----
+    //
+    // Era uma capsula que ia do verde ao vermelho e enchia de novo na troca de fase - e o aluno a lia
+    // como a vida do professor ("ele recuperou tudo?"). A ampulheta nao se le como vida: a areia cai,
+    // e na troca de fase ela vira.
 
-    /// A cor do relogio com 'fracao' (0 a 1) do tempo ainda por vir: verde no
-    /// comeco, ambar no meio, vermelho no fim.
     struct Rgb {
         unsigned char r, g, b;
     };
-    Rgb CorDoRelogio(float fracao);
+    /// A cor da areia com 'fracao' (0 a 1) do tempo ainda por vir: areia, esquentando no fim.
+    Rgb CorDaAreia(float fracao);
+
+    /// A meia largura do vidro na altura 'v' (0 em cima, 1 embaixo), como fracao da maior: bulbos
+    /// cheios (uma curva, e nao um triangulo, para a areia aparecer), finos no gargalo.
+    constexpr float kGargalo = 0.12f;
+    float MeiaLarguraDoVidro(float v);
+
+    /// Quanto de cada bulbo a areia ocupa, como fracao da altura do bulbo, com 'fracao' do tempo
+    /// ainda por vir: a areia de cima mora junto ao gargalo, a de baixo e o monte que sobe do fundo. A
+    /// conta e pela area do vidro (MeiaLarguraDoVidro), e nao pela altura: o bulbo e fino perto do
+    /// gargalo, e a areia ali desce mais depressa, como numa ampulheta de verdade.
+    float AreiaDeCima(float fracao);
+    float AreiaDeBaixo(float fracao);
+
+    /// A virada da troca de fase: a ampulheta gira meia volta em kVirada segundos. 'desde' e o tempo
+    /// desde a troca. A escala vertical do desenho (1 em pe, 0 de lado) e se ela ja passou de lado -
+    /// dai a areia aparece cheia em cima.
+    constexpr float kVirada = 0.5f;
+    float EscalaDaVirada(float desde);
+    bool JaVirou(float desde);
 
     /// Os ultimos segundos da fase: o relogio pulsa.
     constexpr float kUrgente = 3.0f;
     bool Urgente(float restante);
-
-    /// Os dentes do relogio: um a cada 5 s, sem os das pontas.
-    constexpr float kEntreMarcas = 5.0f;
-    std::vector<float> Marcas(float duracao);   ///< fracoes de 0 a 1, de baixo para cima
 
     // ---- As faiscas ----
 

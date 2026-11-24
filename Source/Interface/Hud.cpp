@@ -35,28 +35,60 @@ namespace Hud {
         return u * u;   // some depressa e termina devagar
     }
 
-    Rgb CorDoRelogio(const float fracao) {
+    Rgb CorDaAreia(const float fracao) {
         const float f = std::clamp(fracao, 0.0f, 1.0f);
-        const auto mistura = [](const Rgb a, const Rgb b, const float t) {
-            const auto m = [t](const unsigned char x, const unsigned char y) {
-                return static_cast<unsigned char>(static_cast<float>(x) + (static_cast<float>(y) - static_cast<float>(x)) * t);
-            };
-            return Rgb{m(a.r, b.r), m(a.g, b.g), m(a.b, b.b)};
+        constexpr Rgb kAreia{236, 204, 128}, kQuente{255, 150, 70};
+        if (f >= 0.25f) return kAreia;
+        const float t = 1.0f - f / 0.25f;
+        const auto m = [t](const unsigned char x, const unsigned char y) {
+            return static_cast<unsigned char>(static_cast<float>(x) + (static_cast<float>(y) - static_cast<float>(x)) * t);
         };
-        constexpr Rgb kVerde{150, 230, 110}, kAmbar{255, 190, 30}, kVermelho{255, 70, 60};
-        if (f >= 0.5f) return mistura(kAmbar, kVerde, (f - 0.5f) / 0.5f);
-        if (f >= 0.2f) return mistura(kVermelho, kAmbar, (f - 0.2f) / 0.3f);
-        return kVermelho;
+        return Rgb{m(kAreia.r, kQuente.r), m(kAreia.g, kQuente.g), m(kAreia.b, kQuente.b)};
     }
+
+    float MeiaLarguraDoVidro(const float v) {
+        const float d = std::fabs(2.0f * std::clamp(v, 0.0f, 1.0f) - 1.0f);   // 0 no gargalo, 1 nas pontas
+        return std::max(kGargalo, std::sqrt(d));
+    }
+
+    namespace {
+        /// A area de um bulbo do gargalo ate 'a' (0 a 1 da altura dele), numa soma de fatias.
+        float AreaAte(const float a) {
+            constexpr int kFatias = 64;
+            float soma = 0.0f;
+            const float topo = std::clamp(a, 0.0f, 1.0f);
+            for (int i = 0; i < kFatias; ++i) {
+                const float d = (static_cast<float>(i) + 0.5f) / kFatias * topo;
+                soma += std::max(kGargalo, std::sqrt(d)) * topo / kFatias;
+            }
+            return soma;
+        }
+        /// A altura (do gargalo para fora) que guarda 'parte' da area do bulbo.
+        float AlturaComArea(const float parte) {
+            const float alvo = std::clamp(parte, 0.0f, 1.0f) * AreaAte(1.0f);
+            float de = 0.0f, ate = 1.0f;
+            for (int k = 0; k < 24; ++k) {
+                const float meio = (de + ate) / 2.0f;
+                (AreaAte(meio) < alvo ? de : ate) = meio;
+            }
+            return (de + ate) / 2.0f;
+        }
+    }
+
+    float AreiaDeCima(const float fracao) { return AlturaComArea(fracao); }
+    float AreiaDeBaixo(const float fracao) {
+        // O monte sobe do fundo (a ponta larga): e o que sobra do bulbo acima da areia que falta cair.
+        return 1.0f - AlturaComArea(std::clamp(fracao, 0.0f, 1.0f));
+    }
+
+    float EscalaDaVirada(const float desde) {
+        if (desde < 0.0f || desde >= kVirada) return 1.0f;
+        return std::fabs(std::cos(3.14159265f * desde / kVirada));
+    }
+
+    bool JaVirou(const float desde) { return desde >= kVirada * 0.5f; }
 
     bool Urgente(const float restante) { return restante > 0.0f && restante <= kUrgente; }
-
-    std::vector<float> Marcas(const float duracao) {
-        std::vector<float> m;
-        if (duracao <= 0.0f) return m;
-        for (float t = kEntreMarcas; t < duracao - 0.5f; t += kEntreMarcas) m.push_back(t / duracao);
-        return m;
-    }
 
     float Vida(const Faisca f) {
         switch (f) {

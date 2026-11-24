@@ -334,11 +334,13 @@ aparece pronta — o véu some, e só então o professor ataca e a música come�
   saber em que coluna ele está sem tirar o olho do próprio pé;
 - **o campo pisca pelas bordas** a cada acontecimento: vermelho no acerto
   sofrido, ouro no Ponto Extra, lilás na troca de fase;
-- **o tempo da fase** é a cápsula pequena colada no professor: anda do verde ao
-  âmbar e ao vermelho, tem um dente a cada 5 segundos, pulsa nos últimos 3 (com
-  o relógio piscando em vermelho) e se enche de volta na fase seguinte;
-- **o quadro** no canto é de giz: o professor escreve nele o que está fazendo, e
-  o apagador passa quando o texto troca;
+- **o tempo da fase** é a ampulheta colada no professor: a areia cai do bulbo de
+  cima para o de baixo, pulsa em vermelho nos últimos 3 segundos (com o relógio
+  piscando) e, na fase seguinte, a ampulheta vira meia volta e recomeça. Antes
+  era uma cápsula do verde ao vermelho que se enchia de volta — e o aluno a lia
+  como a vida do professor ("ele recuperou tudo?");
+- **o quadro** no canto é de giz: diz o que a parte da prova é, e o apagador
+  passa quando o texto troca;
 - **cada tiro responde**: uma faísca miúda no acerto no professor, uma explosão
   laranja no projétil derrubado, um anel vermelho em volta de quem é acertado,
   um dourado em quem pega um Ponto Extra e três riscos azuis na sua borda

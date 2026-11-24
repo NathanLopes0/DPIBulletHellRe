@@ -1,5 +1,5 @@
 //
-// O relogio da fase: a barrinha de tempo que anda colada no professor.
+// O relogio da fase: a ampulheta que anda colada no professor.
 //
 
 #include "DrawRelogioDaFaseComponent.h"
@@ -14,8 +14,10 @@
 using namespace Pincel;
 
 namespace {
-    /// Quanto dura o enchimento da troca de fase.
-    constexpr float kEnchendo = 0.35f;
+    constexpr SDL_Color kVidro{140, 150, 190, 255};
+    constexpr SDL_Color kDentro{14, 16, 26, 235};
+    constexpr SDL_Color kMadeira{150, 98, 52, 255};
+    constexpr SDL_Color kMadeiraEscura{92, 58, 28, 255};
 }
 
 DrawRelogioDaFaseComponent::DrawRelogioDaFaseComponent(Actor* owner, const int largura, const int altura,
@@ -42,62 +44,71 @@ void DrawRelogioDaFaseComponent::Draw(SDL_Renderer* renderer) {
     const Vector2 dono = mOwner->GetPosition();
     const int x = static_cast<int>(dono.x), y = static_cast<int>(dono.y);
     const int w = mLargura, h = mAltura;
-    const int raio = w / 2;
+    const float meio = static_cast<float>(w) / 2.0f;
+    const float maisLargo = meio - 1.0f;
 
+    // A virada da troca de fase: ela gira meia volta (a escala vertical vai a zero e volta), e a
+    // areia, que estava toda embaixo, aparece toda em cima.
+    const bool virando = mDesdeORecomeco < Hud::kVirada;
+    const float escala = Hud::EscalaDaVirada(mDesdeORecomeco);
     float fracao = std::clamp(mRestante / mTotal, 0.0f, 1.0f);
-    // Na troca de fase ela sobe de vazia a cheia, em vez de saltar.
-    const float enchendo = std::clamp(mDesdeORecomeco / kEnchendo, 0.0f, 1.0f);
-    fracao = std::min(fracao, enchendo);
-    const Hud::Rgb rgb = Hud::CorDoRelogio(fracao);
-    const SDL_Color cor{rgb.r, rgb.g, rgb.b, 255};
+    if (virando) fracao = Hud::JaVirou(mDesdeORecomeco) ? 1.0f : 0.0f;
+    const bool urgente = Hud::Urgente(mRestante) && !virando;
+    const float pulso = 0.5f + 0.5f * std::sin(mTempo * 14.0f);
+    const Hud::Rgb rgb = Hud::CorDaAreia(fracao);
+    SDL_Color areia{rgb.r, rgb.g, rgb.b, 255};
+    if (urgente) areia = Misturar(areia, SDL_Color{255, 70, 60, 255}, 0.35f + 0.5f * pulso);
 
-    // 1.
-    const bool urgente = Hud::Urgente(mRestante);
+    // 1. O brilho dos ultimos segundos.
     if (urgente) {
-        const float pulso = 0.5f + 0.5f * std::sin(mTempo * 14.0f);
         for (int k = 3; k >= 1; --k) {
-            CaixaLisa(renderer, x - 2 - k, y - 2 - k, w + 4 + 2 * k, h + 4 + 2 * k, raio + 2 + k,
+            CaixaLisa(renderer, x - 2 - k, y - 2 - k, w + 4 + 2 * k, h + 4 + 2 * k, 6 + k,
                       SDL_Color{255, 60, 50, static_cast<Uint8>(255.0f * (0.08f + 0.18f * pulso) * static_cast<float>(4 - k) / 3.0f)});
         }
     }
 
-    // 2.
-    Caixa(renderer, x - 2, y - 2, w + 4, h + 4, raio + 2,
-          [](const float t) { return Misturar({110, 118, 150, 255}, {50, 54, 74, 255}, t); });
-    CaixaLisa(renderer, x, y, w, h, raio, SDL_Color{8, 9, 15, 255});
-
-    // 3.
-    const int cheio = static_cast<int>(std::lround(static_cast<float>(h) * fracao));
-    if (cheio > 0) {
-        const SDL_Color claro = Clarear(cor, 0.45f);
-        const SDL_Color escuro = Escurecer(cor, 0.30f);
-        for (int i = h - cheio; i < h; ++i) {
-            const int recuo = Recuo(i, h, raio);
-            for (int j = recuo; j < w - recuo; ++j) {
-                const float t = static_cast<float>(j) / static_cast<float>(std::max(1, w - 1));
-                Cor(renderer, t < 0.35f ? Misturar(claro, cor, t / 0.35f) : Misturar(cor, escuro, (t - 0.35f) / 0.65f));
-                SDL_RenderDrawPoint(renderer, x + j, y + i);
-            }
+    // 2. O vidro e a areia, linha a linha: 'v' e a altura no desenho em pe (0 em cima, 1 embaixo).
+    const float topoDeCima = 0.5f - 0.5f * Hud::AreiaDeCima(fracao);    // a areia de cima vai daqui ao gargalo
+    const float topoDeBaixo = 1.0f - 0.5f * Hud::AreiaDeBaixo(fracao);  // o monte de baixo vai daqui ao fundo
+    const float centro = static_cast<float>(h) / 2.0f;
+    const float metade = std::max(0.5f, centro * escala);
+    for (int r = 0; r < h; ++r) {
+        const float d = (static_cast<float>(r) + 0.5f - centro) / metade;   // -1 a 1 na ampulheta
+        if (d < -1.0f || d > 1.0f) continue;
+        const float v = (d + 1.0f) / 2.0f;
+        const int meia = std::max(1, static_cast<int>(std::lround(maisLargo * Hud::MeiaLarguraDoVidro(v))));
+        const int esquerda = x + static_cast<int>(std::lround(meio)) - meia;
+        const int direita = x + static_cast<int>(std::lround(meio)) + meia - 1;
+        const bool temAreia = (v < 0.5f && v >= topoDeCima && fracao > 0.0f) || (v >= 0.5f && v >= topoDeBaixo && fracao < 1.0f);
+        Cor(renderer, temAreia ? areia : kDentro);
+        if (direita - 1 >= esquerda + 1) SDL_RenderDrawLine(renderer, esquerda + 1, y + r, direita - 1, y + r);
+        // A areia de cima e mais clara na superficie; o vidro, nas bordas.
+        Cor(renderer, kVidro, 0.9f);
+        SDL_RenderDrawPoint(renderer, esquerda, y + r);
+        SDL_RenderDrawPoint(renderer, direita, y + r);
+    }
+    // O fio de areia que cai pelo gargalo, tracejado e andando.
+    if (!virando && fracao > 0.0f && fracao < 1.0f) {
+        const int cx = x + static_cast<int>(std::lround(meio)) - 1;
+        const int de = y + static_cast<int>(centro);
+        const int ate = y + static_cast<int>(centro + metade * (2.0f * topoDeBaixo - 1.0f));
+        const int passo = static_cast<int>(mTempo * 30.0f) % 4;
+        Cor(renderer, Clarear(areia, 0.3f));
+        for (int yy = de; yy < ate; ++yy) {
+            if ((yy - de + passo) % 4 < 2) SDL_RenderDrawPoint(renderer, cx, yy);
         }
-        // A superficie acesa, onde o tempo esta.
-        const int topo = y + h - cheio;
-        const int recuo = Recuo(h - cheio, h, raio);
-        Cor(renderer, Clarear(cor, 0.8f));
-        SDL_RenderDrawLine(renderer, x + recuo, topo, x + w - 1 - recuo, topo);
     }
 
-    // 4.
-    for (const float m : Hud::Marcas(mTotal)) {
-        const int my = y + h - static_cast<int>(std::lround(static_cast<float>(h) * m));
-        Cor(renderer, SDL_Color{8, 9, 15, 200});
-        SDL_RenderDrawLine(renderer, x + 1, my, x + w - 2, my);
-        Cor(renderer, SDL_Color{140, 150, 190, 255}, 0.8f);
-        SDL_RenderDrawLine(renderer, x - 3, my, x - 1, my);
+    // 3. As duas tampas de madeira, que acompanham a virada.
+    for (const float lado : {-1.0f, 1.0f}) {
+        const int cy = y + static_cast<int>(std::lround(centro + lado * metade));
+        Caixa(renderer, x - 2, cy - 2, w + 4, 4, 1,
+              [](const float t) { return Misturar(kMadeira, kMadeiraEscura, t); });
     }
 
-    // 5.
-    if (mDesdeORecomeco < kEnchendo + 0.25f) {
-        const float a = 1.0f - mDesdeORecomeco / (kEnchendo + 0.25f);
-        CaixaLisa(renderer, x - 2, y - 2, w + 4, h + 4, raio + 2, SDL_Color{255, 255, 255, static_cast<Uint8>(150.0f * a)});
+    // 4. O clarao do fim da virada.
+    if (mDesdeORecomeco < Hud::kVirada + 0.25f) {
+        const float a = std::clamp(1.0f - (mDesdeORecomeco - Hud::kVirada * 0.5f) / (Hud::kVirada * 0.5f + 0.25f), 0.0f, 1.0f);
+        if (a > 0.0f) CaixaLisa(renderer, x - 2, y - 2, w + 4, h + 4, 6, SDL_Color{255, 255, 255, static_cast<Uint8>(90.0f * a)});
     }
 }

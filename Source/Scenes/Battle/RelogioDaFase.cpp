@@ -15,12 +15,17 @@
 #include "../../Interface/Hud.h"
 #include "../../Motor/CaminhosArquivo.h"
 
+namespace {
+    /// A ampulheta e mais larga que a capsula de antes: os bulbos precisam de corpo.
+    constexpr int kLarguraDaAmpulheta = 26;
+}
+
 RelogioDaFase::RelogioDaFase(Scene& cena, const Boss& chefe) {
     const int altura = chefe.GetComponent<DrawAnimatedComponent>()->GetSpriteHeight();
 
     auto capsula = std::make_unique<Actor>(&cena);
     mDesenhoDaCapsula = capsula->AddComponent<DrawRelogioDaFaseComponent>(
-        12, static_cast<int>(static_cast<float>(altura) / 1.4f), 200);
+        kLarguraDaAmpulheta, static_cast<int>(static_cast<float>(altura) / 1.4f), 200);
     mCapsula = capsula.get();
     cena.AddActor(std::move(capsula));
 
@@ -44,7 +49,7 @@ void RelogioDaFase::Seguir(const Boss& chefe, const float restante) {
     const float dx = static_cast<float>(largura) / 2.5f;
     const float dy = static_cast<float>(altura) / 4.f;
     mCapsula->SetPosition(Vector2(posicao.x + dx, posicao.y - dy));
-    mRelogio->SetPosition(mCapsula->GetPosition() + Vector2(6, static_cast<float>(altura) / 1.4f + 4.0f));
+    mRelogio->SetPosition(mCapsula->GetPosition() + Vector2(kLarguraDaAmpulheta / 2.0f, static_cast<float>(altura) / 1.4f + 6.0f));
 
     // O relogio fica vermelho junto com a capsula, nos ultimos segundos.
     if (auto* relogio = mRelogio->GetComponent<DrawAnimatedComponent>()) {
