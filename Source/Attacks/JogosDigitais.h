@@ -154,8 +154,9 @@ namespace HudHostil {
     /// embaixo e no meio), e o manche move a camera - o mundo inteiro (os tiros, as caixas e o proprio
     /// professor) anda ao contrario na tela. Para desviar, mova a camera; para por o professor na
     /// mira, traga-o com ela. A camera nao sai da arena: o professor para na borda da tela.
-    ///   - o aviso (kAvisoDaCamera), forte: o visor nas quinas do campo, o REC, o manche desenhado
-    ///     ligado a camera e a contagem 3-2-1; no fim dele, o aluno desliza ate a ancora;
+    ///   - o aviso (kAvisoDaCamera), forte e sem uma palavra: o visor nas quinas do campo, o REC, um
+    ///     icone de camera e a contagem 3-2-1; no fim dele, o aluno desliza ate a ancora. O que muda, o
+    ///     aluno descobre;
     ///   - a camera livre, ate kDevolveACamera;
     ///   - a volta: o visor pisca, e o manche volta para o aluno no fim da etapa.
     constexpr float kAvisoDaCamera = 2.4f;

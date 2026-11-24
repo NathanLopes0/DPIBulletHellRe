@@ -963,15 +963,15 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   acaba; a tela de tentar de novo avisa, em vermelho: *"Você destruiu a sua
   própria nota."* Depois ele **liga o manche na câmera**. O aviso é forte: as
   quinas de um visor de câmera piscam em vermelho em volta do campo, o REC
-  acende, o manche aparece desenhado no meio, ligado às quinas, com uma
-  contagem 3-2-1, e um pino dourado mostra onde você vai ficar. No fim da
+  acende, um ícone de câmera aparece no meio com uma contagem 3-2-1, e um pino
+  dourado mostra onde você vai ficar — sem uma palavra sobre o que muda. No fim da
   contagem você desliza até lá e **fica fixo** (num tripé), e o manche passa a
   mover a **câmera**: o mundo inteiro — os tiros, as caixas e o próprio
   professor — anda ao contrário na tela, e a grade do fundo anda junto. Para
   desviar, mova a câmera; para pôr o professor na mira do seu tiro, traga-o com
   ela — ele não sai da tela, e a borda o segura. Ele atira anéis e leques, e
   caixas paradas aparecem pelo mundo (o contorno pisca antes de elas machucarem):
-  só a câmera as move. No fim, o visor pisca em âmbar e o manche volta para você.
+  só a câmera as move. No fim, o visor pisca em âmbar, e o manche volta para você.
   Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
   fliperama** grande (o dobro de você), feito de blocos de **textura que faltou** — o xadrez
   magenta e preto que o motor põe no lugar da arte que não carregou —: a cúpula,

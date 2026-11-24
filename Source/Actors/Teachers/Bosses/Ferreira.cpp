@@ -767,28 +767,20 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
                  rec + Vector2(92.0f, -28.0f));
     }
 
-    // O aviso: a contagem, o manche desenhado ligado as quinas do visor, e o que muda.
+    // O aviso: a contagem e um icone de camera, sem uma palavra - o que muda, o aluno descobre.
     if (momento == Camera::Aviso) {
         const Vector2 meio(c.x + c.w / 2.0f, c.y + c.h * 0.42f);
-        Escrever(Etiqueta(mEtiquetasDaCamera, 1, 520, 30), "o manche vai mover a C\xc3\x82MERA \xe2\x80\x94 voc\xc3\xaa fica parado",
-                 meio + Vector2(0.0f, -120.0f));
         if (const int n = ContagemDaCamera(te); n > 0) SeteSegmentos(std::to_string(n), meio + Vector2(-28.0f, -80.0f), 110.0f, vermelho);
-        // O manche: a base, a haste e as quatro setas - cada uma com o tracejado ate a sua quina.
-        const Vector2 base = meio + Vector2(0.0f, 92.0f);
-        Circulo(base, 30.0f, kGuia, 24);
-        const Vector2 topo = base + Vector2(10.0f * std::sin(mRelogio * 6.0f), -26.0f);
-        Linha(base, topo, branco);
-        Circulo(topo, 8.0f, branco, 14);
-        const Vector2 quinas[4] = {Vector2(c.x + 30.0f, c.y + 30.0f), Vector2(c.x + c.w - 30.0f, c.y + 30.0f),
-                                   Vector2(c.x + c.w - 30.0f, c.y + c.h - 30.0f), Vector2(c.x + 30.0f, c.y + c.h - 30.0f)};
-        for (const Vector2& q : quinas) {
-            const Vector2 d = JogosDigitais::Rumo(base, q);
-            Seta(base + d * 40.0f, base + d * 64.0f, branco);
-            Tracejada(base + d * 70.0f, q, SDL_Color{235, 240, 255, 70}, 10.0f);
+        // A camera: o corpo, o visor em cima, a lente e a luz do REC.
+        const Vector2 icone = meio + Vector2(0.0f, 100.0f);
+        for (int e = 0; e < 3; ++e) {
+            const float o = static_cast<float>(e);
+            Retangulo(icone + Vector2(-46.0f + o, -28.0f + o), icone + Vector2(46.0f - o, 28.0f - o), branco);
+            Retangulo(icone + Vector2(-18.0f + o, -40.0f + o), icone + Vector2(10.0f - o, -28.0f), branco);
         }
-    } else if (momento == Camera::Volta) {
-        Escrever(Etiqueta(mEtiquetasDaCamera, 1, 520, 30), "camera.soltar(): o manche volta para voc\xc3\xaa",
-                 Vector2(c.x + c.w / 2.0f, c.y + c.h * 0.42f - 120.0f));
+        for (float r = 15.0f; r <= 18.0f; r += 1.0f) Circulo(icone, r, branco, 24);
+        Circulo(icone, 8.0f + 1.5f * std::sin(mRelogio * 8.0f), branco, 16);
+        if (pisca) for (float r = 1.0f; r <= 5.0f; r += 1.0f) Circulo(icone + Vector2(34.0f, -16.0f), r, vermelho, 12);
     }
 
     // Os tiros: o anel do professor e o leque mirado; e as caixas paradas do mundo, que so a camera move.
@@ -838,9 +830,10 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
                                          [](const CaixaDaCamera& cx) { return !cx.p; }),
                           mCaixasDaCamera.end());
 
-    if (momento == Camera::Aviso) Placar(kFase, kEtapaDaCamera, "camera.seguir(manche): o manche vai mover a C\xc3\x82MERA!");
-    else if (momento == Camera::Livre) Placar(kFase, kEtapaDaCamera, "Voc\xc3\xaa est\xc3\xa1 parado: o manche move o MUNDO (e o professor)");
-    else Placar(kFase, kEtapaDaCamera, "camera.soltar(): o manche volta para voc\xc3\xaa");
+    // O quadro so diz o que o codigo faz, e nao o que fazer.
+    if (momento == Camera::Aviso) Placar(kFase, kEtapaDaCamera, "camera.ligar()");
+    else if (momento == Camera::Livre) Placar(kFase, kEtapaDaCamera, "camera.ligar(): REC");
+    else Placar(kFase, kEtapaDaCamera, "camera.desligar()");
 }
 
 void Ferreira::AtualizarAbertura(const float te) {
