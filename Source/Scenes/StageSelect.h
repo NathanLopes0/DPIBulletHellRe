@@ -15,6 +15,7 @@
 #include "../Aluno/Exportacao.h"
 #include "../Curso/MapaDaGrade.h"
 
+class DrawAnimatedComponent;
 class DrawCaixaComponent;
 class DrawLinhasComponent;
 
@@ -148,6 +149,11 @@ private:
     Actor* mSombraVermelha = nullptr;
     Actor* mSombraCiano = nullptr;
     Actor* mSeloSecreto = nullptr;
+    /// A medalha do 100 no Dificil, no canto de cima a esquerda do cartao: so quando o aluno tirou a
+    /// nota cheia na materia no Dificil (Progresso::CemNoDificil). Pixel art de
+    /// Ferramentas/gerar_interface.py (DPIBHMedalha), com um reflexo que passa de vez em quando.
+    DrawAnimatedComponent* mMedalha = nullptr;
+    static constexpr int kOrdemDaMedalha = 260;
     float mTempoGamer = 0.0f;
     bool mEraGamer = false;
     static constexpr int kOrdemDoNeon = 72;

@@ -50,6 +50,10 @@ public:
     /// no nivel em que o jogador esta. Zero quando nunca jogou nele.
     [[nodiscard]] float MelhorNotaNoNivel(int materia, Dificuldade::Nivel nivel) const;
 
+    /// Tirou a nota cheia (Nota::ECheia) nesta materia no Dificil, sozinho ou em dupla: a medalha do
+    /// cartao da selecao de fases.
+    [[nodiscard]] bool CemNoDificil(int materia) const;
+
     /// O recorde de um modo e nivel. Nota zero quando nunca jogou assim.
     [[nodiscard]] const Marca& Recorde(int materia, Modo modo, Dificuldade::Nivel nivel) const;
 

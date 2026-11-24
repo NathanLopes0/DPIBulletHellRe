@@ -323,3 +323,17 @@ TEST_CASE("Progresso: a maior nota de um nivel nao olha o outro nivel") {
     CHECK(p.MelhorNotaNoNivel(2, Dificuldade::Nivel::Dificil) == doctest::Approx(70.0f));   // a da dupla conta
     CHECK(p.MelhorNotaNoNivel(3, Dificuldade::Nivel::Dificil) == doctest::Approx(0.0f));
 }
+
+TEST_CASE("Progresso: a medalha do 100 no Dificil e so do Dificil, sozinho ou em dupla") {
+    Progresso p;
+    p.RegistrarNota(2, 100.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(2, 99.5f, Dificuldade::Nivel::Dificil);
+    CHECK_FALSE(p.CemNoDificil(2));   // o 100 do Normal nao vale, e o quase tambem nao
+    p.RegistrarNotaDeDupla(2, 100.0f, Dificuldade::Nivel::Dificil, "parceiro");
+    CHECK(p.CemNoDificil(2));         // a dupla vale
+
+    p.RegistrarNota(3, 100.0f, Dificuldade::Nivel::Dificil);
+    p.RegistrarNota(3, 20.0f, Dificuldade::Nivel::Dificil);
+    CHECK(p.CemNoDificil(3));         // uma prova ruim depois nao tira a medalha
+    CHECK_FALSE(p.CemNoDificil(4));   // nunca jogada
+}

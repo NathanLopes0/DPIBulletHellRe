@@ -7,6 +7,11 @@
                   desafios. Cada selo tem o quadro aceso, na cor da mencao, e o
                   apagado. Os quadros vao na ordem de Mencoes::kTodas: o aceso
                   da mencao i e o quadro 2i, o apagado o 2i + 1.
+  DPIBHMedalha    a medalha do 100 no Dificil, no canto do cartao da materia
+                  (StageSelect), em pixel art de 20 x 24 desenhada em 2x: a moeda
+                  dourada com o 100 e a fita na cor da mencao do Dificil. O
+                  quadro 0 e a medalha parada; do 1 ao 6, um brilho atravessa a
+                  moeda na diagonal.
   DPIBHLosango    o losango de cada materia da selecao de fases, em pixel art de
                   64 x 32 desenhada em 2x. Os quadros: aberta (0), em foco (1 a
                   8, o reflexo que passa pela pedra), aprovada (9), fechada (10)
@@ -406,7 +411,104 @@ def gerar_losango():
     gravar("DPIBHLosango", folha, LL, LA, len(quadros))
 
 
+# ---------------------------------------------------------------- a medalha ----
+
+ML, MA = 20, 24          # a medalha, em pixels de arte (o jogo desenha em 2x)
+MCX, MCY, MR = 9.5, 15.0, 8.2   # o centro e o raio da moeda
+OURO = (255, 205, 70)
+FITA = (240, 104, 104)   # a cor da mencao do Dificil (MENCOES)
+
+
+def medalha(brilho):
+    """A medalha do 100 no Dificil. 'brilho': a diagonal (x + y) por onde passa o reflexo, ou None."""
+    im = Image.new("RGBA", (ML, MA), (0, 0, 0, 0))
+    px = im.load()
+    # A fita em V: duas tiras que descem dos cantos de cima ate a moeda, com a dobra mais escura.
+    for y in range(0, 9):
+        for lado in (-1, 1):
+            meio = MCX + lado * (6.5 - y * 0.55)
+            for x in range(ML):
+                d = (x - meio) * lado
+                if -1.6 <= d <= 1.6:
+                    c = clarear(FITA, 0.25) if d < -0.4 else (FITA if d < 0.8 else escurecer(FITA, 0.3))
+                    px[x, y] = c + (255,)
+                elif 1.6 < d <= 2.4:
+                    px[x, y] = escurecer(FITA, 0.6) + (255,)
+
+    def na_moeda(x, y):
+        return (x - MCX) ** 2 + (y - MCY) ** 2 <= MR ** 2
+
+    def borda(x, y):
+        if not na_moeda(x, y):
+            return False
+        return any(not na_moeda(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+    luz, meio, sombra, fundo = clarear(OURO, 0.5), OURO, escurecer(OURO, 0.22), escurecer(OURO, 0.4)
+    for y in range(MA):
+        for x in range(ML):
+            if not na_moeda(x, y):
+                continue
+            if borda(x, y):
+                px[x, y] = escurecer(OURO, 0.62) + (255,)
+                continue
+            # A luz vem de cima e da esquerda, como nos selos.
+            t = ((x - (MCX - MR)) / (2 * MR)) * 0.35 + ((y - (MCY - MR)) / (2 * MR)) * 0.65
+            if t < 0.28:
+                c = luz
+            elif t < 0.38:
+                c = luz if (x + y) % 2 == 0 else meio
+            elif t < 0.62:
+                c = meio
+            elif t < 0.72:
+                c = meio if (x + y) % 2 == 0 else sombra
+            elif t < 0.86:
+                c = sombra
+            else:
+                c = fundo
+            # O aro de dentro: um anel um tom abaixo.
+            r = ((x - MCX) ** 2 + (y - MCY) ** 2) ** 0.5
+            if MR - 2.6 <= r <= MR - 1.6:
+                c = escurecer(c, 0.18)
+            px[x, y] = c + (255,)
+    # O 100, no meio, na tinta da moeda.
+    colunas = texto_em_pixels("100")
+    x0 = int(round(MCX - len(colunas) / 2.0 + 0.5))
+    y0 = int(MCY) - 2
+    tinta = escurecer(OURO, 0.7)
+    for i, col in enumerate(colunas):
+        for l, ch in enumerate(col):
+            if ch == "1":
+                px[x0 + i, y0 + l] = tinta + (255,)
+    # O reflexo: uma faixa diagonal quase branca, so na moeda e fora da tinta e da borda.
+    if brilho is not None:
+        for y in range(MA):
+            for x in range(ML):
+                if not na_moeda(x, y) or borda(x, y):
+                    continue
+                if px[x, y][:3] == tinta:
+                    continue
+                d = (x + y) - brilho
+                if 0 <= d <= 1:
+                    px[x, y] = clarear(OURO, 0.9) + (255,)
+                elif d == 2:
+                    px[x, y] = clarear(OURO, 0.65) + (255,)
+    # O brilho fixo do canto de cima, como nos selos.
+    for (x, y) in ((6, 10), (7, 9), (5, 11)):
+        if na_moeda(x, y) and not borda(x, y):
+            px[x, y] = clarear(OURO, 0.85) + (255,)
+    return im
+
+
+def gerar_medalha():
+    quadros = [medalha(None)] + [medalha(b) for b in (8, 12, 16, 20, 24, 28)]
+    folha = Image.new("RGBA", (ML * len(quadros), MA), (0, 0, 0, 0))
+    for i, q in enumerate(quadros):
+        folha.paste(q, (i * ML, 0))
+    gravar("DPIBHMedalha", folha, ML, MA, len(quadros))
+
+
 if __name__ == "__main__":
     gerar_selos()
+    gerar_medalha()
     gerar_losango()
-    print("ok: Assets/Icons/DPIBHSelos e DPIBHLosango")
+    print("ok: Assets/Icons/DPIBHSelos, DPIBHMedalha e DPIBHLosango")

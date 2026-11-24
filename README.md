@@ -171,6 +171,13 @@ a dupla e o TCC, e escudo para os desafios. A luz vem de cima e da esquerda,
 cada cor tem poucos tons, sem degradê, e um pontilhado faz a passagem de um tom
 para outro. Apagado, o selo mostra o contorno e a letra em cinza.
 
+**A medalha do 100 no Difícil.** Quem tira a nota cheia no Difícil numa
+matéria, sozinho ou em dupla, ganha uma medalha de ouro com fita, presa no canto
+de cima do cartão dela na seleção de fases. Ela aparece em qualquer dificuldade
+da vez, e de tempos em tempos um reflexo atravessa a moeda. Fica fora da conta
+das menções (`Progresso::CemNoDificil`; a arte é a `DPIBHMedalha`, do mesmo
+`gerar_interface.py`).
+
 **A prova da semana.** Toda semana, de segunda a domingo, uma matéria do curso
 é a prova da semana (em rodízio entre as obrigatórias; o TCC e as optativas não entram). Quem a joga nessa semana
 enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,

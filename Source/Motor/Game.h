@@ -113,6 +113,9 @@ public:
         return ProgressoDoMapa().MelhorNota(materia);
     }
 
+    /// O 100 no Dificil nesta materia: a medalha do cartao da selecao de fases.
+    [[nodiscard]] bool CemNoDificil(const int materia) const { return ProgressoDoMapa().CemNoDificil(materia); }
+
     /// A maior nota no nivel de dificuldade de agora (o cartao da selecao de fases).
     [[nodiscard]] float GetMelhorNotaNoNivel(const int materia) const {
         return ProgressoDoMapa().MelhorNotaNoNivel(materia, mDificuldade);

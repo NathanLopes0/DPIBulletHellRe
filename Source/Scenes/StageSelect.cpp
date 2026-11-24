@@ -403,6 +403,20 @@ void StageSelect::CreateStaticUI() {
     selo->SetIsVisible(false);
     mSeloSecreto = selo->GetOwner();
 
+    // A medalha do 100 no Dificil, presa no canto de cima a esquerda do cartao.
+    auto medalha = std::make_unique<Actor>(this);
+    medalha->SetPosition(Vector2(kCartaoX - kCartaoLargura / 2.0f + 26.0f, kCartaoY - kCartaoAltura / 2.0f + 28.0f));
+    mMedalha = medalha->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHMedalha.png"),
+                                                            Caminhos::Asset("Icons/DPIBHMedalha.json"), kOrdemDaMedalha);
+    // Parada quase o tempo todo; a cada uns 3 s, o reflexo atravessa a moeda (quadros 1 a 6).
+    std::vector<int> quadros(24, 0);
+    for (int q = 1; q <= 6; ++q) quadros.push_back(q);
+    mMedalha->AddAnimation("brilho", quadros);
+    mMedalha->SetAnimation("brilho");
+    mMedalha->SetEscalaPropria(2.0f);
+    mMedalha->SetIsVisible(false);
+    AddActor(std::move(medalha));
+
     mCodigoAtor    = TextoDoCartao(kCartaoY - 86.f, 30, Color::White);
     mNomeAtor      = TextoDoCartao(kCartaoY - 46.f, 22, Color::LightYellow);
     // O nome comprido (o da INF 216, o da INF 310) nao quebra em duas linhas, que a caixa espremeria:
@@ -1163,6 +1177,12 @@ void StageSelect::UpdateStageInfo() const {
 
     // A fileira so aparece na materia que tem batalha; centrada, com as mencoes que ela tem.
     if (mMencoes) mMencoes->Mostrar(Mencoes::Da(mGame->Sessoes().front().progresso, materias, mSelectedSubject));
+
+    // A medalha do 100 no Dificil: na materia aberta, com batalha, e so para quem ja tirou a nota cheia la.
+    if (mMedalha) {
+        mMedalha->SetIsVisible(m && !m->chefe.empty() && mGame->IsStageUnlocked(mSelectedSubject) &&
+                               mGame->CemNoDificil(mSelectedSubject));
+    }
 
     AtualizarMatricula();
 }
