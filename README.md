@@ -938,7 +938,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   ache o alvo, atire nele, e a fita abre ali.
 - **Lucas Ferreira — INF 216, a optativa secreta.** Projeto e Implementação de
   Jogos Digitais — a batalha mais difícil do jogo, e a mais longa:
-  cada fase dura 40 s, o dobro das outras — a das regras, 48 s — (e cada acerto
+  cada fase dura 40 s, o dobro das outras — a da interface, com a câmera, 50 s;
+  a das regras, 48 s; o lançamento, com os créditos, 51 s — (e cada acerto
   nele vale um pouco mais que a metade, para a nota andar no ritmo de sempre
   enquanto o perigo dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**,
   nas peças que até ali eram só a interface e as regras de sempre.
@@ -960,7 +961,18 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   que é golpe do professor — e a barra em campo é um golpe dele. Se a onda a
   alcança, a barra **se quebra** em cacos, a nota escorre até **0** e a luta
   acaba; a tela de tentar de novo avisa, em vermelho: *"Você destruiu a sua
-  própria nota."* Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
+  própria nota."* Depois ele **liga o manche na câmera**. O aviso é forte: as
+  quinas de um visor de câmera piscam em vermelho em volta do campo, o REC
+  acende, o manche aparece desenhado no meio, ligado às quinas, com uma
+  contagem 3-2-1, e um pino dourado mostra onde você vai ficar. No fim da
+  contagem você desliza até lá e **fica fixo** (num tripé), e o manche passa a
+  mover a **câmera**: o mundo inteiro — os tiros, as caixas e o próprio
+  professor — anda ao contrário na tela, e a grade do fundo anda junto. Para
+  desviar, mova a câmera; para pôr o professor na mira do seu tiro, traga-o com
+  ela — ele não sai da tela, e a borda o segura. Ele atira anéis e leques, e
+  caixas paradas aparecem pelo mundo (o contorno pisca antes de elas machucarem):
+  só a câmera as move. No fim, o visor pisca em âmbar e o manche volta para você.
+  Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
   fliperama** grande (o dobro de você), feito de blocos de **textura que faltou** — o xadrez
   magenta e preto que o motor põe no lugar da arte que não carregou —: a cúpula,
   dois olhos que seguem você e, embaixo, a barra de quatro pés que ondula
@@ -1049,7 +1061,11 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   god mode volta. O **Ponto Extra** guardado desfaz a frota inteira de uma vez:
   gastá-lo na chegada de uma onda é abrir a janela na hora. No fim, os
   **créditos** sobem do rodapé, linha por linha, cada uma uma parede de blocos
-  com um vão fora do texto ("QA · você, agora", "BUGS · todos de propósito").
+  com um vão fora do texto, devagar e com espaço entre uma e outra. São os
+  créditos do próprio jogo: uma paródia da vida acadêmica, a programação de
+  Nathan Lopes, a arte feita no Aseprite, o CLion, a INF 216 em que ele
+  começou e os professores do DPI no elenco — e o "obrigado por jogar" sobe
+  sozinho, sem parede.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria, e tudo gira em
   torno de uma `<div>`, que nunca some e nunca é destruída. No CSS ele a
   invoca pequena e previsível, quicando pela parte de cima do campo, e ela já

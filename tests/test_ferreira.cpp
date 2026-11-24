@@ -54,7 +54,8 @@ TEST_CASE("JogosDigitais: as fases dele duram o dobro - a das regras, mais -, e 
     ConferirEtapas(Gravidade::kDuracoes, DuracaoDa(Gravidade::kFase));
     ConferirEtapas(RegrasTrocadas::kDuracoes, DuracaoDa(RegrasTrocadas::kFase));
     ConferirEtapas(Lancamento::kDuracoes, DuracaoDa(Lancamento::kFase));
-    CHECK(DuracaoDa(HudHostil::kFase) == doctest::Approx(JogosDigitais::kDuracaoDaFase));
+    CHECK(DuracaoDa(HudHostil::kFase) == doctest::Approx(HudHostil::kDuracaoDaFase));
+    CHECK(HudHostil::kDuracaoDaFase > JogosDigitais::kDuracaoDaFase);   // a etapa da camera
     CHECK(DuracaoDa(RegrasTrocadas::kFase) == doctest::Approx(RegrasTrocadas::kDuracaoDaFase));
     CHECK(DuracaoDa(Lancamento::kFase) == doctest::Approx(Lancamento::kDuracaoDaFase));
     // Quatro provas, quatro fases do jogo.
@@ -1044,4 +1045,54 @@ TEST_CASE("Lancamento: cada linha dos creditos tem um vao, fora da faixa do text
     for (const Dificuldade::Nivel nivel : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
         CHECK(static_cast<float>(kCreditos.size()) * DegrauDo(nivel).entreLinhas < kDuracoes[3]);
     }
+}
+
+// ---- A interface: a camera ----
+
+TEST_CASE("HudHostil: a camera avisa, fica livre e volta; o aviso conta 3-2-1 e da tempo de deslizar") {
+    using namespace HudHostil;
+    CHECK(CameraEm(0.0f) == Camera::Aviso);
+    CHECK(CameraEm(kAvisoDaCamera - 0.01f) == Camera::Aviso);
+    CHECK(CameraEm(kAvisoDaCamera + 0.01f) == Camera::Livre);
+    CHECK(CameraEm(kDevolveACamera + 0.01f) == Camera::Volta);
+    CHECK(kDevolveACamera < kDuracoes[kEtapaDaCamera]);
+    CHECK(kDeslizaAteAAncora < kAvisoDaCamera / 2.0f);
+    // A contagem: nada no comeco, e depois 3, 2, 1, sem pular nenhum.
+    CHECK(ContagemDaCamera(0.0f) == 0);
+    std::vector<int> vistos;
+    for (float te = 0.0f; te < kAvisoDaCamera; te += 0.01f) {
+        const int n = ContagemDaCamera(te);
+        if (n > 0 && (vistos.empty() || vistos.back() != n)) vistos.push_back(n);
+    }
+    CHECK(vistos == std::vector<int>{3, 2, 1});
+    CHECK(ContagemDaCamera(kAvisoDaCamera + 0.1f) == 0);
+    CHECK(std::string(kEtapas[kEtapaDaCamera]) == "Camera");
+}
+
+TEST_CASE("HudHostil: com a camera, o mundo anda ao contrario do manche, e o professor nao sai da tela") {
+    using namespace HudHostil;
+    const JogosDigitais::Campo c{0.0f, 0.0f, 1200.0f, 720.0f};
+    // A camera vai para a direita: o mundo vai para a esquerda, o quanto o aluno andaria.
+    const Vector2 passo = PassoDoMundo(Vector2(300.0f, -100.0f), 0.5f);
+    CHECK(passo.x == doctest::Approx(-150.0f));
+    CHECK(passo.y == doctest::Approx(50.0f));
+    // A ancora: embaixo e no meio; na dupla, um de cada lado.
+    const Vector2 sozinho = AncoraDaCamera(c, 0, 1);
+    CHECK(sozinho.x == doctest::Approx(600.0f));
+    CHECK(sozinho.y > c.h * 0.6f);
+    CHECK(AncoraDaCamera(c, 0, 2).x < sozinho.x);
+    CHECK(AncoraDaCamera(c, 1, 2).x > sozinho.x);
+    // O professor fica dentro da tela, e nunca desce ate o aluno.
+    const Vector2 fora = ProfessorNaTela(Vector2(-300.0f, 900.0f), c, 48.0f, kFundoDoProfessor);
+    CHECK(fora.x == doctest::Approx(48.0f));
+    CHECK(fora.y == doctest::Approx(c.h * kFundoDoProfessor));
+    CHECK(fora.y < AncoraDaCamera(c, 0, 1).y - 100.0f);
+    const Vector2 dentro = ProfessorNaTela(Vector2(500.0f, 200.0f), c, 48.0f, kFundoDoProfessor);
+    CHECK(dentro.x == doctest::Approx(500.0f));
+    CHECK(dentro.y == doctest::Approx(200.0f));
+    // O Dificil atira mais.
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreAneisDaCamera < n.entreAneisDaCamera);
+    CHECK(d.entreCaixas < n.entreCaixas);
+    CHECK(kLongeDaCaixa > 150.0f);
 }

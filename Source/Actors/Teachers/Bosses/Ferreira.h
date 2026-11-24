@@ -191,6 +191,26 @@ private:
     bool mNotaEditada = false;
     float mNotaAntesDaEdicao = -1.0f;
     void AtualizarBarra(int etapa, float te);
+
+    // ---- A camera (HudHostil::Camera) ----
+    void AtualizarCamera(float te, float deltaTime);
+    /// O quanto a camera andou desde o comeco da etapa: a grade do fundo anda com ela.
+    Vector2 mCamera = Vector2::Zero;
+    /// De onde cada aluno desliza ate a ancora, no fim do aviso.
+    std::vector<Vector2> mDeslizaDe;
+    /// As caixas paradas do mundo: so a camera as move.
+    struct CaixaDaCamera {
+        BossProjectile* p = nullptr;
+        float nasceu = 0.0f;
+    };
+    std::vector<CaixaDaCamera> mCaixasDaCamera;
+    float mProximaCaixa = 0.0f;
+    bool mCameraAvisada = false;
+    bool mCameraLigada = false;
+    std::vector<EtiquetaDeCodigo*> mEtiquetasDaCamera;
+    /// O visor nas quinas do campo, na cor 'cor'.
+    void DesenharOVisor(SDL_Color cor);
+    void TocarSom(const char* som);
     /// A barra volta para o rodape, e os segmentos embaixo dela somem.
     void DevolverABarra();
     std::vector<BossProjectile*> mBarra;

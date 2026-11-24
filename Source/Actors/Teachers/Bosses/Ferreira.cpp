@@ -410,6 +410,14 @@ void Ferreira::DesmontarEtapa() {
     Esconder(mEtiquetasDoSave);
     Esconder(mEtiquetasDoDialogo);
     Esconder(mEtiquetasDosCreditos);
+    for (CaixaDaCamera& cx : mCaixasDaCamera) Matar(cx.p);
+    mCaixasDaCamera.clear();
+    mProximaCaixa = 0.0f;
+    mCamera = Vector2::Zero;
+    mDeslizaDe.clear();
+    mCameraAvisada = false;
+    mCameraLigada = false;
+    Esconder(mEtiquetasDaCamera);
     mProximoAnel = 0.0f;
     mProximoLeque = 0.0f;
 }
@@ -602,6 +610,10 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
         AtualizarInimigo(te, deltaTime, ComoOInimigo{});
         return;
     }
+    if (etapa == kEtapaDaCamera) {
+        AtualizarCamera(te, deltaTime);
+        return;
+    }
     AtualizarBarra(etapa, te);
     // Os leques so comecam com a barra no campo: o susto do rodape e so dela.
     const bool arrancada = etapa == kEtapaDaBarraDeitada && te < kTremorDaBarra + kArrancadaDaBarra;
@@ -617,6 +629,218 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
     } else {
         Placar(kFase, static_cast<size_t>(etapa), (etapa == kEtapaDaBarraDeitada ? "A barra \xc3\xa9 a sua nota, " : "Agora ela vem de lado, ") + cheia);
     }
+}
+
+void Ferreira::TocarSom(const char* som) {
+    if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) mScene->GetGame()->GetAudio()->PlaySound(som, false);
+}
+
+void Ferreira::DesenharOVisor(const SDL_Color cor) {
+    // As quatro quinas do visor de uma camera, grossas: o campo inteiro e o que ela filma.
+    const SDL_FRect c = Campo();
+    constexpr float kDentro = 14.0f, kBraco = 74.0f;
+    const Vector2 quinas[4] = {Vector2(c.x + kDentro, c.y + kDentro), Vector2(c.x + c.w - kDentro, c.y + kDentro),
+                               Vector2(c.x + c.w - kDentro, c.y + c.h - kDentro), Vector2(c.x + kDentro, c.y + c.h - kDentro)};
+    for (int k = 0; k < 4; ++k) {
+        const float sx = (k == 0 || k == 3) ? 1.0f : -1.0f, sy = k < 2 ? 1.0f : -1.0f;
+        for (int e = 0; e < 4; ++e) {
+            const float o = static_cast<float>(e);
+            Linha(quinas[k] + Vector2(0.0f, sy * o), quinas[k] + Vector2(sx * kBraco, sy * o), cor);
+            Linha(quinas[k] + Vector2(sx * o, 0.0f), quinas[k] + Vector2(sx * o, sy * kBraco), cor);
+        }
+    }
+}
+
+void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
+    using namespace HudHostil;
+    const Degrau& g = mDegrauDoHud;
+    const SDL_FRect c = Campo();
+    const JogosDigitais::Campo cp = CampoPuro();
+    const std::vector<Player*> alunos = Jogadores();
+    const Camera momento = CameraEm(te);
+    Esconder(mEtiquetasDaCamera);
+    if (!mCameraAvisada) {
+        // O aviso tem som: ninguem pode ser pego de surpresa.
+        mCameraAvisada = true;
+        mCamera = Vector2::Zero;
+        TocarSom("sinal.wav");
+    }
+
+    // O aluno: no aviso ele ainda anda; no fim dele, desliza ate a ancora, e dali nao sai.
+    if (mDeslizaDe.size() != alunos.size()) {
+        mDeslizaDe.clear();
+        for (const Player* a : alunos) mDeslizaDe.push_back(a ? a->GetPosition() : Vector2::Zero);
+    }
+    const float desliza = kAvisoDaCamera - kDeslizaAteAAncora;
+    for (size_t i = 0; i < alunos.size(); ++i) {
+        Player* a = alunos[i];
+        if (!a) continue;
+        const Vector2 ancora = AncoraDaCamera(cp, i, alunos.size());
+        if (te < desliza) {
+            mDeslizaDe[i] = a->GetPosition();
+            // Onde ele vai ficar: o pino na ancora, e o tracejado ate ela.
+            Circulo(ancora, 20.0f + 3.0f * std::sin(mRelogio * 10.0f), kOuro, 20);
+            Linha(ancora + Vector2(-8.0f, 0.0f), ancora + Vector2(8.0f, 0.0f), kOuro);
+            Linha(ancora + Vector2(0.0f, -8.0f), ancora + Vector2(0.0f, 8.0f), kOuro);
+            Tracejada(a->GetPosition(), ancora, kOuro, 8.0f);
+            continue;
+        }
+        const float u = std::clamp((te - desliza) / kDeslizaAteAAncora, 0.0f, 1.0f);
+        a->SegurarNaCamera(mDeslizaDe[i] + (ancora - mDeslizaDe[i]) * (u * u * (3.0f - 2.0f * u)));
+        // Preso: o tripe embaixo dele.
+        const Vector2 pe = a->GetPosition() + Vector2(0.0f, 30.0f);
+        Linha(pe, pe + Vector2(-16.0f, 18.0f), kGuia);
+        Linha(pe, pe + Vector2(16.0f, 18.0f), kGuia);
+        Linha(pe, pe + Vector2(0.0f, 20.0f), kGuia);
+    }
+
+    // A camera: o manche (na dupla, a media dos dois) a move, e o mundo anda o contrario na tela.
+    if (momento != Camera::Aviso) {
+        if (!mCameraLigada) {
+            mCameraLigada = true;
+            TocarSom("toque.wav");
+        }
+        Vector2 intencao = Vector2::Zero;
+        int presos = 0;
+        for (const Player* a : alunos) {
+            if (a && a->NaCamera()) {
+                intencao += a->IntencaoDaCamera();
+                ++presos;
+            }
+        }
+        if (presos > 0) intencao = intencao * (1.0f / static_cast<float>(presos));
+        const Vector2 passo = PassoDoMundo(intencao, deltaTime);
+        mCamera -= passo;
+        if (Battle* b = Batalha()) {
+            if (ProjectileManager* tiros = b->GerenteDeProjeteis()) {
+                for (const auto& p : tiros->GetBossProjectiles()) {
+                    if (p && p->GetState() == ActorState::Active) p->SetPosition(p->GetPosition() + passo);
+                }
+            }
+        }
+        // O professor anda com o mundo (e a varredura dele tambem), sem sair da tela.
+        const Vector2 solto = GetPosition() + passo;
+        const Vector2 preso = ProfessorNaTela(solto, cp, 48.0f, kFundoDoProfessor);
+        SetPosition(preso);
+        if (mAlvo) mAlvo = ProfessorNaTela(*mAlvo - mCamera, cp, 48.0f, kFundoDoProfessor);
+        if ((solto - preso).Length() > 0.5f) {
+            // A borda segura o professor: a camera nao sai da arena.
+            const Vector2 d = JogosDigitais::Rumo(preso, solto);
+            const Vector2 lado(-d.y, d.x);
+            const Vector2 na = preso + d * 34.0f;
+            for (int k = -1; k <= 1; ++k) Linha(na + lado * 28.0f + d * (2.0f * k), na - lado * 28.0f + d * (2.0f * k), kPerigo);
+        }
+    }
+
+    // A grade do fundo anda com a camera: e ela que mostra que o mundo e que se move.
+    {
+        constexpr float kPasso = 90.0f;
+        const float forca = momento == Camera::Aviso ? std::clamp(te / kAvisoDaCamera, 0.0f, 1.0f) : 1.0f;
+        const SDL_Color grade{150, 200, 255, static_cast<Uint8>(38.0f * forca)};
+        const float ox = kPasso - std::fmod(std::fmod(mCamera.x, kPasso) + kPasso, kPasso);
+        const float oy = kPasso - std::fmod(std::fmod(mCamera.y, kPasso) + kPasso, kPasso);
+        for (float x = c.x + ox; x < c.x + c.w; x += kPasso) Linha(Vector2(x, c.y), Vector2(x, c.y + c.h), grade);
+        for (float y = c.y + oy; y < c.y + c.h; y += kPasso) Linha(Vector2(c.x, y), Vector2(c.x + c.w, y), grade);
+    }
+
+    // O visor: vermelho e piscando no aviso, branco com a camera livre, ambar na volta.
+    const bool pisca = std::fmod(mRelogio, 0.3f) < 0.18f;
+    const SDL_Color vermelho{255, 70, 60, 240}, branco{235, 240, 255, 210}, ambar{255, 190, 70, 240};
+    if (momento == Camera::Aviso) DesenharOVisor(pisca ? vermelho : SDL_Color{255, 70, 60, 110});
+    else if (momento == Camera::Livre) DesenharOVisor(branco);
+    else DesenharOVisor(pisca ? ambar : SDL_Color{255, 190, 70, 90});
+    // O REC, no canto de baixo (o de cima e do quadro), e o centro da camera.
+    const Vector2 rec(c.x + 46.0f, c.y + c.h - 76.0f);
+    if (std::fmod(mRelogio, 1.0f) < 0.6f) {
+        for (float r = 1.0f; r <= 8.0f; r += 1.0f) Circulo(rec, r, vermelho, 14);
+    }
+    Escrever(Etiqueta(mEtiquetasDaCamera, 0, 150, 24), "REC \xc2\xb7 C\xc3\x82MERA", rec + Vector2(92.0f, 0.0f));
+    if (momento != Camera::Aviso) {
+        const Vector2 meio(c.x + c.w / 2.0f, c.y + c.h / 2.0f);
+        Linha(meio + Vector2(-12.0f, 0.0f), meio + Vector2(12.0f, 0.0f), kGuia);
+        Linha(meio + Vector2(0.0f, -12.0f), meio + Vector2(0.0f, 12.0f), kGuia);
+        const auto numero = [](const float v) {
+            const int n = static_cast<int>(std::lround(v));
+            return (n > 0 ? "+" : "") + std::to_string(n);
+        };
+        Escrever(Etiqueta(mEtiquetasDaCamera, 2, 170, 24), "x " + numero(mCamera.x) + "  y " + numero(mCamera.y),
+                 rec + Vector2(92.0f, -28.0f));
+    }
+
+    // O aviso: a contagem, o manche desenhado ligado as quinas do visor, e o que muda.
+    if (momento == Camera::Aviso) {
+        const Vector2 meio(c.x + c.w / 2.0f, c.y + c.h * 0.42f);
+        Escrever(Etiqueta(mEtiquetasDaCamera, 1, 520, 30), "o manche vai mover a C\xc3\x82MERA \xe2\x80\x94 voc\xc3\xaa fica parado",
+                 meio + Vector2(0.0f, -120.0f));
+        if (const int n = ContagemDaCamera(te); n > 0) SeteSegmentos(std::to_string(n), meio + Vector2(-28.0f, -80.0f), 110.0f, vermelho);
+        // O manche: a base, a haste e as quatro setas - cada uma com o tracejado ate a sua quina.
+        const Vector2 base = meio + Vector2(0.0f, 92.0f);
+        Circulo(base, 30.0f, kGuia, 24);
+        const Vector2 topo = base + Vector2(10.0f * std::sin(mRelogio * 6.0f), -26.0f);
+        Linha(base, topo, branco);
+        Circulo(topo, 8.0f, branco, 14);
+        const Vector2 quinas[4] = {Vector2(c.x + 30.0f, c.y + 30.0f), Vector2(c.x + c.w - 30.0f, c.y + 30.0f),
+                                   Vector2(c.x + c.w - 30.0f, c.y + c.h - 30.0f), Vector2(c.x + 30.0f, c.y + c.h - 30.0f)};
+        for (const Vector2& q : quinas) {
+            const Vector2 d = JogosDigitais::Rumo(base, q);
+            Seta(base + d * 40.0f, base + d * 64.0f, branco);
+            Tracejada(base + d * 70.0f, q, SDL_Color{235, 240, 255, 70}, 10.0f);
+        }
+    } else if (momento == Camera::Volta) {
+        Escrever(Etiqueta(mEtiquetasDaCamera, 1, 520, 30), "camera.soltar(): o manche volta para voc\xc3\xaa",
+                 Vector2(c.x + c.w / 2.0f, c.y + c.h * 0.42f - 120.0f));
+    }
+
+    // Os tiros: o anel do professor e o leque mirado; e as caixas paradas do mundo, que so a camera move.
+    if (te >= kAvisoDaCamera + 0.3f) {
+        if (te >= mProximoAnel) {
+            mProximoAnel = te + g.entreAneisDaCamera;
+            Anel(kGatilhoDoAnelDaCamera, g.tirosDoAnelDaCamera, g.velocidadeDaCamera, "Tiro");
+        }
+        if (te >= mProximoLeque) {
+            mProximoLeque = te + g.entreLequesDaCamera;
+            Leque(kGatilhoDoLeque, 3, 22.0f, g.velocidade, "Tiro");
+        }
+        if (momento == Camera::Livre && te >= mProximaCaixa) {
+            mProximaCaixa = te + g.entreCaixas;
+            for (int tentativa = 0; tentativa < 14; ++tentativa) {
+                const Vector2 onde(mSorteio.Real(c.x + 60.0f, c.x + c.w - 60.0f), mSorteio.Real(c.y + 140.0f, c.y + c.h - 60.0f));
+                bool longe = true;
+                for (const Player* a : alunos) longe = longe && (!a || (a->GetPosition() - onde).Length() >= kLongeDaCaixa);
+                if (!longe) continue;
+                if (BossProjectile* p = Peca(kGatilhoDaCaixa, onde, "Caixa")) {
+                    p->DefinirEnfeite(true);
+                    mCaixasDaCamera.push_back(CaixaDaCamera{p, te});
+                }
+                break;
+            }
+        }
+    }
+    for (CaixaDaCamera& cx : mCaixasDaCamera) {
+        if (!Vivo(cx.p)) {
+            cx.p = nullptr;
+            continue;
+        }
+        const float idade = te - cx.nasceu;
+        if (idade >= g.vidaDaCaixa) {
+            Matar(cx.p);
+            continue;
+        }
+        if (idade < kCaixaAcende) {
+            // Ainda nao machuca: so o contorno, piscando.
+            const Vector2 p = cx.p->GetPosition();
+            if (pisca) Retangulo(p - Vector2(20.0f, 20.0f), p + Vector2(20.0f, 20.0f), kPerigo);
+        } else {
+            cx.p->DefinirEnfeite(false);
+        }
+    }
+    mCaixasDaCamera.erase(std::remove_if(mCaixasDaCamera.begin(), mCaixasDaCamera.end(),
+                                         [](const CaixaDaCamera& cx) { return !cx.p; }),
+                          mCaixasDaCamera.end());
+
+    if (momento == Camera::Aviso) Placar(kFase, kEtapaDaCamera, "camera.seguir(manche): o manche vai mover a C\xc3\x82MERA!");
+    else if (momento == Camera::Livre) Placar(kFase, kEtapaDaCamera, "Voc\xc3\xaa est\xc3\xa1 parado: o manche move o MUNDO (e o professor)");
+    else Placar(kFase, kEtapaDaCamera, "camera.soltar(): o manche volta para voc\xc3\xaa");
 }
 
 void Ferreira::AtualizarAbertura(const float te) {
@@ -2261,7 +2485,9 @@ void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
         l.vao = VaoDaLinha(blocos, mSorteio);
         l.texto = mLinhasFeitas++;
         l.etiqueta = static_cast<size_t>(l.texto) % kEtiquetasDosCreditos;
-        for (int bloco = 0; bloco < blocos; ++bloco) {
+        // A ultima linha (o obrigado) sobe sozinha, sem parede.
+        const bool comParede = !UltimaLinha(l.texto);
+        for (int bloco = 0; comParede && bloco < blocos; ++bloco) {
             if (NoVao(bloco, l.vao)) continue;
             if (BossProjectile* p = Peca(kGatilhoDoCredito, Vector2(xDoBloco(bloco), l.y), "Bloco")) {
                 l.blocos.push_back(p);
@@ -2285,6 +2511,7 @@ void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
             mEtiquetasDosCreditos[l.etiqueta]->Mostrar(l.y > c.y + 20.0f);
         }
         // O vao, marcado.
+        if (l.blocos.empty()) continue;
         const float x0 = c.x + sobra + static_cast<float>(l.vao) * kBloco;
         Preencher(Vector2(x0, l.y - 12.0f), Vector2(x0 + static_cast<float>(kVaoDosCreditos) * kBloco, l.y + 12.0f), kSeguro);
     }

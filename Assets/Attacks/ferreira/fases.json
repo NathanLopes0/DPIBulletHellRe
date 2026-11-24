@@ -2,7 +2,8 @@
   // As fases do Lucas Ferreira (INF 216 - Projeto e Implementacao de Jogos Digitais, a optativa
   // secreta). Elas nao ensinam materia: mexem nos sistemas do proprio jogo. O que cada uma faz mora
   // no C++ (Ferreira.cpp) e na camada pura (JogosDigitais.h); aqui ficam os tiros que ele puxa pelo
-  // gatilho e os nomes que o placar mostra. Cada fase dura 40 s, o dobro das dos outros professores.
+  // gatilho e os nomes que o placar mostra. Cada fase dura 40 s, o dobro das dos outros professores
+  // (a da interface, com a camera, 50; a das regras, 48; o lancamento, com os creditos, mais).
 
   // ==========================================================================
 
@@ -11,17 +12,19 @@
   // com 15, e o jogo e dele. Depois o professor
   // arranca a barra da nota da HUD - a de verdade - e varre o campo com ela, cheia ate a nota do
   // aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio). Primeiro deitada, sobe e desce;
-  // depois, de pe, vai de um lado ao outro, e volta para o rodape. Por fim o primeiro inimigo do
-  // jogo, gigante e sem textura, persegue o aluno - e a IA dele se ve: patrulha, alerta, persegue.
+  // depois, de pe, vai de um lado ao outro, e volta para o rodape. Depois ele liga o manche na
+  // camera: o aluno fica fixo, e o manche move o mundo - os tiros, as caixas e o proprio professor.
+  // Por fim o primeiro inimigo do jogo, gigante e sem textura, persegue o aluno - e a IA dele se ve: patrulha, alerta, persegue.
   // O power-up faz ele fugir (e cada bloco dele vira nota), e um tiro no olho o atordoa.
   "StateOne": {
-    "duracao": 40,
+    "duracao": 50,
     "proximo": "StateTwo",
     "anuncio": "A interface ataca: nada na tela esta a salvo",
     "etapas": [
       { "nome": "Abertura",  "duracao": 4.5,  "anuncio": "hud.nota: este número é meu" },
       { "nome": "BarraSobe", "duracao": 11.0, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
       { "nome": "BarraJoga", "duracao": 11.0, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
+      { "nome": "Camera",    "duracao": 10.0, "anuncio": "camera.seguir(manche): o manche move o MUNDO" },
       { "nome": "Inimigo",   "duracao": 13.5, "anuncio": "new Inimigo(): a IA dele é uma máquina de estados" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
@@ -35,6 +38,11 @@
       { "som": false, "gatilho": "olho", "estrategia": "WaveAttack", "projetil": "Olho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "poder", "estrategia": "WaveAttack", "projetil": "Poder",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      // A camera: o anel do professor, e as caixas paradas do mundo, que so a camera move.
+      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 12, "velocidade": 150, "angulo": 330, "intervalo": 0 },
+      { "som": false, "gatilho": "caixa", "estrategia": "WaveAttack", "projetil": "Peca",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
@@ -125,14 +133,14 @@
   // seguinte, mais rapida. O Ponto Extra guardado desfaz a frota de uma vez. No fim os creditos
   // sobem do rodape, linha por linha, cada uma uma parede com um vao.
   "StateFinal": {
-    "duracao": 44,
+    "duracao": 51,
     "proximo": "StateOne",
     "anuncio": "Dia de lançamento: o jogo vai ao ar",
     "etapas": [
       { "nome": "Hitbox",   "duracao": 9.0,  "anuncio": "debug: desvie do CÍRCULO, não do desenho" },
       { "nome": "Crash",    "duracao": 9.0,  "anuncio": "O jogo travou: atire em ESPERAR" },
       { "nome": "Frota",    "duracao": 16.0, "anuncio": "godMode = true enquanto houver bug" },
-      { "nome": "Creditos", "duracao": 10.0, "anuncio": "créditos: passe pelos vãos" }
+      { "nome": "Creditos", "duracao": 17.0, "anuncio": "créditos: passe pelos vãos" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [

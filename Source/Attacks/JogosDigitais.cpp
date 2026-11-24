@@ -73,6 +73,7 @@ namespace JogosDigitais {
     }
 
     float DuracaoDa(const std::string& fase) {
+        if (fase == HudHostil::kFase) return HudHostil::kDuracaoDaFase;
         if (fase == RegrasTrocadas::kFase) return RegrasTrocadas::kDuracaoDaFase;
         if (fase == Lancamento::kFase) return Lancamento::kDuracaoDaFase;
         return kDuracaoDaFase;
@@ -136,7 +137,41 @@ namespace HudHostil {
         d.entreLeques = 0.95f;
         d.tirosDoLeque = 5;
         d.velocidade = 270.0f;
+        d.entreAneisDaCamera = 1.15f;
+        d.tirosDoAnelDaCamera = 16;
+        d.velocidadeDaCamera = 175.0f;
+        d.entreCaixas = 0.65f;
+        d.vidaDaCaixa = 5.0f;
+        d.entreLequesDaCamera = 1.3f;
         return d;
+    }
+
+    Camera CameraEm(const float te) {
+        if (te < kAvisoDaCamera) return Camera::Aviso;
+        if (te < kDevolveACamera) return Camera::Livre;
+        return Camera::Volta;
+    }
+
+    int ContagemDaCamera(const float te) {
+        const float quarto = kAvisoDaCamera / 4.0f;
+        if (te < quarto || te >= kAvisoDaCamera) return 0;
+        return std::clamp(3 - static_cast<int>((te - quarto) / quarto), 1, 3);
+    }
+
+    Vector2 AncoraDaCamera(const JogosDigitais::Campo& c, const std::size_t aluno, const std::size_t alunos) {
+        const float meio = c.x + c.w / 2.0f;
+        const float lado = alunos > 1 ? (aluno == 0 ? -kAfastamentoNaDupla : kAfastamentoNaDupla) : 0.0f;
+        return Vector2(meio + lado, c.y + c.h * kAlturaDaAncora);
+    }
+
+    Vector2 PassoDoMundo(const Vector2 intencao, const float dt) {
+        // A camera vai para onde o manche aponta; na tela, o mundo vai para o outro lado.
+        return intencao * (-dt);
+    }
+
+    Vector2 ProfessorNaTela(const Vector2 p, const JogosDigitais::Campo& c, const float margem, const float fundo) {
+        return Vector2(std::clamp(p.x, c.x + margem, c.x + c.w - margem),
+                       std::clamp(p.y, c.y + margem, c.y + c.h * fundo));
     }
 
     namespace {
@@ -965,8 +1000,8 @@ namespace Lancamento {
         d.entrePassos = 0.24f;
         d.entreQuedas = 0.3f;
         d.velocidadeDaQueda = 270.0f;
-        d.entreLinhas = 0.95f;
-        d.subida = 92.0f;
+        d.entreLinhas = 2.0f;
+        d.subida = 66.0f;
         d.hotfix = 0.85f;
         d.janela = 2.8f;
         d.entreLequesDaFrota = 1.25f;

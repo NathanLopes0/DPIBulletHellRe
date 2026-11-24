@@ -90,6 +90,7 @@ void Player::OnUpdate(const float deltaTime) {
     mRaspoes.Avancar(deltaTime);
     AtualizarAnimacao();
     DescontarRecarga(deltaTime);
+    AtualizarCamera();
     PrenderNoCampo();
     AndarNaPlataforma(deltaTime);
     // Cada um so anda o relogio dele; quem pinta e um so.
@@ -370,6 +371,25 @@ void Player::Reforcar(const float segundos, const SDL_Color tinta, const SDL_Col
     mTempoDeReforco = std::max(mTempoDeReforco, segundos);
     mTintaDoReforco = tinta;
     if (mDesenho && mTempoDeReforco > 0.0f) mDesenho->DefinirRastroDeCor(true, rastro);
+}
+
+void Player::SegurarNaCamera(const Vector2 ancora) {
+    mSeguradoNaCamera = true;
+    mAncoraDaCamera = ancora;
+}
+
+void Player::AtualizarCamera() {
+    // O pedido vale um quadro: quem nao o renova solta o aluno.
+    mNaCamera = mSeguradoNaCamera;
+    mSeguradoNaCamera = false;
+    if (!mNaCamera) {
+        mIntencaoDaCamera = Vector2::Zero;
+        return;
+    }
+    // O manche vira intencao: a velocidade que ele teria vai para a camera, e ele fica na ancora.
+    mIntencaoDaCamera = mCorpo ? mCorpo->GetVelocity() : Vector2::Zero;
+    if (mCorpo) mCorpo->SetVelocity(Vector2::Zero);
+    SetPosition(mAncoraDaCamera);
 }
 
 void Player::AtualizarReforco(const float deltaTime) {

@@ -82,6 +82,14 @@ public:
     /// lado, tingidas de 'tinta', e um rastro fraco da cor 'rastro' fica para tras quando ele anda
     /// (DrawAnimatedComponent::DefinirRastroDeCor). Renova, nao acumula.
     void Reforcar(float segundos, SDL_Color tinta, SDL_Color rastro);
+
+    /// A camera do Lucas Ferreira (HudHostil::Camera): enquanto alguem chamar isto a cada quadro, o
+    /// aluno fica preso em 'ancora' e o manche nao o move - vira so a intencao (IntencaoDaCamera), que
+    /// a camera usa. Quem para de chamar o solta.
+    void SegurarNaCamera(Vector2 ancora);
+    [[nodiscard]] bool NaCamera() const { return mNaCamera; }
+    /// O que o manche pediu neste quadro, preso na camera: a velocidade que ele teria (px/s). Zero fora.
+    [[nodiscard]] Vector2 IntencaoDaCamera() const { return mIntencaoDaCamera; }
     [[nodiscard]] bool Reforcado() const { return mTempoDeReforco > 0.0f; }
     /// Quanto cada duvida do reforco sai para o lado (px): as duas ainda cabem no professor.
     static constexpr float kAfastamentoDoReforco = 9.0f;
@@ -189,6 +197,12 @@ private:
     float mFatorDoImpulso = 1.0f;
     /// O reforco do tiro: o que resta, e a tinta das duvidas.
     float mTempoDeReforco = 0.0f;
+    /// A camera: o pedido deste quadro, se ele esta preso, onde, e o que o manche pediu.
+    bool mSeguradoNaCamera = false;
+    bool mNaCamera = false;
+    Vector2 mAncoraDaCamera = Vector2::Zero;
+    Vector2 mIntencaoDaCamera = Vector2::Zero;
+    void AtualizarCamera();
     SDL_Color mTintaDoReforco{255, 255, 255, 255};
     /// O foco segurado neste quadro: anda devagar e mostra a hitbox.
     bool mFocado = false;

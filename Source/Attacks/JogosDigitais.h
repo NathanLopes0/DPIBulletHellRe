@@ -17,8 +17,8 @@
 /// A optativa secreta nao tem materia para ensinar: o professor de Projeto e Implementacao de Jogos
 /// Digitais pega o jogo que o aluno ja conhece e mexe nele. Cada prova e um sistema:
 ///   1. a interface (HudHostil): o professor reescreve a sua nota para 15; depois a barra da nota -
-///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; e por fim
-///      o primeiro inimigo, um fantasma de fliperama gigante, com a IA dele a mostra (IaDoInimigo) -
+///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; depois ele
+///      liga o manche na camera (o aluno fica fixo, e o mundo e que anda); e por fim o primeiro inimigo, um fantasma de fliperama gigante, com a IA dele a mostra (IaDoInimigo) -
 ///      ele volta na fase das regras;
 ///   2. a fisica (Gravidade): a prova inteira vira jogo de plataforma, e o professor escolhe para que
 ///      lado a gravidade puxa - cada lado com o seu desafio;
@@ -30,8 +30,9 @@
 /// Aqui ficam as contas; quem poe os tiros no campo e Ferreira.cpp.
 namespace JogosDigitais {
 
-    /// As fases dele duram isto, o dobro das dos outros professores (Fase::kDuracao) - menos a das
-    /// regras, que tem a etapa do FPS e dura RegrasTrocadas::kDuracaoDaFase (DuracaoDa).
+    /// As fases dele duram isto, o dobro das dos outros professores (Fase::kDuracao) - menos a da
+    /// interface, que tem a etapa da camera (HudHostil::kDuracaoDaFase), a das regras, que tem a do FPS
+    /// (RegrasTrocadas::kDuracaoDaFase), e o lancamento, com os creditos (DuracaoDa).
     constexpr float kDuracaoDaFase = 40.0f;
     /// Quanto dura a fase de nome 'fase' (StateOne, StateTwo, StateThree, StateFinal).
     float DuracaoDa(const std::string& fase);
@@ -84,18 +85,23 @@ namespace HudHostil {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
     constexpr const char* kFase = "StateOne";
-    constexpr std::array<const char*, 4> kEtapas = {"Abertura", "BarraSobe", "BarraJoga", "Inimigo"};
-    constexpr std::array<float, 4> kDuracoes = {4.5f, 11.0f, 11.0f, 13.5f};
+    constexpr std::array<const char*, 5> kEtapas = {"Abertura", "BarraSobe", "BarraJoga", "Camera", "Inimigo"};
+    constexpr std::array<float, 5> kDuracoes = {4.5f, 11.0f, 11.0f, 10.0f, 13.5f};
+    constexpr float kDuracaoDaFase = 50.0f;
     constexpr int kEtapaDaAbertura = 0;
     constexpr int kEtapaDaBarraDeitada = 1;
     constexpr int kEtapaDaBarraDePe = 2;
-    constexpr int kEtapaDoInimigo = 3;
+    constexpr int kEtapaDaCamera = 3;
+    constexpr int kEtapaDoInimigo = 4;
     constexpr const char* kGatilhoDaBarra = "barra";
     constexpr const char* kGatilhoDoLeque = "leque";
     /// O inimigo (IaDoInimigo): cada bloco do corpo, cada olho e o power-up.
     constexpr const char* kGatilhoDoInimigo = "inimigo";
     constexpr const char* kGatilhoDoOlho = "olho";
     constexpr const char* kGatilhoDoPoder = "poder";
+    /// A camera: o anel do professor e as caixas paradas do mundo.
+    constexpr const char* kGatilhoDoAnelDaCamera = "anel";
+    constexpr const char* kGatilhoDaCaixa = "caixa";
 
     // ---- A abertura: a nota editada ----
 
@@ -142,12 +148,51 @@ namespace HudHostil {
     /// (Player::PrenderNoCampo), e a barra descansa sem pegar ninguem.
     constexpr float kRecuoDaBarra = 22.0f;
 
+    // ---- A camera ----
+
+    /// O professor tira o manche de voce e o liga na camera: o aluno fica fixo na tela (na ancora,
+    /// embaixo e no meio), e o manche move a camera - o mundo inteiro (os tiros, as caixas e o proprio
+    /// professor) anda ao contrario na tela. Para desviar, mova a camera; para por o professor na
+    /// mira, traga-o com ela. A camera nao sai da arena: o professor para na borda da tela.
+    ///   - o aviso (kAvisoDaCamera), forte: o visor nas quinas do campo, o REC, o manche desenhado
+    ///     ligado a camera e a contagem 3-2-1; no fim dele, o aluno desliza ate a ancora;
+    ///   - a camera livre, ate kDevolveACamera;
+    ///   - a volta: o visor pisca, e o manche volta para o aluno no fim da etapa.
+    constexpr float kAvisoDaCamera = 2.4f;
+    constexpr float kDeslizaAteAAncora = 0.6f;
+    constexpr float kDevolveACamera = 9.0f;
+    enum class Camera { Aviso, Livre, Volta };
+    Camera CameraEm(float te);
+    /// A contagem do aviso, nos tres ultimos quartos dele: 3, 2, 1 (zero antes e depois).
+    int ContagemDaCamera(float te);
+    /// A ancora do aluno 'aluno' de 'alunos': embaixo e no meio (na dupla, um de cada lado).
+    constexpr float kAlturaDaAncora = 0.78f;
+    constexpr float kAfastamentoNaDupla = 110.0f;
+    Vector2 AncoraDaCamera(const JogosDigitais::Campo& c, std::size_t aluno, std::size_t alunos);
+    /// O passo do mundo num quadro: a camera anda o que o manche pede ('intencao', a velocidade que
+    /// o aluno teria, em px/s), e o mundo anda o contrario na tela.
+    Vector2 PassoDoMundo(Vector2 intencao, float dt);
+    /// O professor, levado pela camera, fica dentro da tela: 'margem' das bordas, e nunca abaixo de
+    /// 'fundo' (fracao da altura) - ele nao senta em cima do aluno.
+    Vector2 ProfessorNaTela(Vector2 p, const JogosDigitais::Campo& c, float margem, float fundo);
+    constexpr float kFundoDoProfessor = 0.55f;
+    /// A caixa parada nasce longe do aluno, e so machuca depois de kCaixaAcende (antes, o contorno).
+    constexpr float kLongeDaCaixa = 200.0f;
+    constexpr float kCaixaAcende = 0.6f;
+
     struct Degrau {
         int passadasDeitada = 3;
         int passadasDePe = 4;
         float entreLeques = 1.25f;
         int tirosDoLeque = 3;
         float velocidade = 230.0f;
+        // A camera: o anel do professor, as caixas paradas do mundo, e quanto cada uma dura.
+        float entreAneisDaCamera = 1.5f;
+        int tirosDoAnelDaCamera = 12;
+        float velocidadeDaCamera = 150.0f;
+        float entreCaixas = 0.9f;
+        float vidaDaCaixa = 4.5f;
+        float entreLequesDaCamera = 1.7f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
@@ -693,9 +738,10 @@ namespace Lancamento {
 
     constexpr const char* kFase = "StateFinal";
     constexpr std::array<const char*, 4> kEtapas = {"Hitbox", "Crash", "Frota", "Creditos"};
-    /// A frota e a etapa mais longa: e preciso tempo para zera-la, e de novo.
-    constexpr std::array<float, 4> kDuracoes = {9.0f, 9.0f, 16.0f, 10.0f};
-    constexpr float kDuracaoDaFase = 44.0f;
+    /// A frota e os creditos sao as etapas mais longas: e preciso tempo para zerar a frota, e de
+    /// novo; e os creditos sobem devagar, com espaco entre as linhas.
+    constexpr std::array<float, 4> kDuracoes = {9.0f, 9.0f, 16.0f, 17.0f};
+    constexpr float kDuracaoDaFase = 51.0f;
     constexpr const char* kGatilhoDoAnel = "anel";
     constexpr const char* kGatilhoDoTiro = "tiro";
     constexpr const char* kGatilhoDoSprite = "sprite";
@@ -773,15 +819,21 @@ namespace Lancamento {
     // ---- Os creditos ----
 
     /// Os creditos sobem do rodape: cada linha e uma parede de blocos com um vao de kVaoDosCreditos
-    /// blocos, fora da faixa do meio - onde o texto fica.
+    /// blocos, fora da faixa do meio - onde o texto fica. Os creditos sao os do proprio jogo; a ultima
+    /// linha, o obrigado, sobe sem parede.
     constexpr float kBloco = 28.0f;
-    constexpr int kVaoDosCreditos = 5;
+    constexpr int kVaoDosCreditos = 6;
     constexpr int kFaixaDoTexto = 7;
-    constexpr std::array<const char*, 8> kCreditos = {
-        "INF 216  \xc2\xb7  UM JOGO SOBRE FAZER JOGOS", "GAME DESIGN  \xc2\xb7  Lucas Ferreira",
-        "PROGRAMA\xc3\x87\xc3\x83O  \xc2\xb7  a turma inteira",        "ARTE  \xc2\xb7  16 x 16 pixels",
-        "TRILHA SONORA  \xc2\xb7  tan00.wav",            "QA  \xc2\xb7  voc\xc3\xaa, agora",
-        "BUGS  \xc2\xb7  todos de prop\xc3\xb3sito",            "OBRIGADO POR JOGAR"};
+    constexpr std::array<const char*, 7> kCreditos = {
+        "UMA PAR\xc3\x93" "DIA DA VIDA ACAD\xc3\x8a" "MICA",
+        "PROGRAMA\xc3\x87\xc3\x83O  \xc2\xb7  Nathan Lopes",
+        "ARTE  \xc2\xb7  feita no Aseprite",
+        "IDE  \xc2\xb7  CLion, em C++17 e SDL2",
+        "COME\xc3\x87OU NA  \xc2\xb7  INF 216, Jogos Digitais",
+        "ELENCO  \xc2\xb7  os professores do DPI",
+        "OBRIGADO POR JOGAR"};
+    /// A ultima linha dos creditos: o obrigado, sem parede.
+    constexpr bool UltimaLinha(const int linha) { return linha == static_cast<int>(kCreditos.size()) - 1; }
     /// O primeiro bloco do vao de uma linha de 'blocos' blocos.
     int VaoDaLinha(int blocos, Variacao::Sorteio& s);
     bool NoVao(int bloco, int inicio);
@@ -793,8 +845,9 @@ namespace Lancamento {
         float entrePassos = 0.3f;
         float entreQuedas = 0.42f;
         float velocidadeDaQueda = 230.0f;
-        float entreLinhas = 1.15f;
-        float subida = 78.0f;
+        /// Os creditos: ~135 px entre uma linha e a outra, subindo devagar.
+        float entreLinhas = 2.4f;
+        float subida = 56.0f;
         // A frota: o hotfix, a janela sem god mode, e o leque com que ele protege a frota.
         float hotfix = 1.2f;
         float janela = 3.5f;
