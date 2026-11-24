@@ -868,6 +868,8 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     REQUIRE(l.Quantas() == 18);
     REQUIRE(l.QuantasDoCurso() == 17);
+    // A primeira do curso, a de quem ainda escolhe entre montar a personagem e jogar agora.
+    CHECK(l.CodigoDe(l.Primeira()) == "INF110");
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };

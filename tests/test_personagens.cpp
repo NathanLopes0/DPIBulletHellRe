@@ -3,6 +3,7 @@
 
 #include "doctest.h"
 
+#include <set>
 #include <string>
 
 #include "../Source/Personagem/Personagens.h"
@@ -55,6 +56,27 @@ TEST_CASE("Personagens: um catalogo valido entra inteiro") {
     CHECK(c.Por("barba") == nullptr);
     REQUIRE(c.fixas.size() == 1);
     CHECK(c.fixas[0].arte == "fixa/olho");
+}
+
+TEST_CASE("Personagens: a aparencia sorteada do jogar agora e valida, e a semente a repete") {
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+    std::set<std::string> cabelos, cores;
+    for (std::uint32_t semente = 0; semente < 64; ++semente) {
+        const Aparencia a = c.Aleatoria(semente);
+        for (const Categoria& cat : c.categorias) {
+            const Escolha* e = a.Por(cat.id);
+            REQUIRE(e != nullptr);
+            CHECK(cat.PecaPor(e->peca) != nullptr);
+            CHECK(cat.CorPor(e->cor) != nullptr);
+        }
+        cabelos.insert(a.Por("cabelo")->peca);
+        cores.insert(a.Por("cabelo")->cor);
+        // A mesma semente, a mesma aparencia.
+        CHECK(ChaveDaAparencia(c.Aleatoria(semente)) == ChaveDaAparencia(a));
+    }
+    // E o sorteio passa por todas as opcoes.
+    CHECK(cabelos.size() == 2u);
+    CHECK(cores.size() == 2u);
 }
 
 TEST_CASE("Personagens: a aparencia padrao e a primeira peca e a primeira cor") {

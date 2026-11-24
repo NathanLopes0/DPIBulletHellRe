@@ -269,12 +269,19 @@ Uma partida começa pela matrícula. Depois de escolher **Modo Solo** ou **Modo
 Dupla**, cada aluno digita a sua no teclado da tela — o manche escolhe a tecla, o
 botão 1 digita e o botão 2 apaga (com o campo vazio, volta ao menu) — e confirma em **ENTRAR**. Não é preciso dizer
 se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e traz
-de volta a aparência escolhida; se não existe, o aluno passa pela criação de
-personagem, e o perfil só é gravado quando ela é confirmada. Na primeira vez de
+de volta a aparência escolhida; se não existe, o perfil nasce ali. Quem ainda
+não passou na **INF 110** — o aluno novo, o visitante e quem ainda está no
+começo — escolhe então entre **Jogar agora** (uma personagem sorteada, sem
+montar nada; quem já tem uma fica com a dele) e **Personalizar personagem** (a
+criação de sempre, peça por peça), e o perfil novo só é gravado depois dessa
+escolha. Na dupla, cada um escolhe a sua. Na primeira vez de
 uma matrícula, depois da dificuldade e antes da seleção de fases, vem a **fase
 tutorial**: a **INF 191 — Introdução à Ciência da Computação**, com o Prof.
-Silva, um professor genérico de óculos e gravata. Ela dura menos de um minuto e
-não tem uma palavra na tela: primeiro cai uma chuva lenta com o **manche**
+Silva, um professor genérico de óculos e gravata. Ela dura pouco mais de um
+minuto — e menos para quem já joga bem: cada etapa acaba antes quando o aluno já
+mostrou o que ela ensina (seis segundos sem levar tiro para desviar e para o
+foco, oito acertos para atirar, os dois juntos na nota que sobe e desce, e o
+Ponto Extra gasto), e quem desvia e acerta tudo termina em uns 40 segundos. Ela não tem uma palavra na tela: primeiro cai uma chuva lenta com o **manche**
 desenhado acima do aluno, apontando para cada lado (desviar); depois o professor
 para, e aparece o **Botão 1** sendo apertado e uma linha tracejada até ele
 (atirar); a cada acerto, um **"+" verde** voa até a ponta da barra da nota, que

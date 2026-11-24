@@ -217,11 +217,13 @@ void Identificacao::Confirmar(const std::string& canonica) {
     // IdentificarAluno vale nos dois casos.
     mGame->IdentificarAluno(canonica);
 
-    // Quem nao tem perfil monta a personagem - e, antes das fases, conhece as mencoes.
-    if (!jaTemPerfil) {
-        mGame->MarcarPrimeiraEntrada();
-        // Ainda nao grava nada.
-        mGame->RequestSceneChange(SceneType::CriacaoDePersonagem);
+    // Quem nao tem perfil faz, antes das fases, o tutorial e conhece as mencoes.
+    if (!jaTemPerfil) mGame->MarcarPrimeiraEntrada();
+
+    // Quem ainda nao passou na INF 110 - o novo inclusive - escolhe entre montar a personagem e
+    // jogar agora. Ainda nao grava nada.
+    if (mGame->PrecisaEscolherOComeco()) {
+        mGame->RequestSceneChange(SceneType::EscolhaDoComeco);
         return;
     }
 
@@ -254,7 +256,7 @@ void Identificacao::Acionar(const Teclado::Tecla& tecla) {
 
         case Teclado::Acao::Visitante:
             mGame->JogarComoVisitante();
-            mGame->AvancarEntrada();
+            mGame->RequestSceneChange(SceneType::EscolhaDoComeco);
             break;
 
         case Teclado::Acao::Voltar:
@@ -341,7 +343,7 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
     const bool visitante = keyState[SDL_SCANCODE_TAB];
     if (mBordaVisitante.Bateu(visitante)) {
         mGame->JogarComoVisitante();
-        mGame->AvancarEntrada();
+        mGame->RequestSceneChange(SceneType::EscolhaDoComeco);
     }
 }
 

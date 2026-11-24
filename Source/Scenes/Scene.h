@@ -22,6 +22,7 @@ public:
         MainMenu,
         Identificacao,
         CriacaoDePersonagem,
+        EscolhaDoComeco,
         Opcoes,
         Ranking,
         Boletim,

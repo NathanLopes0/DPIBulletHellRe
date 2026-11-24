@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -98,6 +99,10 @@ namespace Personagens {
         std::vector<std::string> problemas;
 
         [[nodiscard]] const Categoria* Por(const std::string& id) const;
+
+        /// Uma aparencia sorteada: uma peca e uma cor de cada categoria, da 'semente' (a mesma semente,
+        /// a mesma aparencia). E o "jogar agora" de quem nao quer montar a personagem.
+        [[nodiscard]] Aparencia Aleatoria(std::uint32_t semente) const;
 
         /// Conserta uma aparencia vinda de um save.
         [[nodiscard]] Aparencia Resolver(const Aparencia& pedida,

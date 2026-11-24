@@ -129,6 +129,9 @@ namespace Materias {
         [[nodiscard]] bool DoCurso(int indice) const;
         /// Quantas sao do curso (DoCurso): o "de 17" da selecao e do boletim.
         [[nodiscard]] int QuantasDoCurso() const;
+        /// A primeira materia do curso (a da coluna 0, a INF 110), ou -1 sem nenhuma: quem ainda nao
+        /// passou nela pode pular a criacao da personagem (EscolhaDoComeco).
+        [[nodiscard]] int Primeira() const;
         /// O indice da fase tutorial, ou -1 sem ela.
         [[nodiscard]] int Tutorial() const;
 

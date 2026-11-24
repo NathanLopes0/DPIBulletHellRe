@@ -5,6 +5,7 @@
 #include "Personagens.h"
 
 #include <algorithm>
+#include <random>
 #include <set>
 
 #include "../Motor/JsonDeDados.h"
@@ -95,6 +96,22 @@ void Aparencia::Definir(const std::string& categoria, const Escolha& escolha) {
 const Categoria* Catalogo::Por(const std::string& id) const {
     for (const auto& c : categorias) if (c.id == id) return &c;
     return nullptr;
+}
+
+Aparencia Catalogo::Aleatoria(const std::uint32_t semente) const {
+    std::mt19937 gerador(semente);
+    const auto um = [&gerador](const std::size_t n) {
+        return static_cast<std::size_t>(std::uniform_int_distribution<std::size_t>(0, n - 1)(gerador));
+    };
+    Aparencia a;
+    for (const Categoria& c : categorias) {
+        Escolha e;
+        if (!c.pecas.empty()) e.peca = c.pecas[um(c.pecas.size())].id;
+        if (!c.cores.empty()) e.cor = c.cores[um(c.cores.size())].id;
+        a.Definir(c.id, e);
+    }
+    // O Resolver poe o padrao onde o sorteio nao tinha o que escolher.
+    return Resolver(a);
 }
 
 Aparencia Catalogo::Resolver(const Aparencia& pedida, std::vector<std::string>* trocas) const {

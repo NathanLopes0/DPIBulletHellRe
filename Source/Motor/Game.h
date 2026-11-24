@@ -213,6 +213,9 @@ public:
     /// O tutorial (INF 191) acabou, ou foi abandonado pela pausa: a pagina das mencoes, e dali as
     /// materias - o resto da primeira entrada.
     void DepoisDoTutorial();
+    /// Se o aluno que esta entrando ainda nao passou na primeira materia do curso (a INF 110): ele
+    /// escolhe entre personalizar a personagem e jogar agora (EscolhaDoComeco).
+    [[nodiscard]] bool PrecisaEscolherOComeco() const;
     /// Se o "Como Jogar" que abre agora e o da entrada (so a pagina das mencoes, e depois a selecao).
     /// Vale uma vez: quem pergunta ja o consome.
     [[nodiscard]] bool TirarManualDaEntrada();

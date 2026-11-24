@@ -40,6 +40,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/TelaDoBoletim.h
         Source/Scenes/TelaComoJogar.cpp
         Source/Scenes/TrocaDeAlunos.cpp
+        Source/Scenes/EscolhaDoComeco.cpp
+        Source/Scenes/EscolhaDoComeco.h
         Source/Actors/Teachers/Bosses/Generico.cpp
         Source/Actors/Teachers/Bosses/Generico.h
         Source/Attacks/Tutorial.cpp

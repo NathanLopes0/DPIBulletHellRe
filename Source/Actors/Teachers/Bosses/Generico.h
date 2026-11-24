@@ -25,6 +25,8 @@ public:
 
     void OnUpdate(float deltaTime) override;
     void AoTerminarABatalha() override;
+    /// Cada acerto do aluno no professor conta para passar a etapa (Tutorial::Desempenho).
+    void AoSerPerguntado() override;
 
     static constexpr const char* kFase = "StateOne";
 
@@ -33,7 +35,19 @@ protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
 private:
-    [[nodiscard]] float Tempo() const;
+    // ---- O relogio do tutorial ----
+
+    /// Os segundos do tutorial, que saltam para a etapa seguinte quando o aluno ja mostrou o que a
+    /// de agora ensina (Tutorial::PodeAvancar). O relogio da fase so anda; este, nao.
+    float mTempo = 0.0f;
+    Tutorial::Etapa mEtapa = Tutorial::Etapa::Chegada;
+    Tutorial::Desempenho mDesempenho;
+    float mProximoTiro = Tutorial::kPrimeiroTiro;
+    int mSofridosAntes = -1;
+    std::vector<int> mExtrasAntes;
+    /// Anda o relogio e o desempenho, passa a etapa quando da, e puxa o gatilho do ritmo dela.
+    void AndarORelogio(float deltaTime);
+    void ComecarEtapa(Tutorial::Etapa e);
 
     // ---- O desenho ----
     DrawLinhasComponent* mLinhas = nullptr;

@@ -28,6 +28,47 @@ TEST_CASE("Tutorial: as etapas vem em ordem, e o professor encerra na festa do f
     CHECK(total > ComecoDa(Etapa::Fim) + kAplausos);
 }
 
+TEST_CASE("Tutorial: quem ja desvia e acerta passa a etapa antes do tempo") {
+    Desempenho d;
+    d.naEtapa = 2.0f;
+    d.semApanhar = 99.0f;
+    d.acertosDados = 99;
+    d.gastouPontoExtra = true;
+    // Nunca antes do minimo: o desenho da etapa e visto.
+    for (const Etapa e : {Etapa::Desviar, Etapa::Atirar, Etapa::SobeEDesce, Etapa::Foco, Etapa::PontoExtra}) {
+        CHECK_FALSE(PodeAvancar(e, d));
+    }
+    d = Desempenho{};
+    d.naEtapa = kMinimoNaEtapa;
+    // Desviar e o foco: tempo sem apanhar.
+    CHECK_FALSE(PodeAvancar(Etapa::Desviar, d));
+    d.semApanhar = kSemApanharParaPassar;
+    CHECK(PodeAvancar(Etapa::Desviar, d));
+    CHECK(PodeAvancar(Etapa::Foco, d));
+    // Atirar: os acertos; a nota que sobe e desce: os dois juntos.
+    CHECK_FALSE(PodeAvancar(Etapa::Atirar, d));
+    CHECK_FALSE(PodeAvancar(Etapa::SobeEDesce, d));
+    d.acertosDados = kAcertosParaPassar;
+    CHECK(PodeAvancar(Etapa::Atirar, d));
+    CHECK(PodeAvancar(Etapa::SobeEDesce, d));
+    d.semApanhar = 1.0f;
+    CHECK_FALSE(PodeAvancar(Etapa::SobeEDesce, d));
+    // O Ponto Extra: gasto.
+    CHECK_FALSE(PodeAvancar(Etapa::PontoExtra, d));
+    d.gastouPontoExtra = true;
+    CHECK(PodeAvancar(Etapa::PontoExtra, d));
+    // A chegada e o fim tem o tempo deles.
+    CHECK_FALSE(PodeAvancar(Etapa::Chegada, d));
+    CHECK_FALSE(PodeAvancar(Etapa::Fim, d));
+    // Cada etapa com tiro tem o gatilho e o ritmo dela; as outras, nenhum.
+    for (const Etapa e : {Etapa::Desviar, Etapa::SobeEDesce, Etapa::Foco, Etapa::PontoExtra}) {
+        CHECK(GatilhoDe(e) != nullptr);
+        CHECK(CadenciaDe(e) > 0.0f);
+    }
+    CHECK(GatilhoDe(Etapa::Atirar) == nullptr);
+    CHECK(GatilhoDe(Etapa::Fim) == nullptr);
+}
+
 TEST_CASE("Tutorial: a nota que sobe e a que desce, e o sinal que voa ate a barra") {
     CHECK(SinalDaNota(40.0f, 41.5f) == Sinal::Subiu);
     CHECK(SinalDaNota(40.0f, 37.0f) == Sinal::Desceu);

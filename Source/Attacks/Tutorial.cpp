@@ -28,6 +28,42 @@ namespace Tutorial {
         return std::max(0.0f, t - ComecoDa(EtapaEm(t)));
     }
 
+    bool PodeAvancar(const Etapa e, const Desempenho& d) {
+        if (d.naEtapa < kMinimoNaEtapa) return false;
+        const bool desviou = d.semApanhar >= kSemApanharParaPassar;
+        const bool atirou = d.acertosDados >= kAcertosParaPassar;
+        switch (e) {
+            case Etapa::Desviar:    return desviou;
+            case Etapa::Atirar:     return atirou;
+            case Etapa::SobeEDesce: return desviou && atirou;
+            case Etapa::Foco:       return desviou;
+            case Etapa::PontoExtra: return d.gastouPontoExtra;
+            case Etapa::Chegada:
+            case Etapa::Fim:        return false;
+        }
+        return false;
+    }
+
+    const char* GatilhoDe(const Etapa e) {
+        switch (e) {
+            case Etapa::Desviar:    return "chuva";
+            case Etapa::SobeEDesce: return "mirado";
+            case Etapa::Foco:       return "anel";
+            case Etapa::PontoExtra: return "cheia";
+            default:                return nullptr;
+        }
+    }
+
+    float CadenciaDe(const Etapa e) {
+        switch (e) {
+            case Etapa::Desviar:    return 1.2f;
+            case Etapa::SobeEDesce: return 1.1f;
+            case Etapa::Foco:       return 1.5f;
+            case Etapa::PontoExtra: return 0.9f;
+            default:                return 0.0f;
+        }
+    }
+
     bool Acabou(const float t) {
         return t >= ComecoDa(Etapa::Fim) + kAplausos;
     }

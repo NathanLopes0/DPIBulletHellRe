@@ -73,6 +73,11 @@ int Lista::QuantasDoCurso() const {
     return n;
 }
 
+int Lista::Primeira() const {
+    const std::vector<int> col = DaColuna(0);
+    return col.empty() ? -1 : col.front();
+}
+
 int Lista::Tutorial() const {
     for (int i = 0; i < Quantas(); ++i) {
         if (materias[static_cast<size_t>(i)].tutorial) return i;

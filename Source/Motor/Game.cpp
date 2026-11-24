@@ -34,6 +34,7 @@
 #include "../Scenes/CriacaoDePersonagem.h"
 #include "../Scenes/StageSelect.h"
 #include "../Scenes/TrocaDeAlunos.h"
+#include "../Scenes/EscolhaDoComeco.h"
 #include "../Scenes/EscolhaDoOrientador.h"
 #include "../Scenes/EscolhaDaDificuldade.h"
 #include "../Scenes/Battle/Battle.h"
@@ -208,6 +209,7 @@ void Game::LoadInitialScene()
             // A pagina das mencoes que a matricula nova ve antes da selecao (IrParaASelecao).
             else if (mSimulacao.cena == "comojogar") ChangeScene(Scene::SceneType::ComoJogar);
             else if (mSimulacao.cena == "troca") ChangeScene(Scene::SceneType::TrocaDeAlunos);
+            else if (mSimulacao.cena == "comeco") ChangeScene(Scene::SceneType::EscolhaDoComeco);
             else if (mSimulacao.cena == "personagem") ChangeScene(Scene::SceneType::CriacaoDePersonagem);
             else if (mSimulacao.cena == "entrada") {
                 mManualDaEntrada = true;
@@ -694,6 +696,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
         case Scene::SceneType::TrocaDeAlunos:
             mScene = std::make_unique<TrocaDeAlunos>(this);
             break;
+        case Scene::SceneType::EscolhaDoComeco:
+            mScene = std::make_unique<EscolhaDoComeco>(this);
+            break;
         case Scene::SceneType::Atracao:
             // O codigo secreto e de quem o digitou: quem chegar depois da atracao nao o herda.
             mCodigoSecreto = false;
@@ -984,6 +989,12 @@ void Game::IrParaASelecao() {
         return;
     }
     RequestSceneChange(Scene::SceneType::StageSelect);
+}
+
+bool Game::PrecisaEscolherOComeco() const {
+    if (mPosicaoEntrando >= mSessoes.size()) return false;
+    const int primeira = Materias::Carregadas().Primeira();
+    return primeira >= 0 && !mSessoes[mPosicaoEntrando].progresso.Aprovado(primeira);
 }
 
 void Game::DepoisDoTutorial() {

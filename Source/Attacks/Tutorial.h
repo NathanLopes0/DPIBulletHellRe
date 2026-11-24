@@ -31,6 +31,33 @@ namespace Tutorial {
     /// Quando cada etapa comeca.
     float ComecoDa(Etapa e);
 
+    // ---- Quem ja sabe passa mais rapido ----
+
+    /// Como o aluno esta indo na etapa em curso: o relogio dela, os acertos no professor, os tiros
+    /// levados, ha quanto tempo ele nao apanha e se ja gastou o Ponto Extra.
+    struct Desempenho {
+        float naEtapa = 0.0f;
+        int acertosDados = 0;
+        int acertosSofridos = 0;
+        float semApanhar = 0.0f;
+        bool gastouPontoExtra = false;
+    };
+    /// Se a etapa pode acabar agora, antes do tempo: o aluno ja mostrou o que ela ensina. Desviar e
+    /// o foco, kSemApanharParaPassar segundos sem levar tiro; atirar, kAcertosParaPassar acertos; a
+    /// nota que sobe e desce, os dois; o Ponto Extra, gasto. Nunca antes de kMinimoNaEtapa, para o
+    /// desenho dela ser visto. A chegada e o fim tem o tempo deles.
+    constexpr float kMinimoNaEtapa = 4.0f;
+    constexpr float kSemApanharParaPassar = 6.0f;
+    constexpr int kAcertosParaPassar = 8;
+    bool PodeAvancar(Etapa e, const Desempenho& d);
+
+    /// Os tiros de cada etapa saem do proprio professor (o gatilho de fases.json), no ritmo dela -
+    /// e nao do relogio da fase, que nao anda mais rapido quando a etapa acaba antes. Sem tiro: nulo.
+    const char* GatilhoDe(Etapa e);
+    float CadenciaDe(Etapa e);
+    /// O primeiro tiro de cada etapa espera isto: o desenho dela aparece antes.
+    constexpr float kPrimeiroTiro = 0.6f;
+
     /// O professor encerra a prova kAplausos segundos depois de o Fim comecar: o tempo da festa.
     constexpr float kAplausos = 3.0f;
     bool Acabou(float t);

@@ -1,38 +1,30 @@
 {
   // A fase tutorial (INF 191), com o professor generico. Uma pasta por chefe: Assets/Attacks/generico/.
-  // Uma fase so, sem texto na tela: as etapas so dao o ritmo, e o desenho de cada uma (o manche, o
-  // Botao 1, a nota que sobe e desce, o Botao 4, o Ponto Extra e o Botao 2) e do Generico. As duracoes sao as de
-  // Tutorial::kDuracoes, na mesma ordem; o professor encerra a prova no meio da ultima.
+  // Uma fase so, sem texto na tela. As etapas (Tutorial::kDuracoes) correm no relogio do proprio
+  // Generico, que as encurta para quem ja desvia e acerta (Tutorial::PodeAvancar): por isso os
+  // ataques sao todos de gatilho, puxados por ele no ritmo da etapa (Tutorial::CadenciaDe), e o
+  // desenho de cada uma (o manche, o Botao 1, a nota que sobe e desce, o Botao 4, o Ponto Extra e o
+  // Botao 2) e dele tambem. A duracao da fase e a soma das etapas; o professor encerra a prova antes.
 
   "StateOne": {
     "duracao": 78,
     "proximo": "",
-    "etapas": [
-      { "nome": "Chegada",      "duracao": 3 },
-      { "nome": "Desviar",      "duracao": 13 },
-      { "nome": "Atirar",       "duracao": 12 },
-      { "nome": "Sobe e desce", "duracao": 14 },
-      { "nome": "Foco",         "duracao": 13 },
-      { "nome": "Ponto Extra",  "duracao": 14 },
-      { "nome": "Fim",          "duracao": 9 }
-    ],
     "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
     "ataques": [
       // Desviar: uma chuva lenta e rala, que da para ver chegando.
-      { "etapa": "Desviar", "estrategia": "WaveAttack", "projetil": "Bola",
+      { "gatilho": "chuva", "estrategia": "WaveAttack", "projetil": "Bola",
         "projeteis": 7, "velocidade": 150, "angulo": 110, "anguloCentral": 90, "intervalo": 0,
-        "cooldown": 1.2, "variar": { "giro": 15 } },
+        "variar": { "giro": 15 } },
       // Sobe e desce: tres bolas miradas no aluno (o Generico as mira), enquanto ele atira de volta.
-      { "etapa": "Sobe e desce", "estrategia": "WaveAttack", "projetil": "Bola",
-        "projeteis": 3, "velocidade": 190, "angulo": 24, "anguloCentral": 90, "intervalo": 0,
-        "cooldown": 1.1 },
+      { "gatilho": "mirado", "estrategia": "WaveAttack", "projetil": "Bola",
+        "projeteis": 3, "velocidade": 190, "angulo": 24, "anguloCentral": 90, "intervalo": 0 },
       // Foco: aneis cheios e lentos, com os vaos estreitos - segurando o foco, cabe.
-      { "etapa": "Foco", "estrategia": "CircleSpreadAttack", "projetil": "Bola",
-        "projeteis": 26, "velocidade": 115, "cooldown": 1.5, "variar": { "giro": 7 } },
+      { "gatilho": "anel", "estrategia": "CircleSpreadAttack", "projetil": "Bola",
+        "projeteis": 26, "velocidade": 115, "variar": { "giro": 7 } },
       // Ponto Extra: uma chuva cheia e lenta - a que o Botao 2 limpa de uma vez.
-      { "etapa": "Ponto Extra", "estrategia": "WaveAttack", "projetil": "Bola",
+      { "gatilho": "cheia", "estrategia": "WaveAttack", "projetil": "Bola",
         "projeteis": 13, "velocidade": 120, "angulo": 150, "anguloCentral": 90, "intervalo": 0,
-        "cooldown": 0.9, "variar": { "giro": 10 } }
+        "variar": { "giro": 10 } }
     ]
   },
 

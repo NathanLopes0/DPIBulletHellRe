@@ -364,7 +364,8 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
             mGame->TerminarEdicaoDePersonagem();
             return;
         }
-        mGame->RequestSceneChange(SceneType::Identificacao);
+        // Na entrada, de volta a escolha entre personalizar e jogar agora.
+        mGame->RequestSceneChange(SceneType::EscolhaDoComeco);
         return;
     }
 }

@@ -43,9 +43,51 @@ namespace {
 
 Generico::Generico(Scene* scene) : Boss(scene) {}
 
-float Generico::Tempo() const {
-    const auto* fsm = GetComponent<FSMComponent>();
-    return fsm ? fsm->GetStateTime() : 0.0f;
+void Generico::ComecarEtapa(const Tutorial::Etapa e) {
+    mEtapa = e;
+    mDesempenho = Tutorial::Desempenho{};
+    mProximoTiro = Tutorial::kPrimeiroTiro;
+}
+
+void Generico::AoSerPerguntado() {
+    ++mDesempenho.acertosDados;
+}
+
+void Generico::AndarORelogio(const float deltaTime) {
+    Battle* b = Batalha();
+    if (!b) return;
+    mTempo += deltaTime;
+    if (Tutorial::EtapaEm(mTempo) != mEtapa) ComecarEtapa(Tutorial::EtapaEm(mTempo));
+
+    // O desempenho: o tempo, os tiros levados (a conta da batalha) e o Ponto Extra gasto.
+    mDesempenho.naEtapa += deltaTime;
+    mDesempenho.semApanhar += deltaTime;
+    const int sofridos = b->AcertosSofridos();
+    if (mSofridosAntes >= 0 && sofridos > mSofridosAntes) {
+        mDesempenho.acertosSofridos += sofridos - mSofridosAntes;
+        mDesempenho.semApanhar = 0.0f;
+    }
+    mSofridosAntes = sofridos;
+    const std::vector<Player*>& alunos = b->Jogadores();
+    mExtrasAntes.resize(alunos.size(), 0);
+    for (size_t i = 0; i < alunos.size(); ++i) {
+        if (!alunos[i]) continue;
+        const int agora = alunos[i]->PontosExtras();
+        if (agora < mExtrasAntes[i]) mDesempenho.gastouPontoExtra = true;
+        mExtrasAntes[i] = agora;
+    }
+
+    // Quem ja sabe passa: a etapa seguinte comeca agora.
+    if (Tutorial::PodeAvancar(mEtapa, mDesempenho)) {
+        mTempo = Tutorial::ComecoDa(static_cast<Tutorial::Etapa>(static_cast<int>(mEtapa) + 1));
+        ComecarEtapa(Tutorial::EtapaEm(mTempo));
+    }
+
+    // Os tiros da etapa, no ritmo dela.
+    if (const char* gatilho = Tutorial::GatilhoDe(mEtapa); gatilho && mDesempenho.naEtapa >= mProximoTiro) {
+        mProximoTiro = mDesempenho.naEtapa + Tutorial::CadenciaDe(mEtapa);
+        Disparar(gatilho);
+    }
 }
 
 void Generico::OnUpdate(const float deltaTime) {
@@ -69,9 +111,10 @@ void Generico::OnUpdate(const float deltaTime) {
 
     Battle* b = Batalha();
     if (!b || !b->EmCombate()) return;
-    const float t = Tempo();
-    const Tutorial::Etapa etapa = Tutorial::EtapaEm(t);
-    const float te = Tutorial::NaEtapa(t);
+    AndarORelogio(deltaTime);
+    const float t = mTempo;
+    const Tutorial::Etapa etapa = mEtapa;
+    const float te = mDesempenho.naEtapa;
     const bool noComputador = !b->GetGame()->NoGabinete();
 
     // O Ponto Extra da etapa dele: um para cada aluno, acima dele, uma vez.
@@ -228,7 +271,7 @@ void Generico::AcompanharANota(const float deltaTime) {
 
 void Generico::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
-    if (Tutorial::EtapaEm(Tempo()) != Tutorial::Etapa::SobeEDesce) return;
+    if (mEtapa != Tutorial::Etapa::SobeEDesce) return;
     const Vector2 d = GetDirectionToPlayer();
     if (d.LengthSq() > 1e-6f) params.centralAngle = Math::ToDegrees(std::atan2(d.y, d.x));
 }

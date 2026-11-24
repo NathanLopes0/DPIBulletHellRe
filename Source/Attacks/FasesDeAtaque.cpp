@@ -96,7 +96,10 @@ namespace {
                                                 // o lancamento.
                                                 "abertura", "inimigo", "olho", "poder", "tiro", "espinho", "lanca",
                                                 "bloco", "fagulha", "retorno", "sprite", "colisor", "disquete",
-                                                "botao", "credito", "vermelho", "azul"};
+                                                "botao", "credito", "vermelho", "azul",
+                                                // O professor generico do tutorial: o tiro mirado e a
+                                                // chuva cheia (a chuva e o anel ja existiam).
+                                                "mirado", "cheia"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
