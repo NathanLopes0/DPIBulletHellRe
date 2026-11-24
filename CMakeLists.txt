@@ -411,6 +411,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Ecossistema.h
         Source/Attacks/Sobreajuste.cpp
         Source/Attacks/Sobreajuste.h
+        Source/Attacks/Confusao.cpp
+        Source/Attacks/Confusao.h
         Source/Attacks/CameraEscura.cpp
         Source/Attacks/CameraEscura.h
         Source/Attacks/Convolucao.cpp
@@ -933,6 +935,8 @@ add_executable(dpi_tests
         Source/Attacks/Ecossistema.h
         Source/Attacks/Sobreajuste.cpp
         Source/Attacks/Sobreajuste.h
+        Source/Attacks/Confusao.cpp
+        Source/Attacks/Confusao.h
         Source/Attacks/CameraEscura.cpp
         Source/Attacks/CameraEscura.h
         Source/Attacks/Convolucao.cpp

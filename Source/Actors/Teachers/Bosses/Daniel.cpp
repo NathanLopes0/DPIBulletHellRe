@@ -71,6 +71,7 @@ void Daniel::SortearALuta() {
     mDegrauDaColeta = Ecossistema::DegrauDo(n);
     mDegrauDoAgrupamento = Agrupamento::DegrauDo(n);
     mDegrauDoSobreajuste = Sobreajuste::DegrauDo(n);
+    mDegrauDaConfusao = Confusao::DegrauDo(n);
     // A ordem dos monstrinhos na escolha: o do meio (o mais perto de quem sobe) muda de luta em luta.
     for (int k = Tipos::kTipos - 1; k > 0; --k) {
         std::swap(mLugarDoTipo[static_cast<size_t>(k)], mLugarDoTipo[static_cast<size_t>(mSorteio.Inteiro(0, k))]);
@@ -128,10 +129,10 @@ void Daniel::OnUpdate(const float deltaTime) {
         mEscolheu = true;
     }
 
-    if (fase == Ecossistema::kFase) AtualizarColeta(t, deltaTime, false);
+    if (fase == Ecossistema::kFase) AtualizarColeta(t, deltaTime);
     else if (fase == Agrupamento::kFase) AtualizarAgrupamento(t, deltaTime);
     else if (fase == Sobreajuste::kFase) AtualizarSobreajuste(t, deltaTime);
-    else if (fase == Ecossistema::kFaseDoTeste) AtualizarColeta(t, deltaTime, true);
+    else if (fase == Confusao::kFase) AtualizarConfusao(t, deltaTime);
     if (mEscolheu) {
         AtualizarTipos();
         DesenharTriangulo();
@@ -177,6 +178,15 @@ void Daniel::Desmontar(const bool manterOsPontos) {
     mProximoLeque = 0.0f;
     for (EtiquetaDeCodigo* e : mEtiquetas) if (e) e->Mostrar(false);
     if (mVeredito) mVeredito->Mostrar(false);
+    for (Classificado& cl : mClassificados) Matar(cl.p);
+    mClassificados.clear();
+    mMatriz = Confusao::Matriz{};
+    mProximaClassificada = 1.0f;
+    mFantasmas.clear();
+    mRajadasDaPrevisao = 0;
+    mUltimoErrou = -10.0f;
+    mRotulosUsados = 0;
+    EsconderRotulosSobrando();
     mAlvo.reset();
     if (mLinhas) mLinhas->Limpar();
     if (mEfeitos) mEfeitos->Limpar();
@@ -333,7 +343,7 @@ Vector2 Daniel::NoCampo(const Vector2 n) const {
     return Vector2(g.x + g.w * n.x, g.y + g.h * (1.0f - n.y));
 }
 
-void Daniel::DesenharGrafico(const bool teste) {
+void Daniel::DesenharGrafico() {
     const SDL_FRect g = Grafico();
     const Vector2 origem(g.x, g.y + g.h);
     // A grade, os eixos e as setas: x e o ataque, y a defesa.
@@ -362,9 +372,9 @@ void Daniel::DesenharGrafico(const bool teste) {
         mEtiquetas[1]->SetPosition(Vector2(g.x + 34.0f, g.y - 12.0f));
         for (EtiquetaDeCodigo* e : mEtiquetas) e->Mostrar(true);
     }
-    // A regiao de cada especie, de leve: onde ela mora (no teste, a distribuicao mudou).
+    // A regiao de cada especie, de leve: onde ela mora.
     for (int tipo = 0; tipo < Tipos::kTipos; ++tipo) {
-        const Vector2 c = NoCampo(Ecossistema::CentroDaEspecie(tipo, teste));
+        const Vector2 c = NoCampo(Ecossistema::CentroDaEspecie(tipo));
         for (int k = 0; k < 24; k += 2) {
             const float a0 = Math::TwoPi * static_cast<float>(k) / 24.0f, a1 = Math::TwoPi * static_cast<float>(k + 1) / 24.0f;
             const Vector2 r(g.w * 0.13f, g.h * 0.13f);
@@ -663,7 +673,7 @@ float Daniel::Golpear(const Vector2 onde, const float raio, const int tipo, cons
     return dano;
 }
 
-// ---- Fase 1 (a coleta) e final (o conjunto de teste) ----
+// ---- Fase 1: a coleta ----
 
 void Daniel::Pousar(Amostra& a) {
     // Pousou: vira um ponto do grafico, sem machucar - o conjunto de dados cresce.
@@ -680,14 +690,14 @@ void Daniel::Pousar(Amostra& a) {
     }
 }
 
-void Daniel::AtualizarColeta(const float t, const float deltaTime, const bool teste) {
+void Daniel::AtualizarColeta(const float t, const float deltaTime) {
     const SDL_FRect c = Campo();
     const Ecossistema::Degrau& g = mDegrauDaColeta;
     Varrer(t, 0.3f, 10.0f);
-    DesenharGrafico(teste);
+    DesenharGrafico();
 
-    // As fontes, no alto: o sensor, a planilha e a API (no teste, as laterais: elas nao aparecem).
-    if (!teste) {
+    // As fontes, no alto: o sensor, a planilha e a API.
+    {
         for (size_t k = 0; k < mFontes.size(); ++k) {
             const Vector2 onde(c.x + c.w * Ecossistema::XDaFonte(static_cast<int>(k)), c.y + kYDasFontes);
             if (!mFontes[k]) {
@@ -702,9 +712,9 @@ void Daniel::AtualizarColeta(const float t, const float deltaTime, const bool te
     }
     for (const Ponto& p : mPontos) if (p.p) p.p->RenovarTempoDeVida();
 
-    // As amostras: cada onda de um tipo, na ordem que ensina o triangulo (no teste, tudo misturado).
-    const Ecossistema::Onda onda = teste ? Ecossistema::Onda::Misturada : Ecossistema::OndaNoTempo(t);
-    const float entre = teste ? g.entreAmostrasDoTeste : g.entreAmostras;
+    // As amostras: cada onda de um tipo, na ordem que ensina o triangulo.
+    const Ecossistema::Onda onda = Ecossistema::OndaNoTempo(t);
+    const float entre = g.entreAmostras;
     if (onda != Ecossistema::Onda::Nenhuma && mEscolheu && t >= mProximaAmostra) {
         mProximaAmostra = t + entre;
         const std::vector<Vector2> alunos = [&]() {
@@ -715,16 +725,10 @@ void Daniel::AtualizarColeta(const float t, const float deltaTime, const bool te
         for (int k = 0; k < g.porVez; ++k) {
             const int tipo = Ecossistema::TipoDaOnda(onda, mTipos.empty() ? 0 : mTipos[0], mSorteio);
             const int fonte = mSorteio.Inteiro(0, static_cast<int>(mFontes.size()) - 1);
-            Vector2 de;
-            if (teste) {
-                const Vector2 o = Ecossistema::OrigemDoTeste(mAmostrasFeitas, mRelogio);
-                de = Vector2(c.x + c.w * o.x, c.y + c.h * o.y);
-            } else {
-                de = Vector2(c.x + c.w * Ecossistema::XDaFonte(fonte), c.y + kYDasFontes);
-            }
+            const Vector2 de(c.x + c.w * Ecossistema::XDaFonte(fonte), c.y + kYDasFontes);
             ++mAmostrasFeitas;
             // Umas sao "medidas" no aluno: passam por onde ele estava e pousam um pouco depois.
-            Vector2 para = NoCampo(Ecossistema::LugarNoGrafico(tipo, mSorteio, teste));
+            Vector2 para = NoCampo(Ecossistema::LugarNoGrafico(tipo, mSorteio));
             if (!alunos.empty() && mSorteio.Chance(Ecossistema::kChanceDeMedirOAluno)) {
                 const Vector2 aluno = alunos[static_cast<size_t>(mSorteio.Inteiro(0, static_cast<int>(alunos.size()) - 1))];
                 const SDL_FRect gr = Grafico();
@@ -770,7 +774,7 @@ void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
     const SDL_FRect c = Campo();
     const Agrupamento::Degrau& g = mDegrauDoAgrupamento;
     Varrer(t, 0.3f, 12.0f);
-    DesenharGrafico(false);
+    DesenharGrafico();
 
     // Quem chega aqui sem a coleta (ou com pouco) ganha um conjunto de dados.
     if (!mAgrupou) {
@@ -924,9 +928,29 @@ void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
 
 // ---- Fase 3: o overfitting ----
 
+void Daniel::Rotulo(const std::string& texto, const Vector2 onde, const SDL_Color tinta, const int largura) {
+    if (!mScene) return;
+    if (mRotulos.size() <= mRotulosUsados) {
+        auto novo = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 96, 22, kOrdemDasLinhas + 2, 18);
+        mRotulos.push_back(novo.get());
+        mScene->AddActor(std::move(novo));
+    }
+    EtiquetaDeCodigo* e = mRotulos[mRotulosUsados++];
+    e->Redimensionar(largura, 22);
+    e->Pintar(SDL_Color{tinta.r, tinta.g, tinta.b, 150}, SDL_Color{10, 14, 26, 200}, tinta);
+    e->Escrever(texto);
+    e->SetPosition(onde);
+    e->Mostrar(true);
+}
+
+void Daniel::EsconderRotulosSobrando() {
+    for (size_t i = mRotulosUsados; i < mRotulos.size(); ++i) if (mRotulos[i]) mRotulos[i]->Mostrar(false);
+}
+
 void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
     const Battle* b = Batalha();
     if (!b) return;
+    mRotulosUsados = 0;
     const Sobreajuste::Degrau& g = mDegrauDoSobreajuste;
     const auto& jogadores = b->Jogadores();
     // Mais baixo que nas outras fases: os nucleos giram em volta dele inteiros, longe do alto.
@@ -962,6 +986,13 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
         Cara(n.p, std::string(Tipos::kCaras[static_cast<size_t>(k)]) + (aberto ? "Aberto" : "Fechado"));
         if (aberto) {
             Circulo(onde, kRaioDoNucleo + 5.0f + 2.0f * Math::Sin(mRelogio * 9.0f), kCor[k], 20, true);
+            // O alvo amarelo piscando: e este que apanha.
+            const float r = kRaioDoNucleo + 18.0f + 3.0f * Math::Sin(mRelogio * 7.0f);
+            const SDL_Color alvo{255, 222, 60, static_cast<Uint8>(170.0f + 80.0f * (0.5f + 0.5f * Math::Sin(mRelogio * 10.0f)))};
+            Circulo(onde, r, alvo, 24, true);
+            for (const Vector2 d : {Vector2(1.0f, 0.0f), Vector2(-1.0f, 0.0f), Vector2(0.0f, 1.0f), Vector2(0.0f, -1.0f)}) {
+                Linha(onde + d * (r - 6.0f), onde + d * (r + 8.0f), alvo, true);
+            }
             // A vida que falta, num arco em volta.
             const float u = std::clamp(n.vida / std::max(1.0f, g.vidaDoNucleo), 0.0f, 1.0f);
             const int lados = std::max(1, static_cast<int>(24.0f * u));
@@ -1011,6 +1042,7 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             const size_t i = static_cast<size_t>(mAlunoDaVez) % mMemorias.size();
             mAlunoDaVez = (mAlunoDaVez + 1) % static_cast<int>(mMemorias.size());
             if (!mMemorias[i].pontos.empty()) {
+                bool marcou = false;
                 for (int k = 0; k < Sobreajuste::kNucleos; ++k) {
                     const Nucleo& n = mNucleos[static_cast<size_t>(k)];
                     if (n.quebrado || !n.p) continue;
@@ -1021,6 +1053,12 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
                     Vector2 rumo = para - de;
                     rumo = rumo * (g.velocidade / std::max(1.0f, rumo.Length()));
                     if (BossProjectile* p = Monstrinho(kGatilhoDaPrevisao, de, k, rumo)) p->SetScale(1.4f);
+                    // O fantasma: onde o modelo acha que o aluno vai estar quando a rajada chegar.
+                    if (!marcou) {
+                        marcou = true;
+                        mFantasmas.push_back(Fantasma{para, i, t, t + (para - de).Length() / std::max(1.0f, g.velocidade)});
+                        ++mRajadasDaPrevisao;
+                    }
                 }
             }
         }
@@ -1043,6 +1081,7 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             const float falta = std::max(0.0f, mDecoradoEm - t);
             const float r = 14.0f + 30.0f * falta / std::max(0.05f, g.avisoDoDecorado);
             Circulo(mDecorado, r, SDL_Color{255, 255, 255, 200}, 20, true);
+            Rotulo("decorado", mDecorado + Vector2(0.0f, -r - 22.0f), SDL_Color{235, 240, 255, 255});
             Linha(mDecorado + Vector2(-r - 6.0f, 0.0f), mDecorado + Vector2(-r + 6.0f, 0.0f), SDL_Color{255, 255, 255, 220}, true);
             Linha(mDecorado + Vector2(r - 6.0f, 0.0f), mDecorado + Vector2(r + 6.0f, 0.0f), SDL_Color{255, 255, 255, 220}, true);
             Linha(mDecorado + Vector2(0.0f, -r - 6.0f), mDecorado + Vector2(0.0f, -r + 6.0f), SDL_Color{255, 255, 255, 220}, true);
@@ -1147,5 +1186,235 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             Leque(professor + Vector2(0.0f, 40.0f), g.tirosDoLeque, kAberturaDoLeque, kVelocidadeDoLeque);
         }
     }
+    // Os fantasmas da previsao: o modelo mostra onde acha que o aluno vai estar, e quando a rajada
+    // chega e ele nao esta la, "errou!" - mudar o caminho e o jeito de ganhar dele.
+    for (size_t q = 0; q < mFantasmas.size(); ++q) {
+        Fantasma& f = mFantasmas[q];
+        const Player* aluno = f.aluno < jogadores.size() ? jogadores[f.aluno] : nullptr;
+        // So o da rajada mais nova aparece; os outros so sao julgados.
+        const bool maisNovo = q + 1 == mFantasmas.size();
+        if (t < f.chega) {
+            if (!maisNovo) continue;
+            const float pulso = 0.5f + 0.5f * Math::Sin(mRelogio * 12.0f);
+            Circulo(f.onde, 18.0f, SDL_Color{235, 240, 255, static_cast<Uint8>(120.0f + 80.0f * pulso)}, 20, true);
+            Disco(f.onde, 6.0f, SDL_Color{235, 240, 255, 110}, true);
+            // O tracejado dos nucleos ate ele, so no instante do tiro.
+            if (t - f.saiu < 0.3f) {
+                for (const Nucleo& n : mNucleos) {
+                    if (!n.quebrado && n.p) Tracejada(n.p->GetPosition(), f.onde, SDL_Color{235, 240, 255, 80}, 6.0f);
+                }
+            }
+            if (mRajadasDaPrevisao <= kRajadasComNome) {
+                Rotulo("previs\xc3\xa3o", f.onde + Vector2(0.0f, -36.0f), SDL_Color{235, 240, 255, 255});
+            }
+        } else {
+            if (!f.julgado) {
+                f.julgado = true;
+                f.errou = aluno && (aluno->GetPosition() - f.onde).Length() > 48.0f && t - mUltimoErrou >= kEntreErrous;
+                if (f.errou) mUltimoErrou = t;
+            }
+            if (f.errou) {
+                const float u = std::clamp((t - f.chega) / 0.9f, 0.0f, 1.0f);
+                Circulo(f.onde, 18.0f + 26.0f * u, Alfa(kDadoNovo, 1.0f - u), 20, true);
+                Rotulo("errou!", f.onde + Vector2(0.0f, -36.0f - 14.0f * u), kDadoNovo);
+            }
+        }
+    }
+    mFantasmas.erase(std::remove_if(mFantasmas.begin(), mFantasmas.end(),
+                                    [t](const Fantasma& f) { return t > f.chega + 0.9f; }),
+                     mFantasmas.end());
+    EsconderRotulosSobrando();
     (void)deltaTime;
+}
+
+// ---- Final: a matriz de confusao ----
+
+Confusao::Grade Daniel::GradeDaMatriz() const {
+    const SDL_FRect c = Campo();
+    return Confusao::Grade{c.x + c.w * 0.24f, c.y + 190.0f, c.w * 0.52f, c.h * 0.4f};
+}
+
+void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
+    (void)deltaTime;
+    const Battle* b = Batalha();
+    if (!b) return;
+    mRotulosUsados = 0;
+    const Confusao::Degrau& g = mDegrauDaConfusao;
+    const Confusao::Grade grade = GradeDaMatriz();
+    const auto& jogadores = b->Jogadores();
+    Varrer(t, 0.3f, 10.0f);
+    const float lw = grade.w / static_cast<float>(Confusao::kTipos);
+    const float lh = grade.h / static_cast<float>(Confusao::kTipos);
+
+    // Os erros de cada casa, agora: a casa acende enquanto tem um.
+    std::array<std::array<int, Confusao::kTipos>, Confusao::kTipos> errosNaCasa{};
+    int errosNoCampo = 0;
+    for (const Classificado& cl : mClassificados) {
+        if (cl.p && cl.pousou && cl.real != cl.previsto && cl.corrigidoEm < 0.0f) {
+            ++errosNaCasa[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
+            ++errosNoCampo;
+        }
+    }
+
+    // A grade: a diagonal (os acertos) em verde, a casa com erro em vermelho, piscando.
+    for (int r = 0; r < Confusao::kTipos; ++r) {
+        for (int pr = 0; pr < Confusao::kTipos; ++pr) {
+            const float x0 = grade.x + lw * static_cast<float>(pr), y0 = grade.y + lh * static_cast<float>(r);
+            const bool diagonal = r == pr;
+            const bool comErro = errosNaCasa[static_cast<size_t>(r)][static_cast<size_t>(pr)] > 0;
+            SDL_Color cor = diagonal ? SDL_Color{110, 220, 130, 150} : SDL_Color{150, 165, 195, 90};
+            if (comErro) cor = SDL_Color{255, 80, 70, static_cast<Uint8>(150.0f + 90.0f * (0.5f + 0.5f * Math::Sin(mRelogio * 10.0f)))};
+            const float m = 4.0f;
+            const Vector2 a(x0 + m, y0 + m), bb(x0 + lw - m, y0 + m), cc(x0 + lw - m, y0 + lh - m), d(x0 + m, y0 + lh - m);
+            Linha(a, bb, cor);
+            Linha(bb, cc, cor);
+            Linha(cc, d, cor);
+            Linha(d, a, cor);
+            if (diagonal || comErro) {
+                // Uma segunda moldura por dentro: a casa que importa se ve de longe.
+                const float n = 8.0f;
+                Linha(a + Vector2(n, n), bb + Vector2(-n, n), Alfa(cor, 0.5f));
+                Linha(d + Vector2(n, -n), cc + Vector2(-n, -n), Alfa(cor, 0.5f));
+            }
+            // Quantos o modelo pos nesta casa.
+            const int quantos = mMatriz[static_cast<size_t>(r)][static_cast<size_t>(pr)];
+            Rotulo(std::to_string(quantos), Vector2(x0 + lw - 24.0f, y0 + 18.0f),
+                   diagonal ? SDL_Color{150, 240, 165, 255} : comErro ? SDL_Color{255, 140, 130, 255} : SDL_Color{190, 200, 220, 255}, 40);
+        }
+    }
+    // Os nomes: as linhas sao o tipo de verdade, as colunas o que o modelo previu.
+    static const char* const kNomes[Confusao::kTipos] = {"fogo", "\xc3\xa1gua", "planta"};
+    for (int k = 0; k < Confusao::kTipos; ++k) {
+        Rotulo(kNomes[k], Vector2(grade.x - 52.0f, grade.y + lh * (static_cast<float>(k) + 0.5f)), kCor[k], 84);
+        Rotulo(kNomes[k], Vector2(grade.x + lw * (static_cast<float>(k) + 0.5f), grade.y - 16.0f), kCor[k], 84);
+    }
+    Rotulo("real", Vector2(grade.x - 52.0f, grade.y - 16.0f), SDL_Color{210, 215, 230, 255}, 84);
+    Rotulo("previsto \xe2\x86\x92", Vector2(grade.x + grade.w * 0.5f, grade.y - 44.0f), SDL_Color{210, 215, 230, 255}, 120);
+    Rotulo("acur\xc3\xa1" "cia: " + std::to_string(Confusao::Porcento(mMatriz)) + "%",
+           Vector2(grade.x + grade.w + 92.0f, grade.y + 14.0f), SDL_Color{150, 240, 165, 255}, 150);
+
+    // O modelo classifica: cada monstrinho voa do professor para a casa que ele escolheu.
+    const float entre = t < Confusao::kFimDaClassificacao ? g.entreAmostras : g.naSegundaEtapa;
+    if (mEscolheu && t >= mProximaClassificada) {
+        mProximaClassificada = t + entre;
+        const int real = mSorteio.Inteiro(0, Confusao::kTipos - 1);
+        // Com a tela cheia de erros, ele acerta: nao ha mais lugar para errar.
+        const int previsto = errosNoCampo >= g.errosNoCampo ? real : Confusao::Previsto(mSorteio, real, g.acuracia);
+        const Vector2 de = GetPosition() + Vector2(0.0f, 40.0f);
+        Vector2 rumo = Confusao::CentroDaCelula(grade, real, previsto) - de;
+        rumo = rumo * (g.velocidade / std::max(1.0f, rumo.Length()));
+        if (BossProjectile* p = Monstrinho(Confusao::kGatilhoDaAmostra, de, real, rumo)) {
+            p->SetScale(1.5f);
+            mClassificados.push_back(Classificado{p, real, previsto, false, g.vidaDoErro, 0.0f, 0.0f, -1.0f, de});
+        }
+    }
+
+    // Os lugares de cada casa, na ordem: os quietos e os erros dividem a casa.
+    std::array<std::array<int, Confusao::kTipos>, Confusao::kTipos> ocupados{};
+    for (Classificado& cl : mClassificados) {
+        if (!cl.p) continue;
+        cl.p->RenovarTempoDeVida();
+        const Vector2 centro = Confusao::CentroDaCelula(grade, cl.real, cl.previsto);
+        if (!cl.pousou) {
+            // Voando: chega na casa e pousa. Na diagonal, quieto; fora dela, um erro.
+            const auto* rb = cl.p->GetComponent<RigidBodyComponent>();
+            const float passo = rb ? rb->GetVelocity().Length() * deltaTime : 0.0f;
+            if ((cl.p->GetPosition() - centro).Length() <= std::max(6.0f, passo)) {
+                cl.pousou = true;
+                Parar(cl.p);
+                cl.p->DefinirEnfeite(true);
+                ++mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
+                if (cl.real != cl.previsto) {
+                    cl.vaza = t + g.paciencia;
+                    cl.proximoTiro = t + 0.7f;
+                }
+            }
+            continue;
+        }
+        // A casa em que ele mora agora (o corrigido, ja na diagonal).
+        const int coluna = cl.corrigidoEm >= 0.0f ? cl.real : cl.previsto;
+        int& vaga = ocupados[static_cast<size_t>(cl.real)][static_cast<size_t>(coluna)];
+        const Vector2 lugar = Confusao::LugarNaCelula(grade, cl.real, coluna, vaga);
+        ++vaga;
+        if (cl.real == cl.previsto || cl.corrigidoEm >= 0.0f) {
+            // Quieto - ou deslizando para a diagonal, corrigido.
+            if (cl.corrigidoEm >= 0.0f) {
+                const float u = std::clamp((t - cl.corrigidoEm) / 0.45f, 0.0f, 1.0f);
+                cl.p->SetPosition(cl.de + (lugar - cl.de) * (u * (2.0f - u)));
+                if (u < 1.0f) Tracejada(cl.de, lugar, SDL_Color{150, 240, 165, 170}, 6.0f);
+            } else {
+                cl.p->SetPosition(lugar);
+            }
+            continue;
+        }
+        // Um erro: atira no aluno, apanha do tiro dele e, sem correcao, vaza.
+        cl.p->SetPosition(lugar);
+        const float falta = std::clamp((cl.vaza - t) / std::max(0.1f, g.paciencia), 0.0f, 1.0f);
+        Circulo(lugar, kRaioDaAmostra + 6.0f + 2.0f * Math::Sin(mRelogio * 12.0f), SDL_Color{255, 80, 70, 230}, 16, true);
+        const int lados = std::max(1, static_cast<int>(20.0f * falta));
+        for (int s = 0; s < lados; ++s) {
+            const float a0 = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(s) / 20.0f;
+            const float a1 = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(s + 1) / 20.0f;
+            Linha(lugar + Vector2(Math::Cos(a0), Math::Sin(a0)) * (kRaioDaAmostra + 11.0f),
+                  lugar + Vector2(Math::Cos(a1), Math::Sin(a1)) * (kRaioDaAmostra + 11.0f), SDL_Color{255, 255, 255, 190}, true);
+        }
+        cl.vida -= Golpear(lugar, kRaioDaAmostra + 4.0f, cl.real);
+        if (cl.vida <= 0.0f) {
+            // Corrigido: sai da casa errada e desliza para a diagonal - e vale nota.
+            --mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
+            ++mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.real)];
+            cl.corrigidoEm = t;
+            cl.de = lugar;
+            Efeito(cl.real, lugar, 14, 150.0f);
+            if (Battle* bb = Batalha()) {
+                bb->Faiscar(lugar, Hud::Faisca::Coleta);
+                bb->Conquistar(g.premioDaCorrecao);
+            }
+            continue;
+        }
+        if (t >= cl.proximoTiro) {
+            cl.proximoTiro = t + g.entreTirosDoErro;
+            // No aluno mais perto, no tipo de verdade dele.
+            const Player* alvo = nullptr;
+            for (const Player* a : jogadores) {
+                if (a && (!alvo || (a->GetPosition() - lugar).Length() < (alvo->GetPosition() - lugar).Length())) alvo = a;
+            }
+            if (alvo) {
+                Vector2 rumo = alvo->GetPosition() - lugar;
+                rumo = rumo * (g.velocidadeDoErro / std::max(1.0f, rumo.Length()));
+                Monstrinho(Confusao::kGatilhoDoErro, lugar, cl.real, rumo);
+            }
+        }
+        if (t >= cl.vaza) {
+            // Vazou para a producao: o erro estoura num anel do tipo dele, e fica na matriz.
+            const auto anel = DispararEm(Confusao::kGatilhoDoVazamento, lugar, g.tirosDoVazamento, std::nullopt,
+                                         std::nullopt, g.velocidadeDoVazamento);
+            for (BossProjectile* p : anel) {
+                Cara(p, Tipos::kCaras[static_cast<size_t>(cl.real)]);
+                p->DefinirClasse(cl.real);
+            }
+            Efeito(cl.real, lugar, 16, 180.0f);
+            SomDoDisparo();
+            Matar(cl.p);
+        }
+    }
+    // Os quietos demais de uma casa saem, os mais velhos primeiro (a contagem fica).
+    std::array<std::array<int, Confusao::kTipos>, Confusao::kTipos> quietos{};
+    for (auto it = mClassificados.rbegin(); it != mClassificados.rend(); ++it) {
+        if (!it->p || !it->pousou) continue;
+        const bool quieto = it->real == it->previsto || it->corrigidoEm >= 0.0f;
+        if (!quieto) continue;
+        int& n = quietos[static_cast<size_t>(it->real)][static_cast<size_t>(it->real)];
+        if (++n > Confusao::kPorCelula - 1) Matar(it->p);
+    }
+    mClassificados.erase(std::remove_if(mClassificados.begin(), mClassificados.end(),
+                                        [](const Classificado& cl) { return !cl.p; }),
+                         mClassificados.end());
+
+    // E o leque do proprio professor, sem tipo.
+    if (mEscolheu && t >= 1.0f && t >= mProximoLeque) {
+        mProximoLeque = t + g.entreLeques;
+        Leque(GetPosition() + Vector2(0.0f, 40.0f), g.tirosDoLeque, kAberturaDoLeque, kVelocidadeDoLeque);
+    }
+    EsconderRotulosSobrando();
 }

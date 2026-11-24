@@ -16,6 +16,7 @@
 #include "../../../Attacks/Agrupamento.h"
 #include "../../../Attacks/Ecossistema.h"
 #include "../../../Attacks/Sobreajuste.h"
+#include "../../../Attacks/Confusao.h"
 #include "../../../Attacks/Tipos.h"
 
 class BossProjectile;
@@ -32,9 +33,10 @@ class PlayerProjectile;
 ///   2. as k-medias (Agrupamento.h) - os pontos da coleta viram tres grupos, cada um ataca com o tipo
 ///      da maioria, e os outliers puxam os centroides;
 ///   3. o overfitting (Sobreajuste.h) - o modelo do professor decora os passos do aluno e atira onde
-///      ele esteve e para onde ia; na validacao ele nao generaliza, o professor o risca, e os tres
+///      ele esteve e para onde ia; na validacao ele nao generaliza, a curva se desfaz, e os tres
 ///      nucleos ficam abertos;
-///   e a repescagem, o conjunto de teste - dados que o modelo nunca viu, de onde nunca vieram.
+///   e a repescagem, a matriz de confusao (Confusao.h) - o modelo classifica dados novos, e cada erro
+///      dele, fora da diagonal, ataca ate o aluno corrigi-lo.
 /// Os efeitinhos de cada elemento (Tipos::Particula) contam o que aconteceu sem uma palavra.
 class Daniel : public Boss {
 public:
@@ -60,6 +62,7 @@ private:
     Ecossistema::Degrau mDegrauDaColeta;
     Agrupamento::Degrau mDegrauDoAgrupamento;
     Sobreajuste::Degrau mDegrauDoSobreajuste;
+    Confusao::Degrau mDegrauDaConfusao;
 
     // ---- O que as fases dividem ----
 
@@ -116,7 +119,7 @@ private:
     [[nodiscard]] SDL_FRect Grafico() const;
     /// De 0 a 1 do grafico (y = 1 em cima) para o campo.
     [[nodiscard]] Vector2 NoCampo(Vector2 noGrafico) const;
-    void DesenharGrafico(bool teste);
+    void DesenharGrafico();
     /// O triangulo no canto: os tres tipos e quem vence quem, com o do aluno marcado.
     void DesenharTriangulo();
     std::array<BossProjectile*, Tipos::kTipos> mLegenda{};
@@ -151,9 +154,29 @@ private:
     /// e o dano (com o fator do triangulo). 'fechado': o alvo nao apanha, so faz "tim".
     float Golpear(Vector2 onde, float raio, int tipo, bool fechado = false);
 
-    // ---- Fase 1 (a coleta) e final (o conjunto de teste) ----
+    // ---- Fase 1: a coleta ----
 
-    void AtualizarColeta(float t, float deltaTime, bool teste);
+    void AtualizarColeta(float t, float deltaTime);
+
+    // ---- Final: a matriz de confusao ----
+    /// Um monstrinho classificado: voa ate a casa que o modelo escolheu; na diagonal fica quieto, fora
+    /// dela e um erro, que atira ate ser corrigido (desliza para a diagonal) ou vazar.
+    struct Classificado {
+        BossProjectile* p = nullptr;
+        int real = 0;
+        int previsto = 0;
+        bool pousou = false;
+        float vida = 0.0f;
+        float vaza = 0.0f;          ///< quando o erro vaza (no relogio da fase)
+        float proximoTiro = 0.0f;
+        float corrigidoEm = -1.0f;  ///< quando comecou a deslizar para a diagonal (-1: nao)
+        Vector2 de;                 ///< de onde ele desliza
+    };
+    std::vector<Classificado> mClassificados;
+    Confusao::Matriz mMatriz{};
+    float mProximaClassificada = 0.0f;
+    [[nodiscard]] Confusao::Grade GradeDaMatriz() const;
+    void AtualizarConfusao(float t, float deltaTime);
     struct Amostra {
         BossProjectile* p = nullptr;
         int tipo = 0;
@@ -217,4 +240,25 @@ private:
     bool mRiscou = false;
     /// O veredito da validacao, acima da curva: a culpa e do modelo, e nao do aluno.
     EtiquetaDeCodigo* mVeredito = nullptr;
+    /// A fase 3 explicada no campo: cada rajada da previsao deixa um fantasma onde o modelo acha que o
+    /// aluno vai estar, e quando ela chega e o aluno nao esta la, "errou!".
+    struct Fantasma {
+        Vector2 onde;
+        size_t aluno = 0;
+        float saiu = 0.0f;      ///< quando a rajada saiu (no relogio da fase)
+        float chega = 0.0f;     ///< quando ela chega la
+        bool julgado = false;
+        bool errou = false;
+    };
+    std::vector<Fantasma> mFantasmas;
+    /// So as primeiras rajadas dizem "previs\xc3\xa3o"; e um "errou!" de cada vez, para nao encher a tela.
+    int mRajadasDaPrevisao = 0;
+    float mUltimoErrou = -10.0f;
+    static constexpr int kRajadasComNome = 3;
+    static constexpr float kEntreErrous = 1.2f;
+    /// Os rotulos curtos do campo ("previs\xc3\xa3o", "errou!", "decorado"), reaproveitados a cada quadro.
+    std::vector<EtiquetaDeCodigo*> mRotulos;
+    size_t mRotulosUsados = 0;
+    void Rotulo(const std::string& texto, Vector2 onde, SDL_Color tinta, int largura = 96);
+    void EsconderRotulosSobrando();
 };

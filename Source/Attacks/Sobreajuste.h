@@ -20,17 +20,17 @@
 /// machuca. Os nucleos abrem um de cada vez; o aberto apanha (o tipo que voce vence apanha o dobro),
 /// o fechado so faz "tim".
 ///
-/// Na validacao, o modelo e posto diante do que nunca viu e nao generaliza: a curva treme e fica
-/// vermelha, e o professor - que nao gosta de overfitting - risca o modelo com um X. A curva cai aos
-/// pedacos, os tiros param, e os tres nucleos ficam abertos: e a janela para quebra-los.
+/// Na validacao, o modelo e posto diante do que nunca viu e nao generaliza: chegam dados novos, longe
+/// da curva, e ele erra todos. A curva cai aos pedacos, os tiros param, e os tres nucleos ficam
+/// abertos: e a janela para quebra-los.
 namespace Sobreajuste {
 
     constexpr const char* kFase = "StateThree";
 
-    /// No comeco o modelo so grava; depois atira; na validacao, o professor o risca.
+    /// No comeco o modelo so grava; depois atira; na validacao, ele erra os dados novos.
     constexpr float kTreino = 4.0f;
     constexpr float kValidacao = 14.0f;
-    /// Quanto o professor leva riscando o X, e quanto os pedacos da curva levam caindo.
+    /// Quanto os dados novos levam chegando, e quanto os pedacos da curva levam caindo.
     constexpr float kRiscando = 0.9f;
     constexpr float kCaindo = 1.4f;
 

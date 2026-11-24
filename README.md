@@ -824,16 +824,24 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   treina um modelo com os seus passos: os pontos brancos são os dados de
   treino, e a curva passa exatamente por todos eles, cheia de voltas. Os três
   **núcleos** do modelo, um de cada tipo, giram em volta dele e atiram juntos
-  para onde você estava indo, e também no lugar por onde você mais passou (a
-  mira aparece antes) — quem muda o caminho faz o modelo errar. Um núcleo abre
-  por vez; o fechado só faz "tim". Na **validação**, o modelo não generaliza:
+  para onde você estava indo — um fantasma branco mostra onde o modelo acha que
+  você vai estar, e quando a rajada chega e você não está lá, aparece "errou!" —,
+  e também no lugar por onde você mais passou (a mira "decorado" aparece antes):
+  quem muda o caminho faz o modelo errar. Um núcleo abre por vez, com um alvo
+  amarelo piscando em volta; o fechado só faz "tim". Na **validação**, o modelo não generaliza:
   chegam dados novos (os pontos verdes, longe da curva), e o tracejado mostra o
   erro do modelo até cada um. A culpa é dele, e não sua: "overfitting: o modelo
   decorou, não generalizou", e um brilho dourado sai de você. A curva se desfaz em pedaços, os tiros do modelo
   param e os três núcleos ficam abertos: quebrá-los vale muita nota, e o tipo
-  certo quebra em metade do tempo. O exame é o **conjunto de teste**: dados que
-  o modelo nunca viu, vindo das laterais, e as espécies morando em outros
-  lugares do gráfico — a distribuição mudou.
+  certo quebra em metade do tempo. O exame é a **matriz de confusão**: o campo
+  vira uma grade 3 × 3 — as linhas são o tipo de verdade, as colunas o que o
+  modelo previu —, e cada monstrinho voa do professor para a casa em que o modelo
+  o pôs, com a contagem de cada casa no canto. Na diagonal (acertou) ele fica
+  quieto; fora dela (errou), a casa acende em vermelho e ele atira em você, no
+  tipo de verdade dele. O seu tiro o corrige: ele desliza para a diagonal e a
+  correção vale nota. Quem não é corrigido a tempo (o anel branco em volta é o
+  prazo) vaza para a produção e estoura num anel. Em cima, a acurácia sobe a
+  cada correção, e na segunda etapa o modelo classifica mais depressa.
 - **Michel — INF 429, optativa.** Visão Computacional, do
   professor que lidera o MaVIlab — uma optativa que pede
   menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do

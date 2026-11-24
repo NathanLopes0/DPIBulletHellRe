@@ -56,7 +56,7 @@
     ]
   },
 
-  // Fase 3 - o overfitting: o modelo decora os passos do aluno, e o professor o risca.
+  // Fase 3 - o overfitting: o modelo decora os passos do aluno, e na validacao nao generaliza.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
@@ -85,17 +85,32 @@
     ]
   },
 
-  // Fase final - o conjunto de teste: dados que o modelo nunca viu, de onde nunca vieram.
+  // Fase final - a matriz de confusao: o modelo classifica dados novos, e cada erro dele ataca.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "Conjunto de teste: dados que ele nunca viu",
+    "anuncio": "Matriz de confusão: onde o modelo erra",
+    "etapas": [
+      { "nome": "Classificar", "duracao": 11.0, "anuncio": "Matriz de confusão: corrija os erros" },
+      { "nome": "Acuracia",    "duracao": 9.0,  "anuncio": "Acurácia: o modelo acelera" }
+    ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
       { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      // Os monstrinhos do triangulo do canto.
       { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Monstrinho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      // O monstrinho que o modelo classifica: voa do professor ate a casa da matriz.
+      { "som": false, "gatilho": "classificar", "estrategia": "WaveAttack", "projetil": "Monstrinho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      // O tiro de um erro do modelo, fora da diagonal, no tipo de verdade dele.
+      { "som": false, "gatilho": "erro", "estrategia": "WaveAttack", "projetil": "Monstrinho",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "intervalo": 0 },
+      // O erro que ninguem corrigiu vaza para a producao: um anel do tipo dele.
+      { "gatilho": "vazou", "estrategia": "CircleSpreadAttack", "projetil": "Monstrinho",
+        "projeteis": 10, "velocidade": 130, "variar": { "giro": 18 },
+        "regras": "anel" },
       { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 4, "velocidade": 210, "angulo": 36, "intervalo": 0 }
     ]

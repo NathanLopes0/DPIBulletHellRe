@@ -20,13 +20,9 @@
 /// Voando, a amostra tem tipo (Tipos.h): a do seu passa, a que voce vence voce absorve, a que vence
 /// voce machuca. As ondas chegam na ordem que ensina o triangulo, sem uma palavra: primeiro so a que
 /// voce absorve, depois so a sua, depois so a que te vence, e por fim todas misturadas.
-///
-/// A final e o conjunto de teste: dados que o modelo nunca viu. As amostras vem de onde nunca vieram
-/// (as laterais), e as especies moram em outros lugares do grafico - a distribuicao mudou.
 namespace Ecossistema {
 
     constexpr const char* kFase = "StateOne";
-    constexpr const char* kFaseDoTeste = "StateFinal";
 
     /// A primeira etapa e a escolha do monstrinho (Tipos::kTempoDaEscolha); as amostras chegam
     /// depois dela.
@@ -43,11 +39,10 @@ namespace Ecossistema {
     int TipoDaOnda(Onda o, int tipoDoAluno, Variacao::Sorteio& s);
 
     /// O grafico, em coordenadas de 0 a 1: x e o ataque, y a defesa (1 em cima). O centro da regiao
-    /// de cada especie: fogo ataca muito e defende pouco, planta o contrario, agua no meio. No
-    /// conjunto de teste ('teste'), a distribuicao mudou: o ataque se inverte.
-    Vector2 CentroDaEspecie(int tipo, bool teste = false);
+    /// de cada especie: fogo ataca muito e defende pouco, planta o contrario, agua no meio.
+    Vector2 CentroDaEspecie(int tipo);
     /// Um lugar sorteado na regiao da especie.
-    Vector2 LugarNoGrafico(int tipo, Variacao::Sorteio& s, bool teste = false);
+    Vector2 LugarNoGrafico(int tipo, Variacao::Sorteio& s);
 
     /// As tres fontes, no alto: o sensor, a planilha e a API.
     constexpr std::array<const char*, 3> kFontes = {"Sensor", "Planilha", "Api"};
@@ -61,17 +56,12 @@ namespace Ecossistema {
     /// Os pontos que ficam no grafico: os mais velhos saem.
     constexpr int kMaisPontos = 60;
 
-    /// No conjunto de teste, de onde a amostra 'k' vem: das laterais, alternando, numa altura que
-    /// sobe e desce com o tempo (0 a 1 da altura do campo; o x e 0 ou 1).
-    Vector2 OrigemDoTeste(int k, float t);
-
     struct Degrau {
         float entreAmostras = 0.32f;
         int porVez = 3;
         float velocidade = 175.0f;
         float entreLeques = 1.4f;          ///< o leque do proprio professor
         int tirosDoLeque = 8;
-        float entreAmostrasDoTeste = 0.38f;
     };
     Degrau DegrauDo(Dificuldade::Nivel nivel);
 }

@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "../Source/Attacks/Agrupamento.h"
+#include "../Source/Attacks/Confusao.h"
 #include "../Source/Attacks/Ecossistema.h"
 #include "../Source/Attacks/Sobreajuste.h"
 #include "../Source/Attacks/Tipos.h"
@@ -135,7 +136,7 @@ TEST_CASE("Ecossistema: as ondas ensinam o triangulo - absorver, passar, desviar
     CHECK(TipoDaOnda(Onda::Nenhuma, 0, s) == -1);
 }
 
-TEST_CASE("Ecossistema: cada especie mora numa regiao do grafico, e no teste a distribuicao muda") {
+TEST_CASE("Ecossistema: cada especie mora numa regiao do grafico") {
     using namespace Ecossistema;
     Variacao::Sorteio s(9u);
     // Fogo ataca muito e defende pouco; planta o contrario.
@@ -152,14 +153,10 @@ TEST_CASE("Ecossistema: cada especie mora numa regiao do grafico, e no teste a d
             media += p * (1.0f / 200.0f);
         }
         CHECK(Perto(media, CentroDaEspecie(t), 0.05f));
-        // No conjunto de teste, o ataque se inverte.
-        CHECK(CentroDaEspecie(t, true).x == doctest::Approx(1.0f - CentroDaEspecie(t).x));
     }
-    // As fontes: no alto, uma de cada lado e uma no meio; o teste vem das laterais.
+    // As fontes: no alto, uma de cada lado e uma no meio.
     CHECK(XDaFonte(0) < XDaFonte(1));
     CHECK(XDaFonte(1) < XDaFonte(2));
-    CHECK(OrigemDoTeste(0, 1.0f).x == 0.0f);
-    CHECK(OrigemDoTeste(1, 1.0f).x == 1.0f);
     // O Dificil manda mais e mais rapido.
     const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
     CHECK(d.entreAmostras < n.entreAmostras);
@@ -265,4 +262,67 @@ TEST_CASE("Sobreajuste: a curva passa por todos os pontos, com voltas, e os nucl
     const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
     CHECK(d.entreTiros < n.entreTiros);
     CHECK(d.vidaDoNucleo > n.vidaDoNucleo);
+}
+
+// ---- A matriz de confusao (a final) ----
+
+TEST_CASE("Confusao: as linhas sao o tipo de verdade, as colunas o previsto, e cada lugar fica na sua casa") {
+    using namespace Confusao;
+    const Grade g{100.0f, 200.0f, 600.0f, 300.0f};
+    // Linha de cima para baixo, coluna da esquerda para a direita.
+    CHECK(CentroDaCelula(g, 0, 0).y < CentroDaCelula(g, 1, 0).y);
+    CHECK(CentroDaCelula(g, 0, 0).x < CentroDaCelula(g, 0, 1).x);
+    CHECK(Perto(CentroDaCelula(g, 1, 1), V(400.0f, 350.0f)));
+    for (int r = 0; r < kTipos; ++r) {
+        for (int p = 0; p < kTipos; ++p) {
+            std::set<int> xs;
+            for (int k = 0; k < kPorCelula; ++k) {
+                const Vector2 l = LugarNaCelula(g, r, p, k);
+                CHECK(l.x > g.x + 200.0f * static_cast<float>(p));
+                CHECK(l.x < g.x + 200.0f * static_cast<float>(p + 1));
+                CHECK(l.y > g.y + 100.0f * static_cast<float>(r));
+                CHECK(l.y < g.y + 100.0f * static_cast<float>(r + 1));
+                xs.insert(static_cast<int>(l.x));
+            }
+            CHECK(xs.size() == static_cast<size_t>(kPorCelula));   // lado a lado, sem empilhar
+        }
+    }
+}
+
+TEST_CASE("Confusao: o modelo acerta na chance dele, e quando erra e um dos outros dois") {
+    using namespace Confusao;
+    Variacao::Sorteio s(17u);
+    int acertos = 0;
+    std::array<int, kTipos> erros{};
+    constexpr int n = 3000;
+    for (int k = 0; k < n; ++k) {
+        const int p = Previsto(s, 0, 0.5f);
+        REQUIRE(p >= 0);
+        REQUIRE(p < kTipos);
+        if (p == 0) ++acertos;
+        else ++erros[static_cast<size_t>(p)];
+    }
+    CHECK(static_cast<float>(acertos) / n == doctest::Approx(0.5f).epsilon(0.08));
+    CHECK(erros[1] == doctest::Approx(erros[2]).epsilon(0.15));
+    CHECK(Previsto(s, 2, 1.0f) == 2);
+}
+
+TEST_CASE("Confusao: a acuracia e a diagonal sobre o total, e o Dificil erra mais e vaza antes") {
+    using namespace Confusao;
+    Matriz m{};
+    CHECK(Acuracia(m) == doctest::Approx(0.0f));
+    m[0][0] = 3;
+    m[1][1] = 2;
+    m[0][2] = 2;
+    m[2][1] = 1;
+    CHECK(Acuracia(m) == doctest::Approx(5.0f / 8.0f));
+    CHECK(Porcento(m) == 63);
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.acuracia < n.acuracia);
+    CHECK(d.paciencia < n.paciencia);
+    CHECK(d.entreAmostras < n.entreAmostras);
+    CHECK(n.naSegundaEtapa < n.entreAmostras);   // a segunda etapa acelera
+    // As etapas somam a fase.
+    CHECK(kDuracoes[0] + kDuracoes[1] == doctest::Approx(20.0f));
+    CHECK(kFimDaClassificacao == doctest::Approx(kDuracoes[0]));
 }

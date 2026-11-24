@@ -78,7 +78,7 @@ namespace {
                                                 "uivo",
                                                 // O Daniel: a coleta, as k-medias e o overfitting.
                                                 "fonte", "amostra", "centroide", "convergiu", "outlier",
-                                                "nucleo", "previsao", "decorado", "barra", "caixa",
+                                                "nucleo", "previsao", "decorado", "classificar", "vazou", "barra", "caixa",
                                                 // O Michel: a camera escura, a convolucao, a rede e o
                                                 // MaVIlab.
                                                 "objeto", "imagem", "enfeite", "fluxo", "ativacao", "vetor",
