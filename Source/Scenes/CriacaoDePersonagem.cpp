@@ -283,7 +283,7 @@ void CriacaoDePersonagem::AtualizarRodape() const {
     std::vector<Painel::Acao> acoes;
 
     // O Botao 3 so aparece quando as duas colunas
-    // podem ser selecionadas nesta linha.
+    // permitem alguma alteracao nesta categoria.
     const bool podeAlternar =
         !NoBotao() &&
         Editavel(mLinhaEmFoco, kObjeto) &&
@@ -300,7 +300,7 @@ void CriacaoDePersonagem::AtualizarRodape() const {
         );
     }
 
-    // Estas duas acoes sempre aparecem.
+    // Confirmar e voltar continuam sempre disponiveis.
     acoes.emplace_back(
         PainelDaVez(),
         Painel::Botao::Um,
