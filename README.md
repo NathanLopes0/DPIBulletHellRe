@@ -1055,7 +1055,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   gosmas e duas tochas apagadas.
   O aluno derrota as gosmas, pega a chave pequena e abre o baú: ergue o
   Elixir acima da cabeça e fica protegido, mais rápido e ganhando mais nota
-  por uns segundos, com corações em volta. O professor também quer o Elixir,
+  por uns segundos, com corações em volta. O bônus se vê: as dúvidas dele
+  saem de duas em duas, lilases (cada uma vale 1,5 vez a de sempre no Normal
+  e 1,25 no Difícil), e um rastro roxo fraco fica para trás quando ele anda
+  (`Player::Reforcar`). O professor também quer o Elixir,
   mas o baú só abre para ele com as tochas acesas: ele vai até cada uma e a
   acende (o corpo dele a protege enquanto isso), e só então vai ao baú — o
   tracejado mostra para onde. O tiro do aluno apaga a tocha acesa, e ele tem

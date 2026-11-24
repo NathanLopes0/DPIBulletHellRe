@@ -95,6 +95,7 @@ void Player::OnUpdate(const float deltaTime) {
     // Cada um so anda o relogio dele; quem pinta e um so.
     AtualizarCorrente(deltaTime);
     mTempoDeImpulso = std::max(0.0f, mTempoDeImpulso - deltaTime);
+    AtualizarReforco(deltaTime);
     AtualizarSobrecarga(deltaTime);
     AtualizarImunidade(deltaTime);
     AtualizarCorDoEstado();
@@ -184,15 +185,29 @@ void Player::Atirar() {
     auto* projeteis = battle->GerenteDeProjeteis();
     if (!projeteis) return;
 
-    // TODO: o tiro do aluno ainda nao usa o pool de projeteis (ProjectilePool.h), como os do chefe.
-    auto tiro = std::make_unique<PlayerProjectile>(GetScene(), this, mQuem);
-    tiro->SetPosition(GetPosition());
     // Para cima - ou, no modo de plataforma, para longe do chao, onde o professor esta.
     const Vector2 rumo = mChao ? Plataforma::Direcao(*mChao) * -1.0f : Vector2(0.0f, -1.0f);
-    tiro->GetComponent<RigidBodyComponent>()->SetVelocity(rumo * PlayerProjectile::kVelocidade);
-    tiro->ActivateProjectile();
-    projeteis->AddPlayerProjectile(std::move(tiro));
-    ++mDisparos;
+    // Com o reforco (o Elixir do Lucas), duas duvidas lado a lado, na tinta dele. Cada uma conta como
+    // um tiro: a conta dos desafios (acertos por tiro) nao muda.
+    const bool reforcado = mTempoDeReforco > 0.0f;
+    const Vector2 lado(-rumo.y, rumo.x);
+    const float desvios[2] = {reforcado ? -kAfastamentoDoReforco : 0.0f, kAfastamentoDoReforco};
+    for (int k = 0; k < (reforcado ? 2 : 1); ++k) {
+        // TODO: o tiro do aluno ainda nao usa o pool de projeteis (ProjectilePool.h), como os do chefe.
+        auto tiro = std::make_unique<PlayerProjectile>(GetScene(), this, mQuem);
+        tiro->SetPosition(GetPosition());
+        tiro->GetComponent<RigidBodyComponent>()->SetVelocity(rumo * PlayerProjectile::kVelocidade);
+        tiro->ActivateProjectile();
+        if (reforcado) {
+            // Depois de ativar, que poe o tiro onde o dono esta.
+            tiro->SetPosition(GetPosition() + lado * desvios[k]);
+            if (auto* dc = tiro->GetComponent<DrawAnimatedComponent>()) {
+                dc->SetColor(mTintaDoReforco.r, mTintaDoReforco.g, mTintaDoReforco.b);
+            }
+        }
+        projeteis->AddPlayerProjectile(std::move(tiro));
+        ++mDisparos;
+    }
 
     auto* audio = mScene->GetGame()->GetAudio();
     audio->SetSoundVolume(audio->PlaySound("plst00.wav", false, "tiro", LimiteDeSom::kTiro), kVolumeDoTiro);
@@ -349,6 +364,18 @@ void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
 void Player::Impulsionar(const float segundos, const float fator) {
     mTempoDeImpulso = std::max(mTempoDeImpulso, segundos);
     mFatorDoImpulso = fator;
+}
+
+void Player::Reforcar(const float segundos, const SDL_Color tinta, const SDL_Color rastro) {
+    mTempoDeReforco = std::max(mTempoDeReforco, segundos);
+    mTintaDoReforco = tinta;
+    if (mDesenho && mTempoDeReforco > 0.0f) mDesenho->DefinirRastroDeCor(true, rastro);
+}
+
+void Player::AtualizarReforco(const float deltaTime) {
+    if (mTempoDeReforco <= 0.0f) return;
+    mTempoDeReforco = std::max(0.0f, mTempoDeReforco - deltaTime);
+    if (mTempoDeReforco <= 0.0f && mDesenho) mDesenho->DefinirRastroDeCor(false, SDL_Color{});
 }
 
 void Player::GanharPontoExtra() {

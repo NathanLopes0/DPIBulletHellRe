@@ -5,6 +5,8 @@
 #pragma once
 
 #include "DrawSpriteComponent.h"
+#include "../../Motor/Math.h"
+#include <optional>
 #include <unordered_map>
 
 class DrawAnimatedComponent : public DrawSpriteComponent {
@@ -47,29 +49,45 @@ public:
     /// copias que ja estao no campo terminam de sumir.
     void DefinirRastro(bool ligado);
 
+    /// Um rastro mais calmo, de uma cor so (o do Elixir do Lucas, Player::Reforcar): a copia fica
+    /// para tras a cada kPassoDoRastro pixels que o desenho anda - parado, ele nao deixa nada -, com
+    /// no maximo a luz 'cor.a' e sem o brilho dobrado do comeco. Com o do modo deus ligado junto, o
+    /// arco-iris passa na frente; quando ele desliga, este volta.
+    void DefinirRastroDeCor(bool ligado, SDL_Color cor);
+
 private:
     /// O quadro da folha e o retangulo na tela do desenho de agora; false sem desenho.
     bool QuadroAtual(SDL_Rect& quadro, SDL_Rect& destino) const;
     void DesenharEcos(SDL_Renderer* renderer);
 
+    /// Cada copia guarda a cor e a luz com que nasceu: a do arco-iris, feita da folha, ou a do rastro
+    /// de cor, feita da silhueta (a cor inteira, e nao as do desenho tingidas).
     struct Eco {
         SDL_Rect quadro;
         SDL_Rect destino;
         double angulo = 0.0;
         float idade = 0.0f;
-        float matiz = 0.0f;
+        SDL_Color cor{255, 255, 255, 230};
+        bool deCor = false;
     };
     static constexpr float kEntreEcos = 0.035f;
     static constexpr float kVidaDoEco = 0.32f;
+    static constexpr Uint8 kLuzDoEco = 230;
+    static constexpr float kPassoDoRastro = 12.0f;
     std::vector<Eco> mEcos;
     bool mRastro = false;
     float mProximoEco = 0.0f;
     float mMatiz = 0.0f;
+    /// O rastro de cor: a cor (sem ela, desligado) e onde a ultima copia dele ficou.
+    std::optional<SDL_Color> mCorDoRastro;
+    std::optional<Vector2> mOndeFicouOEco;
 
     /// A silhueta da folha deslocada 'distancia' pixels nas oito direcoes, na cor 'cor': e do que o
     /// contorno e o brilho sao feitos.
     void DesenharSilhueta(SDL_Renderer* renderer, const SDL_Rect& quadro, const SDL_Rect& destino,
                           double angulo, SDL_RendererFlip flip, int distancia, SDL_Color cor);
+    /// A silhueta da folha (Game::LoadSilhueta), carregada so na primeira vez que alguem a usa.
+    SDL_Texture* Silhueta();
 
     /// A folha, para a silhueta ser carregada so quando o contorno liga.
     std::string mCaminhoDaFolha;

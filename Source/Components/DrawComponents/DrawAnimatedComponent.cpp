@@ -125,6 +125,13 @@ void DrawAnimatedComponent::DefinirRastro(const bool ligado) {
     mProximoEco = 0.0f;
 }
 
+void DrawAnimatedComponent::DefinirRastroDeCor(const bool ligado, const SDL_Color cor) {
+    if (ligado) mCorDoRastro = cor;
+    else mCorDoRastro.reset();
+    // A primeira copia sai logo, onde o desenho esta.
+    mOndeFicouOEco.reset();
+}
+
 bool DrawAnimatedComponent::QuadroAtual(SDL_Rect& quadro, SDL_Rect& destino) const {
     const auto animIt = mAnimations.find(mAnimName);
     if (animIt == mAnimations.end() || animIt->second.empty()) return false;
@@ -144,23 +151,45 @@ bool DrawAnimatedComponent::QuadroAtual(SDL_Rect& quadro, SDL_Rect& destino) con
 }
 
 void DrawAnimatedComponent::DesenharEcos(SDL_Renderer* renderer) {
-    // Somando a luz, e nao por cima: a copia de um desenho escuro ainda brilha na cor dela.
-    SDL_BlendMode antes = SDL_BLENDMODE_BLEND;
-    SDL_GetTextureBlendMode(mSpriteSheetSurface, &antes);
-    SDL_SetTextureBlendMode(mSpriteSheetSurface, SDL_BLENDMODE_ADD);
+    // Somando a luz, e nao por cima: a copia de um desenho escuro ainda brilha na cor dela. A do
+    // rastro de cor sai da silhueta, quando ha uma (sem ela, da folha tingida).
+    SDL_Texture* silhueta = nullptr;
     for (const Eco& e : mEcos) {
-        const Hud::Rgb c = Hud::ArcoIris(e.matiz);
-        const float u = 1.0f - e.idade / kVidaDoEco;
-        Daltonizar::Tinto(mSpriteSheetSurface, c.r, c.g, c.b);
-        SDL_SetTextureAlphaMod(mSpriteSheetSurface, static_cast<Uint8>(std::clamp(u * 230.0f, 0.0f, 255.0f)));
-        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
-        // Duas vezes no comeco da vida: o eco novo e quase branco de tanta luz.
-        if (u > 0.6f) SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
+        if (e.deCor) {
+            silhueta = Silhueta();
+            break;
+        }
     }
-    // A folha volta como estava: a mistura, a cor do componente e opaca.
-    SDL_SetTextureBlendMode(mSpriteSheetSurface, antes);
+    SDL_BlendMode daFolha = SDL_BLENDMODE_BLEND, daSilhueta = SDL_BLENDMODE_BLEND;
+    SDL_GetTextureBlendMode(mSpriteSheetSurface, &daFolha);
+    SDL_SetTextureBlendMode(mSpriteSheetSurface, SDL_BLENDMODE_ADD);
+    if (silhueta) {
+        SDL_GetTextureBlendMode(silhueta, &daSilhueta);
+        SDL_SetTextureBlendMode(silhueta, SDL_BLENDMODE_ADD);
+    }
+    for (const Eco& e : mEcos) {
+        SDL_Texture* textura = e.deCor && silhueta ? silhueta : mSpriteSheetSurface;
+        const float u = 1.0f - e.idade / kVidaDoEco;
+        Daltonizar::Tinto(textura, e.cor.r, e.cor.g, e.cor.b);
+        SDL_SetTextureAlphaMod(textura, static_cast<Uint8>(std::clamp(u * static_cast<float>(e.cor.a), 0.0f, 255.0f)));
+        SDL_RenderCopyEx(renderer, textura, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
+        // Duas vezes no comeco da vida: o eco novo do modo deus e quase branco de tanta luz.
+        if (!e.deCor && u > 0.6f) SDL_RenderCopyEx(renderer, textura, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
+    }
+    // A folha volta como estava: a mistura, a cor do componente e opaca. Da silhueta, so a mistura:
+    // quem a usa poe a cor e a luz antes.
+    SDL_SetTextureBlendMode(mSpriteSheetSurface, daFolha);
     SDL_SetTextureAlphaMod(mSpriteSheetSurface, 255);
+    if (silhueta) SDL_SetTextureBlendMode(silhueta, daSilhueta);
     ApplyColorMod();
+}
+
+SDL_Texture* DrawAnimatedComponent::Silhueta() {
+    if (!mSilhuetaTentada) {
+        mSilhuetaTentada = true;
+        mSilhueta = mOwner->GetScene()->GetGame()->LoadSilhueta(mCaminhoDaFolha);
+    }
+    return mSilhueta;
 }
 
 void DrawAnimatedComponent::DefinirContorno(const bool ligado, const SDL_Color cor) {
@@ -180,11 +209,7 @@ void DrawAnimatedComponent::DesenharSilhueta(SDL_Renderer* renderer, const SDL_R
                                              const SDL_Color cor) {
     if (distancia <= 0) return;
     // A silhueta so e carregada quando o contorno (ou o brilho) liga pela primeira vez.
-    if (!mSilhuetaTentada) {
-        mSilhuetaTentada = true;
-        mSilhueta = mOwner->GetScene()->GetGame()->LoadSilhueta(mCaminhoDaFolha);
-    }
-    if (!mSilhueta) return;
+    if (!Silhueta()) return;
 
     Daltonizar::Tinto(mSilhueta, cor.r, cor.g, cor.b);
     SDL_SetTextureAlphaMod(mSilhueta, cor.a);
@@ -212,8 +237,23 @@ void DrawAnimatedComponent::Update(float deltaTime)
         if (mProximoEco <= 0.0f && QuadroAtual(e.quadro, e.destino)) {
             mProximoEco = kEntreEcos;
             e.angulo = -Math::ToDegrees(mOwner->GetRotation());
-            e.matiz = mMatiz;
+            const Hud::Rgb c = Hud::ArcoIris(mMatiz);
+            e.cor = SDL_Color{c.r, c.g, c.b, kLuzDoEco};
             mMatiz += 0.06f;
+            mEcos.push_back(e);
+        }
+    } else if (mCorDoRastro) {
+        // O de cor: no maximo uma copia a cada kEntreEcos, e so depois de andar kPassoDoRastro.
+        mProximoEco -= deltaTime;
+        const Vector2 aqui = mOwner->GetPosition();
+        const bool andou = !mOndeFicouOEco || (aqui - *mOndeFicouOEco).Length() >= kPassoDoRastro;
+        Eco e;
+        if (mProximoEco <= 0.0f && andou && QuadroAtual(e.quadro, e.destino)) {
+            mProximoEco = kEntreEcos;
+            mOndeFicouOEco = aqui;
+            e.angulo = -Math::ToDegrees(mOwner->GetRotation());
+            e.cor = *mCorDoRastro;
+            e.deCor = true;
             mEcos.push_back(e);
         }
     }

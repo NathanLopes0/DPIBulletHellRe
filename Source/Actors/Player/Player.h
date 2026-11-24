@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <SDL_pixels.h>
 
 #include "../Actor.h"
 #include "PilotoDoAluno.h"
@@ -76,6 +77,14 @@ public:
     /// quem solta o foco no FPS da INF 216). Renova, nao acumula.
     void Impulsionar(float segundos, float fator);
     [[nodiscard]] bool Impulsionado() const { return mTempoDeImpulso > 0.0f; }
+
+    /// O reforco do tiro (o Elixir do Lucas): por 'segundos', cada tiro sai em duas duvidas lado a
+    /// lado, tingidas de 'tinta', e um rastro fraco da cor 'rastro' fica para tras quando ele anda
+    /// (DrawAnimatedComponent::DefinirRastroDeCor). Renova, nao acumula.
+    void Reforcar(float segundos, SDL_Color tinta, SDL_Color rastro);
+    [[nodiscard]] bool Reforcado() const { return mTempoDeReforco > 0.0f; }
+    /// Quanto cada duvida do reforco sai para o lado (px): as duas ainda cabem no professor.
+    static constexpr float kAfastamentoDoReforco = 9.0f;
 
     /// Se o aluno segura o foco neste quadro (Painel::TeclaDoFoco): anda devagar e mostra a hitbox.
     [[nodiscard]] bool Focado() const { return mFocado; }
@@ -178,6 +187,9 @@ private:
     /// O impulso: o que resta, e quanto ele soma a velocidade.
     float mTempoDeImpulso = 0.0f;
     float mFatorDoImpulso = 1.0f;
+    /// O reforco do tiro: o que resta, e a tinta das duvidas.
+    float mTempoDeReforco = 0.0f;
+    SDL_Color mTintaDoReforco{255, 255, 255, 255};
     /// O foco segurado neste quadro: anda devagar e mostra a hitbox.
     bool mFocado = false;
     float mPulsoDaCorrente = 0.0f;
@@ -192,6 +204,8 @@ private:
     void AtualizarCorrente(float deltaTime);
     void AtualizarSobrecarga(float deltaTime);
     void AtualizarImunidade(float deltaTime);
+    /// O relogio do reforco: quando acaba, o rastro de cor apaga.
+    void AtualizarReforco(float deltaTime);
     /// O unico lugar que pinta o aluno; a ordem dos estados e a prioridade.
     void AtualizarCorDoEstado();
 };

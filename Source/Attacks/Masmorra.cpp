@@ -17,7 +17,7 @@ namespace Masmorra {
             g.rapidezDoProfessor = 240.0f;
             g.acender = 0.6f;
             g.bonus = 5.0f;
-            g.fatorDoGanho = 2.5f;
+            g.fatorDoGanho = 1.25f;
             g.furia = 4.2f;
             g.bracos = 5;
             g.entreRajadas = 0.07f;

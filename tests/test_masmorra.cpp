@@ -94,3 +94,13 @@ TEST_CASE("Masmorra: a fadinha vai ao inimigo mais perto, e a mira cerca o alvo"
         CHECK((s.ponta - alvo).Length() == doctest::Approx(30.0f).epsilon(0.1));
     }
 }
+
+TEST_CASE("Masmorra: com as duas duvidas do Elixir, cada tiro paga o triplo no Normal e 2,5 vezes no Dificil") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    // Cada tiro de quem bebeu sai em duas duvidas (Player::Reforcar): o fator e o de cada uma.
+    CHECK(2.0f * n.fatorDoGanho == doctest::Approx(3.0f));
+    CHECK(2.0f * d.fatorDoGanho == doctest::Approx(2.5f));
+    // Mesmo a duvida que sobra, sozinha no professor, vale mais que a de sempre.
+    CHECK(d.fatorDoGanho > 1.0f);
+    CHECK(d.fatorDoGanho < n.fatorDoGanho);
+}

@@ -54,6 +54,9 @@ public:
     /// A silhueta da imagem: o mesmo desenho, todo branco e opaco onde ha pixel, transparente onde
     /// nao ha (Destrutivel::AlfaDaSilhueta).
     class SDL_Texture* LoadSilhueta(const std::string& texturePath);
+    /// Monta e guarda a silhueta de 'superficie' na chave de 'texturePath': a da personagem composta,
+    /// que nao tem arquivo para LoadSilhueta ler. Se ja havia uma guardada, devolve a de antes.
+    class SDL_Texture* GuardarSilhueta(const std::string& texturePath, struct SDL_Surface* superficie);
 
     /// A textura guardada sob esta chave, ou nullptr. Para texturas que nao vem de arquivo - a
     /// personagem composta e a primeira delas.

@@ -121,6 +121,9 @@ Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia
 
     Daltonizar::Superficie(destino);
     SDL_Texture* textura = SDL_CreateTextureFromSurface(game->GetRenderer(), destino);
+    // A silhueta tambem, enquanto ha superficie: a composta nao tem arquivo para LoadSilhueta ler, e
+    // o rastro do Elixir do Lucas e feito dela (DrawAnimatedComponent::DefinirRastroDeCor).
+    if (textura != nullptr) game->GuardarSilhueta(saida.chaveDaTextura, destino);
     SDL_FreeSurface(destino);
 
     if (textura == nullptr) {

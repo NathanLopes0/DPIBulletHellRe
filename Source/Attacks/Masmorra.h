@@ -39,8 +39,10 @@ namespace Masmorra {
         float rapidezDoProfessor = 190.0f;
         float acender = 0.9f;
         /// O Elixir do aluno: quanto dura e quanto vale cada acerto no professor (Boss::FatorDoGanho).
+        /// Cada tiro dele sai em duas duvidas (Player::Reforcar): com as duas no professor, o ganho e
+        /// o triplo do de sempre no Normal, e 2,5 vezes no Dificil.
         float bonus = 6.0f;
-        float fatorDoGanho = 3.0f;
+        float fatorDoGanho = 1.5f;
         float impulso = 1.3f;
         /// A furia do professor que bebeu: quanto dura, a espiral (bracos, ritmo, velocidade, giro) e
         /// o anel que sai junto.

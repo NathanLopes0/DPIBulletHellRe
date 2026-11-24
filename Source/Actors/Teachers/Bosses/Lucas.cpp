@@ -44,6 +44,11 @@ namespace {
     constexpr float kAbaixoDaTocha = 44.0f;
     constexpr float kAcimaDoBau = 40.0f;
     constexpr SDL_Color kCoracao{255, 90, 110, 255};
+    /// O bonus do Elixir, a vista (Player::Reforcar): as duvidas de quem bebeu saem em duas, lilases
+    /// (a tinta multiplica o balao, quase branco, e o "?" fica na cor do aluno), e um rastro roxo
+    /// fraco fica para tras quando ele anda - a rapidez a mais.
+    constexpr SDL_Color kTintaDoElixir{214, 172, 255, 255};
+    constexpr SDL_Color kRastroDoElixir{150, 80, 235, 105};
     // A fadinha e a mira amarela.
     constexpr SDL_Color kMira{255, 222, 60, 235};
     constexpr SDL_Color kMiraEscura{170, 120, 20, 235};
@@ -735,6 +740,7 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
                 mElixirAte = mRelogio + g.bonus;
                 a->Proteger(g.bonus);
                 a->Impulsionar(g.bonus, g.impulso);
+                a->Reforcar(g.bonus, kTintaDoElixir, kRastroDoElixir);
                 b->Faiscar(a->GetPosition(), Hud::Faisca::Coleta);
                 if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
                     mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);

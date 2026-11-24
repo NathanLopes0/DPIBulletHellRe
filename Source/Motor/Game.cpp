@@ -531,6 +531,12 @@ void Game::GuardarTextura(const std::string& chave, SDL_Texture* textura) {
 
 void Game::EsquecerTextura(const std::string& chave) {
 
+    // A silhueta dela vai junto (LoadSilhueta, GuardarSilhueta).
+    static const std::string kSilhueta = "#silhueta";
+    const bool ehSilhueta = chave.size() >= kSilhueta.size() &&
+                            chave.compare(chave.size() - kSilhueta.size(), kSilhueta.size(), kSilhueta) == 0;
+    if (!ehSilhueta) EsquecerTextura(chave + kSilhueta);
+
     const auto it = mTextureCache.find(chave);
     if (it == mTextureCache.end()) return;
 
@@ -602,14 +608,22 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 }
 
 SDL_Texture* Game::LoadSilhueta(const std::string& texturePath) {
-    const std::string chave = texturePath + "#silhueta";
-    if (SDL_Texture* pronta = TexturaGuardada(chave)) return pronta;
+    if (SDL_Texture* pronta = TexturaGuardada(texturePath + "#silhueta")) return pronta;
 
     SDL_Surface* lida = IMG_Load(texturePath.c_str());
     if (!lida) return nullptr;
-    // RGBA32 e R, G, B, A nessa ordem na memoria, em qualquer maquina.
-    SDL_Surface* rgba = SDL_ConvertSurfaceFormat(lida, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_Texture* silhueta = GuardarSilhueta(texturePath, lida);
     SDL_FreeSurface(lida);
+    return silhueta;
+}
+
+SDL_Texture* Game::GuardarSilhueta(const std::string& texturePath, SDL_Surface* superficie) {
+    const std::string chave = texturePath + "#silhueta";
+    if (SDL_Texture* pronta = TexturaGuardada(chave)) return pronta;
+    if (!superficie) return nullptr;
+
+    // RGBA32 e R, G, B, A nessa ordem na memoria, em qualquer maquina.
+    SDL_Surface* rgba = SDL_ConvertSurfaceFormat(superficie, SDL_PIXELFORMAT_RGBA32, 0);
     if (!rgba) return nullptr;
 
     if (SDL_LockSurface(rgba) == 0) {
