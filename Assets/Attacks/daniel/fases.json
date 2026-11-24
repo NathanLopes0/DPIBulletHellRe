@@ -1,131 +1,103 @@
 {
-  // As fases do Daniel (INF 425 - Ciencia de Dados, optativa). O que cada uma faz mora no C++
-  // (Daniel.cpp) e na camada pura (Preparacao.h, Agrupamento.h, Classificacao.h, Explicacao.h e
-  // Chamada.h, o sorteio); aqui ficam os tiros que ele puxa pelo gatilho, e os nomes que o placar
-  // mostra.
+  // As fases do Daniel (INF 425 - Ciencia de Dados, optativa). Quase tudo e de gatilho: quem decide
+  // quando cada coisa nasce, onde e com que tipo e o Daniel.cpp (Ecossistema.h, Agrupamento.h e
+  // Sobreajuste.h dizem as contas), e aqui fica so a forma de cada disparo.
 
-  // ==========================================================================
-
-  // Fase 1 - os dados: a coleta e a preparacao | gesto: o professor anda devagar no alto. O campo e
-  // o grafico de dispersao do catalogo (o x e o ataque, o y a defesa): os dados voam das fontes ate o
-  // lugar deles e ficam; a limpeza estoura os outliers e imputa os nulos; a normalizacao move o
-  // grafico inteiro - e uma seta avisa para onde cada dado vai.
+  // Fase 1 - a coleta: a escolha do monstrinho, e as amostras que pousam no grafico.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "Dados: a coleta e a preparação",
+    "anuncio": "Coleta: o ecossistema dos dados",
     "etapas": [
-      { "nome": "Coleta",       "duracao": 7.0, "anuncio": "Coleta: o sensor, a planilha e a API" },
-      { "nome": "Limpeza",      "duracao": 6.0, "anuncio": "Limpeza: o outlier, o nulo... e você" },
-      { "nome": "Normalizacao", "duracao": 7.0, "anuncio": "Normalização: o gráfico inteiro se move" }
+      { "nome": "Escolha", "duracao": 6.0, "anuncio": "Escolha: fique em cima de um monstrinho" },
+      { "nome": "Coleta",  "duracao": 14.0, "anuncio": "Coleta: absorva, atravesse, desvie" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
       { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Monstrinho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "fonte", "estrategia": "WaveAttack", "projetil": "Fonte",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "dado", "estrategia": "WaveAttack", "projetil": "Dado",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 12, "velocidade": 190, "angulo": 330, "intervalo": 0 }
+        "projeteis": 4, "velocidade": 210, "angulo": 36, "intervalo": 0 }
     ]
   },
 
-  // Fase 2 - os atributos e os grupos | gesto: o professor anda devagar no alto. Comeca com o
-  // sorteio de quem explica a aula passada; na PCA, a nuvem desce ate a componente principal e a
-  // fileira gira; nas k-medias, o centroide da celula do aluno vem para cima dele.
+  // Fase 2 - as k-medias: os pontos da coleta viram grupos, e cada grupo ataca com o tipo dele.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "Atributos e grupos",
+    "anuncio": "k-médias: os grupos",
     "etapas": [
-      { "nome": "Sorteio", "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
-      { "nome": "PCA",     "duracao": 6.0, "anuncio": "PCA: a direção de maior variância" },
-      { "nome": "KMedias", "duracao": 8.0, "anuncio": "k-médias: você também é um ponto" }
+      { "nome": "Agrupando", "duracao": 12.0, "anuncio": "k-médias: cada grupo ataca com o seu tipo" },
+      { "nome": "Outliers",  "duracao": 8.0,  "anuncio": "Outliers: derrube quem puxa o grupo" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 220 },
     "ataques": [
       { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Amostra",
+      { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Monstrinho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "centroide", "estrategia": "WaveAttack", "projetil": "Centroide",
+      { "som": false, "gatilho": "fonte", "estrategia": "WaveAttack", "projetil": "Fonte",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "convergiu", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 8, "velocidade": 205, "angulo": 315, "intervalo": 0 },
-      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
+      { "som": false, "gatilho": "centroide", "estrategia": "WaveAttack", "projetil": "Centroide",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
-      { "som": false, "gatilho": "roleta", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "roleta" }
+      // O anel de cada grupo, no tipo da maioria dele (a cara e a classe vem do Daniel.cpp).
+      { "gatilho": "convergiu", "estrategia": "CircleSpreadAttack", "projetil": "Monstrinho",
+        "projeteis": 10, "velocidade": 110, "variar": { "giro": 18 },
+        "regras": "anel" },
+      // O outlier: voa da fonte ate longe de tudo, e la pesa na media.
+      { "som": false, "gatilho": "outlier", "estrategia": "WaveAttack", "projetil": "Monstrinho",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 4, "velocidade": 210, "angulo": 36, "intervalo": 0 }
     ]
   },
 
-  // Fase 3 - o supervisionado e os comites | gesto: o professor anda no alto, de um lado ao outro.
-  // Comeca com o sorteio; depois a fronteira de decisao divide o campo em fogo e agua, e o lado do
-  // aluno e a classe dele: a rajada da classe dele passa, a da outra acerta. No perceptron a
-  // fronteira e uma reta que aprende com os erros; no comite, tres arvores votam.
+  // Fase 3 - o overfitting: o modelo decora os passos do aluno, e o professor o risca.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "Supervisionado: a fronteira de decisão",
+    "anuncio": "Overfitting: o modelo decorou você",
     "etapas": [
-      { "nome": "Sorteio",    "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
-      { "nome": "Perceptron", "duracao": 7.0, "anuncio": "Perceptron: o seu tipo passa por você" },
-      { "nome": "Comite",     "duracao": 7.0, "anuncio": "Comitê: três árvores votam" }
-    ],
-    "movimento": { "tipo": "Conduzido", "a": 260 },
-    "ataques": [
-      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "rotulada", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 11, "velocidade": 250, "angulo": 40, "intervalo": 0 },
-      { "som": false, "gatilho": "empurrada", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "empurrada" },
-      { "som": false, "gatilho": "arvore", "estrategia": "WaveAttack", "projetil": "Arvore",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
-      { "som": false, "gatilho": "roleta", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "roleta" }
-    ]
-  },
-
-  // Fase final - a explicabilidade | gesto: o professor anda devagar no alto. So e vista por quem
-  // termina a terceira entre 40 e 59, ou com 100. Comeca com o sorteio; na caixa-preta, cada
-  // pergunta (a duvida que acerta o professor) adianta o aviso dos palpites; no SHAP, a cascata das
-  // contribuicoes desce em barras.
-  "StateFinal": {
-    "duracao": 20,
-    "proximo": "StateOne",
-    "anuncio": "Explicabilidade: abrindo o modelo",
-    "etapas": [
-      { "nome": "Sorteio",    "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
-      { "nome": "CaixaPreta", "duracao": 4.5, "anuncio": "Caixa-preta: pergunte, e ele avisa" },
-      { "nome": "Shap",       "duracao": 9.5, "anuncio": "SHAP: leve a previsão ao valor real" }
+      { "nome": "Treino",    "duracao": 4.0,  "anuncio": "Treino: ele grava os seus passos" },
+      { "nome": "Previsao",  "duracao": 10.0, "anuncio": "Previsão: mude o caminho" },
+      { "nome": "Validacao", "duracao": 6.0,  "anuncio": "Validação: quebre os núcleos" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
       { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "palpite", "estrategia": "WaveAttack", "projetil": "Amostra",
+      { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Monstrinho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Barra",
+      { "som": false, "gatilho": "nucleo", "estrategia": "WaveAttack", "projetil": "Nucleo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "previsao", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 12, "velocidade": 180, "angulo": 330, "intervalo": 0 },
-      { "som": false, "gatilho": "caixa", "estrategia": "WaveAttack", "projetil": "Caixa",
+      // A previsao: um nucleo atira para onde o aluno estava indo, no tipo dele.
+      { "gatilho": "previsao", "estrategia": "WaveAttack", "projetil": "Monstrinho",
+        "projeteis": 1, "velocidade": 220, "angulo": 0, "intervalo": 0 },
+      // O que o modelo decorou: os nucleos atiram no lugar por onde o aluno mais passou.
+      { "som": false, "gatilho": "decorado", "estrategia": "WaveAttack", "projetil": "Monstrinho",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 4, "velocidade": 210, "angulo": 36, "intervalo": 0 }
+    ]
+  },
+
+  // Fase final - o conjunto de teste: dados que o modelo nunca viu, de onde nunca vieram.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Conjunto de teste: dados que ele nunca viu",
+    "movimento": { "tipo": "Conduzido", "a": 200 },
+    "ataques": [
+      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
+      { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Monstrinho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
-      { "som": false, "gatilho": "roleta", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "roleta" }
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 4, "velocidade": 210, "angulo": 36, "intervalo": 0 }
     ]
   }
 }

@@ -5,8 +5,8 @@
 #pragma once
 
 #include <array>
-#include <deque>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -14,44 +14,36 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Agrupamento.h"
-#include "../../../Attacks/Chamada.h"
-#include "../../../Attacks/Classificacao.h"
-#include "../../../Attacks/Explicacao.h"
-#include "../../../Attacks/Preparacao.h"
+#include "../../../Attacks/Ecossistema.h"
+#include "../../../Attacks/Sobreajuste.h"
 #include "../../../Attacks/Tipos.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
+class EtiquetaDeCodigo;
+class PlayerProjectile;
 
 /// O professor de Ciencia de Dados (INF 425, optativa). No comeco, quem joga escolhe um monstrinho
-/// - fogo, agua ou planta - e o tipo dele e o seu ate o fim (Tipos.h): o tiro do seu tipo passa, o
-/// do tipo que voce vence voce absorve, e o do que vence voce machuca. E voce e um dado. Cada prova
-/// e uma etapa de um projeto de dados:
-///   1. os dados - a coleta e a preparacao: o campo e um grafico de dispersao, e o z-score procura
-///      quem esta longe da propria especie - os outliers e voce. A especie anda a cada
-///      transformacao, e voce anda junto;
-///   2. os atributos e os grupos - a fileira da PCA que gira, e o centroide da celula do aluno que
-///      vem para cima dele;
-///   3. o supervisionado - a fronteira de decisao divide o campo, e os dados de treino nascem nela
-///      e sao empurrados para o lado da classe deles: o lado em que voce fica decide o que vem;
-///   e a repescagem, a explicabilidade: a caixa-preta que avisa mais cedo quem pergunta, e a cascata
-///   do SHAP que errou o valor real - derrubar a ponta de uma barra tira o atributo, e levar a
-///   previsao ate o valor real a explica.
-/// E, no comeco de cada aula depois da primeira, o sorteio de quem explica a aula passada, com uma
-/// pergunta de olhar o desenho (Chamada.h), enquanto a roleta dos tipos gira em volta do professor.
+/// - fogo, agua ou planta - e o tipo dele e o seu ate o fim (Tipos.h), na defesa e no ataque. O
+/// campo e um laboratorio de dados, um grafico de dispersao (x: o ataque, y: a defesa), e cada prova
+/// e um passo do projeto:
+///   1. a coleta (Ecossistema.h) - os dados chegam das fontes como monstrinhos e pousam no grafico,
+///      em ondas que ensinam o triangulo: absorver, atravessar, desviar, e tudo junto;
+///   2. as k-medias (Agrupamento.h) - os pontos da coleta viram tres grupos, cada um ataca com o tipo
+///      da maioria, e os outliers puxam os centroides;
+///   3. o overfitting (Sobreajuste.h) - o modelo do professor decora os passos do aluno e atira onde
+///      ele esteve e para onde ia; na validacao ele nao generaliza, o professor o risca, e os tres
+///      nucleos ficam abertos;
+///   e a repescagem, o conjunto de teste - dados que o modelo nunca viu, de onde nunca vieram.
+/// Os efeitinhos de cada elemento (Tipos::Particula) contam o que aconteceu sem uma palavra.
 class Daniel : public Boss {
 public:
     explicit Daniel(Scene* scene);
     ~Daniel() override = default;
 
     void OnUpdate(float deltaTime) override;
-    [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
-    void OnDerrubou(BossProjectile* qual) override;
-    void AoSerPerguntado() override;
+    [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override { return mAlvo; }
     void AoTerminarABatalha() override;
-    /// Enquanto a roleta gira e a pergunta esta aberta, o professor espera a resposta: nao ouve
-    /// duvida (o tiro murcha nele), e so as cartas contam.
-    [[nodiscard]] bool AceitaDano() const override;
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -64,10 +56,10 @@ private:
     void SortearALuta();
     bool mLutaSorteada = false;
     Variacao::Sorteio mSorteio{0u};
-    Preparacao::Degrau mDegrauDaPreparacao;
+    Variacao::Sorteio mSorteioDosEfeitos{0u};
+    Ecossistema::Degrau mDegrauDaColeta;
     Agrupamento::Degrau mDegrauDoAgrupamento;
-    Classificacao::Degrau mDegrauDaClassificacao;
-    Explicacao::Degrau mDegrauDaExplicacao;
+    Sobreajuste::Degrau mDegrauDoSobreajuste;
 
     // ---- O que as fases dividem ----
 
@@ -88,236 +80,139 @@ private:
     /// O primeiro que nasceu, ja com a cara. Com 'velocidade', nasce andando.
     BossProjectile* Um(const char* gatilho, Vector2 onde, const std::string& cara,
                        std::optional<Vector2> velocidade = std::nullopt);
+    /// Um monstrinho do 'tipo': a cara e a classe dele (a do aluno do mesmo tipo passa).
+    BossProjectile* Monstrinho(const char* gatilho, Vector2 onde, int tipo, std::optional<Vector2> velocidade);
+    /// Um leque do professor, mirado no aluno.
+    void Leque(Vector2 de, int quantos, float abertura, float velocidade);
 
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
     [[nodiscard]] static bool Vivo(const BossProjectile* p);
     static void Matar(BossProjectile*& p);
     static void Cara(BossProjectile* p, const std::string& cara);
     static void Parar(BossProjectile* p);
-    /// As posicoes dos alunos em campo.
-    [[nodiscard]] std::vector<Vector2> Alunos() const;
+    static void Andar(BossProjectile* p, Vector2 velocidade);
 
     std::string mFase;
-    void Desmontar();
-
-    DrawLinhasComponent* mLinhas = nullptr;
-    static constexpr int kOrdemDasLinhas = 82;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
-    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16);
-    void Retangulo(Vector2 de, Vector2 ate, SDL_Color cor, bool tracejado);
-
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
-    /// Um texto no placar por um instante, por cima do da etapa.
-    void Avisar(const std::string& texto, float duracao = 1.4f);
-    /// O placar da etapa, ou o aviso enquanto ele vale.
-    void Placar(const std::string& fase, size_t etapa, const std::string& texto);
-    std::string mAviso;
-    float mAvisoAte = -1.0f;
     float mRelogio = 0.0f;
-
+    /// 'manterOsPontos': da coleta para as k-medias, os pontos do grafico ficam.
+    void Desmontar(bool manterOsPontos = false);
     std::optional<Vector2> mAlvo;
     /// O professor varre o alto devagar: 'periodo' segundos de um lado ao outro e de volta.
     void Varrer(float t, float amplitude, float periodo);
 
-    /// Um movimento de A ate B em 'dura' segundos, a partir de 'desde' (desde < 0: parado).
-    struct Ida {
-        Vector2 de;
-        Vector2 para;
-        float desde = -1.0f;
-        float dura = 0.0f;
-    };
-    /// Onde a ida esta em 't' (suave no comeco e no fim); e se ja chegou.
-    static Vector2 OndeNaIda(const Ida& ida, float t);
-    static bool Chegou(const Ida& ida, float t) { return ida.desde < 0.0f || t >= ida.desde + ida.dura; }
+    // O desenho: o das linhas embaixo dos projeteis, e o dos efeitos por cima.
+    DrawLinhasComponent* mLinhas = nullptr;
+    DrawLinhasComponent* mEfeitos = nullptr;
+    static constexpr int kOrdemDasLinhas = 82;
+    static constexpr int kOrdemDosEfeitos = 99;
+    void Linha(Vector2 de, Vector2 ate, SDL_Color cor, bool emCima = false);
+    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16, bool emCima = false);
+    void Disco(Vector2 centro, float raio, SDL_Color cor, bool emCima = false);
+    std::vector<EtiquetaDeCodigo*> mEtiquetas;
 
-    // ---- O tipo do aluno (Tipos.h): escolhido no comeco da fase 1, para a luta inteira ----
+    // ---- O grafico: o campo do laboratorio ----
 
-    /// Os monstrinhos longe de onde o aluno nasce (Tipos::LugaresDaEscolha), e ficar em cima de um por
-    /// Tipos::kParaEscolher escolhe; no fim do tempo, quem nao escolheu fica com o mais perto.
+    [[nodiscard]] SDL_FRect Grafico() const;
+    /// De 0 a 1 do grafico (y = 1 em cima) para o campo.
+    [[nodiscard]] Vector2 NoCampo(Vector2 noGrafico) const;
+    void DesenharGrafico(bool teste);
+    /// O triangulo no canto: os tres tipos e quem vence quem, com o do aluno marcado.
+    void DesenharTriangulo();
+    std::array<BossProjectile*, Tipos::kTipos> mLegenda{};
+
+    // ---- O tipo do aluno: escolhido no comeco da fase 1, para a luta inteira ----
+
     void Escolher(float t, float deltaTime);
-    /// Todo quadro, depois da escolha: a classe de cada aluno, o selo, o anel na cor do tipo, e a
-    /// absorcao do tiro do tipo que ele vence.
     void AtualizarTipos();
     [[nodiscard]] std::vector<Vector2> LugaresDaEscolha() const;
+    /// O tipo de quem atirou (-1: nao e um aluno, ou nao escolheu).
+    [[nodiscard]] int TipoDoTiro(const PlayerProjectile* tiro) const;
     static constexpr const char* kGatilhoDoSelo = "selo";
     std::vector<int> mTipos;                                  ///< o de cada aluno (-1: ainda nao)
     std::array<BossProjectile*, Tipos::kTipos> mEscolhas{};
-    /// O lugar de cada tipo na escolha: sorteado a cada luta, e o do meio nao e sempre o mesmo.
     std::array<int, Tipos::kTipos> mLugarDoTipo{0, 1, 2};
-    /// Ha quanto tempo cada aluno esta em cima de qual monstrinho (-1: de nenhum).
     std::vector<float> mEmCima;
     std::vector<int> mEmCimaDe;
     std::vector<BossProjectile*> mSelos;
     bool mEscolheu = false;
     float mPremioDoTipo = 0.0f;
-    void Elipse(Vector2 centro, Vector2 raios, SDL_Color cor);
+    /// Os tiros do tipo do aluno que ja passaram por ele (o efeitinho sai uma vez so).
+    std::set<const BossProjectile*> mJaPassou;
 
-    // ---- O sorteio (Chamada.h): o comeco das fases 2, 3 e da repescagem ----
+    // ---- Os efeitinhos ----
 
-    /// A roleta dos nomes, a pergunta e a roleta dos tipos: tres bracos girando em volta do
-    /// professor, um de cada tipo (o gatilho "roleta" da fase), para o lado que a 'aula' decide.
-    void AtualizarSorteio(float t, int aula, const std::string& fase);
-    static constexpr const char* kGatilhoDaRoleta = "roleta";
-    void DesmontarSorteio();
-    void Responder(int carta);
-    [[nodiscard]] std::string NomeDe(int quem) const;
-    struct Sorteado {
-        bool feito = false;
-        int quem = -2;          ///< -1: um colega; 0 ou 1: o aluno
-        int aula = 0;
-        Chamada::Questao questao;
-        int colega = 0;
-        std::array<BossProjectile*, Chamada::kOpcoes> cartas{};
-        bool perguntou = false;
-        bool respondido = false;
-        std::string placar;
-    };
-    Sorteado mSorteado;
-    float mProximoBraco = 0.0f;
-    /// O quadro do desenho da pergunta, no alto do campo; 'q' vai de 0 a 1 nele.
-    [[nodiscard]] SDL_FRect QuadroDaQuestao() const;
-    [[nodiscard]] Vector2 NoQuadro(Vector2 q) const;
-    /// Onde a carta 'k' do sorteado fica: em cima do lugar dela, ou acima, presa pelo alfinete.
-    [[nodiscard]] Vector2 OndeDaCarta(int k) const;
-    static constexpr float kAlturaDoAlfinete = 44.0f;
-    void DesenharQuestao();
+    std::vector<Tipos::Particula> mParticulas;
+    void Efeito(int tipo, Vector2 onde, int quantas, float forca);
+    void AndarOsEfeitos(float deltaTime);
+    /// O rastro de cada tiro do aluno, no elemento dele.
+    void RastroDosTiros();
+    /// O tiro do aluno que chega a 'raio' de 'onde' acerta o alvo do 'tipo': o tiro some, e a volta
+    /// e o dano (com o fator do triangulo). 'fechado': o alvo nao apanha, so faz "tim".
+    float Golpear(Vector2 onde, float raio, int tipo, bool fechado = false);
 
-    // ---- Fase 1: a preparacao ----
+    // ---- Fase 1 (a coleta) e final (o conjunto de teste) ----
 
-    void AtualizarPreparacao(float t, float deltaTime);
-    void DesmontarPreparacao();
-    [[nodiscard]] SDL_FRect Grafico() const;
-    [[nodiscard]] Vector2 NoCampo(Vector2 noGrafico) const;
-    [[nodiscard]] Vector2 NoGrafico(Vector2 noCampo) const;
-    [[nodiscard]] Vector2 LugarDaFonte(int k) const;
-    struct DadoNoGrafico {
+    void AtualizarColeta(float t, float deltaTime, bool teste);
+    struct Amostra {
         BossProjectile* p = nullptr;
-        Preparacao::Dado dado;
-        float chega = 0.0f;       ///< quando chega ao lugar dele, voando da fonte
-        bool chegou = false;
-        Ida ida;                  ///< a transformacao (ou a imputacao) que o move
-        bool marcado = false;     ///< o z-score achou: vai estourar
+        int tipo = 0;
+        float vida = Ecossistema::kVidaDaAmostra;
+        Vector2 destino;
     };
-    std::vector<DadoNoGrafico> mDados;
-    std::array<BossProjectile*, Preparacao::kFontes.size()> mFontes{};
-    std::array<Vector2, Preparacao::kEspecies> mEspecies{};
-    bool mEspeciesSorteadas = false;
-    float mProximaColeta = 0.0f;
-    int mColetados = 0;
-    size_t mProximoPasso = 0;
-    struct Transformando {
-        Preparacao::Transformacao qual = Preparacao::Transformacao::MinMax;
-        float avisoDesde = 0.0f;
-        float comeca = 0.0f;
-        Preparacao::Caixa caixa{};
+    std::vector<Amostra> mAmostras;          ///< as que ainda voam
+    struct Ponto {
+        BossProjectile* p = nullptr;
+        int tipo = -1;                       ///< -1: outlier
+        Vector2 onde;
     };
-    std::optional<Transformando> mTransformando;
-    bool mOutliersMarcados = false;
-    bool mEstourou = false;
-    bool mImputou = false;
-    Vector2 mMediaDaImputacao;
-    /// O aluno e um dado: a proxima varredura do z-score (Preparacao::kVarreduras).
-    size_t mProximaVarredura = 0;
-    int mVarreduraAvisada = -1;
-    void VarrerOsAlunos(float t);
+    std::vector<Ponto> mPontos;              ///< as que pousaram: o conjunto de dados
+    std::array<BossProjectile*, Ecossistema::kFontes.size()> mFontes{};
+    float mProximaAmostra = 0.0f;
+    float mProximoLeque = 0.0f;
+    int mAmostrasFeitas = 0;
+    void Pousar(Amostra& a);
 
-    // ---- Fase 2: os atributos e os grupos ----
+    // ---- Fase 2: as k-medias ----
 
     void AtualizarAgrupamento(float t, float deltaTime);
-    void DesmontarAgrupamento();
-    struct PontoDaNuvem {
-        BossProjectile* p = nullptr;
-        Vector2 projetado;        ///< onde ele cai na componente principal
-        Ida ida;
-    };
-    std::vector<PontoDaNuvem> mNuvem;
-    bool mNuvemCriada = false;
-    bool mProjetou = false;
-    bool mGirou = false;
     bool mAgrupou = false;
-    Agrupamento::Eixo mEixo;
-    float mSentidoDoGiro = 1.0f;
-    std::vector<BossProjectile*> mCentroides;
+    std::vector<BossProjectile*> mCentroidesP;
     std::vector<Vector2> mCentros;
-    std::vector<Ida> mIdasDosCentros;
-    std::vector<bool> mAnelPendente;
+    std::vector<Vector2> mDeOnde;
+    std::vector<Vector2> mParaOnde;
+    std::vector<int> mGrupos;
+    std::vector<int> mTiposDosGrupos;
+    float mDeslizeDesde = -1.0f;
+    float mAtribuiuEm = -10.0f;
     float mProximaIteracao = 0.0f;
-    int mIteracao = 0;
-    bool mCotovelo = false;
-    float mInercia = 0.0f;
-    float mInerciaInicial = 0.0f;   ///< a da primeira iteracao: o placar mostra o quanto ela caiu
-
-    // ---- Fase 3: a classificacao ----
-
-    void AtualizarClassificacao(float t, float deltaTime);
-    void DesmontarClassificacao();
-    [[nodiscard]] Vector2 Normalizado(Vector2 noCampo) const;
-    [[nodiscard]] Vector2 DoNormalizado(Vector2 n) const;
-    /// O tipo (fogo, agua ou planta) de cada classe da fronteira: o que vence o do aluno e o que ele vence.
-    [[nodiscard]] int TipoDaClasse(int classe) const;
-    [[nodiscard]] int ClasseEm(Vector2 noCampo, int etapa) const;
-    bool mPerceptronComecou = false;
-    Classificacao::Reta mModelo;
-    Classificacao::Reta mVerdade;
-    float mAnguloDaVerdade = 0.0f;
-    std::optional<Classificacao::Reta> mProximoModelo;
-    int mErrosDaEpoca = 0;
-    float mProximaEpoca = 0.0f;
-    int mEpoca = 0;
-    bool mComiteComecou = false;
-    Vector2 mCortes;
-    std::vector<Classificacao::Arvore> mComite;
-    std::array<BossProjectile*, Classificacao::kArvores> mArvores{};
-    std::optional<Classificacao::Arvore> mArvoreNova;
-    int mProximaArvore = 0;
-    float mProximoReplantio = 0.0f;
-    int mClasseDaRajada = -1;
-    float mProximaRajada = 0.0f;
-    float mProximoEmpurrao = 0.0f;
-    void LimparClasses();
-
-    // ---- A repescagem: a explicacao ----
-
-    void AtualizarExplicacao(float t, float deltaTime);
-    void DesmontarExplicacao();
-    BossProjectile* mCaixaPreta = nullptr;
-    std::deque<float> mPerguntas;   ///< quando cada pergunta acertou o professor (mRelogio)
-    [[nodiscard]] int PerguntasRecentes() const;
-    struct PalpiteDaVez {
-        Explicacao::Palpite tipo = Explicacao::Palpite::Anel;
-        /// O elemento do palpite: o aviso o mostra na cor dele, e quem pergunta sabe antes.
-        int elemento = 0;
-        float sai = 0.0f;
-        bool avisado = false;
-        std::vector<float> rumos;
+    struct Outlier {
+        BossProjectile* p = nullptr;
+        float vida = Agrupamento::kVidaDoOutlier;
+        Vector2 destino;
+        bool pousou = false;
     };
-    std::optional<PalpiteDaVez> mPalpite;
-    float mProximoPalpite = 0.0f;
-    float mAntecedenciaDaVez = 0.0f;
-    struct BarraEmCampo {
-        Explicacao::Barra barra;
-        float y = 0.0f;
-        float aparece = 0.0f;
-        std::vector<BossProjectile*> tiros;   ///< a faixa: duas fileiras de tiros (o do aluno atravessa)
-        BossProjectile* cabeca = nullptr;     ///< a ponta: a unica que o tiro do aluno derruba
-        bool tirada = false;                  ///< o aluno a derrubou: o atributo saiu da previsao
-    };
-    std::vector<BarraEmCampo> mBarras;
-    std::vector<float> mContribuicoes;
-    float mReal = 0.0f;   ///< o valor real (x no campo): onde a cascata acaba sem os atributos errados
-    float mProximaCascata = 0.0f;
-    float mPrevisaoEm = -1.0f;
+    std::vector<Outlier> mOutliers;
+    float mProximoOutlier = 0.0f;
+    int mOutliersFeitos = 0;
 
-    /// As cores das especies (e dos grupos e das classes) - as mesmas de gerar_daniel.py.
-    static constexpr std::array<SDL_Color, 5> kCores = {{{255, 130, 70, 230}, {90, 170, 255, 230},
-                                                         {110, 210, 110, 230}, {250, 220, 70, 230},
-                                                         {190, 150, 110, 230}}};
-    static constexpr std::array<SDL_Color, 3> kCoresDasArvores = {{{150, 230, 150, 200}, {240, 200, 120, 200},
-                                                                  {170, 190, 255, 200}}};
-    static constexpr SDL_Color kEixo = {150, 170, 210, 110};
-    static constexpr SDL_Color kSeta = {255, 214, 90, 150};
-    static constexpr SDL_Color kPerigo = {255, 90, 80, 200};
-    static constexpr SDL_Color kBase = {230, 230, 240, 120};
-    static constexpr SDL_Color kFronteira = {245, 245, 255, 200};
+    // ---- Fase 3: o overfitting ----
+
+    void AtualizarSobreajuste(float t, float deltaTime);
+    bool mModeloComecou = false;
+    std::vector<Sobreajuste::Memoria> mMemorias;
+    struct Nucleo {
+        BossProjectile* p = nullptr;
+        float vida = 0.0f;
+        bool quebrado = false;
+    };
+    std::array<Nucleo, Sobreajuste::kNucleos> mNucleos{};
+    float mProximoTiro = 0.0f;
+    int mAlunoDaVez = 0;
+    float mProximoDecorado = 0.0f;
+    float mDecoradoEm = -1.0f;               ///< quando os tiros no lugar decorado saem (-1: nenhum)
+    Vector2 mDecorado;
+    /// O modelo riscado: os pedacos da curva, que caem.
+    std::vector<std::pair<Vector2, Vector2>> mPedacos;
+    bool mRiscou = false;
 };

@@ -1,96 +1,20 @@
 {
-  // Os projeteis do Daniel (INF 425 - Ciencia de Dados, optativa). As folhas saem de
-  // Ferramentas/gerar_daniel.py; as animacoes, de gerar_daniel.py --animacoes.
+  // Os projeteis do Daniel (INF 425 - Ciencia de Dados, optativa). As folhas sao de
+  // Ferramentas/gerar_daniel.py (arte provisoria).
 
-  // Os dados do catalogo dos monstrinhos: um bichinho por especie (e por grupo, na fase 2), o
-  // outlier, o nulo e o imputado. Na fase 1, o tiro do aluno os apaga - uma linha a menos na
-  // tabela (resistencia no Daniel.cpp).
-  "Dado": {
+  // O monstrinho: a amostra da coleta (e o ponto em que ela vira ao pousar no grafico), o anel de
+  // cada grupo das k-medias, os tiros do modelo, os da escolha e os do triangulo do canto. A cara e
+  // o tipo; o Daniel.cpp poe a classe (a do aluno do mesmo tipo passa) e o tamanho.
+  "Monstrinho": {
     "sprite": "Teachers/Projectiles/DPIBHDanielDados.png",
     "dados":  "Teachers/Projectiles/DPIBHDanielDados.json",
-    "animacoes": { "Fogo": [0], "Agua": [1], "Planta": [2], "Eletrico": [3], "Pedra": [4],
-                   "Outlier": [5], "Nulo": [6], "Cinza": [7] },
+    "animacoes": { "Fogo": [0], "Agua": [1], "Planta": [2], "Outlier": [5] },
     "animacaoInicial": "Fogo",
-    "ordemDeDesenho": 90,
-    "derrubavel": true
-  },
-
-  // Os mesmos bichinhos, nas fases 2 e 3: a nuvem da PCA, os grupos das k-medias e as amostras
-  // rotuladas. Esses nao se apagam.
-  "Amostra": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielDados.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielDados.json",
-    "animacoes": { "Fogo": [0], "Agua": [1], "Planta": [2], "Eletrico": [3], "Pedra": [4],
-                   "Outlier": [5], "Nulo": [6], "Cinza": [7] },
-    "animacaoInicial": "Cinza",
+    "colisorDivisor": 2.6,
     "ordemDeDesenho": 90
   },
 
-  // De onde os dados vem: o sensor, a planilha e a API (enfeite).
-  "Fonte": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielFontes.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielFontes.json",
-    "animacoes": { "Sensor": [0], "Planilha": [1], "Api": [2] },
-    "animacaoInicial": "Sensor",
-    "ordemDeDesenho": 86
-  },
-
-  // O centroide de cada grupo das k-medias.
-  "Centroide": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielCentroides.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielCentroides.json",
-    "animacoes": { "C0": [0], "C1": [1], "C2": [2], "C3": [3], "C4": [4] },
-    "animacaoInicial": "C0",
-    "ordemDeDesenho": 91,
-    "colisorDivisor": 3.0
-  },
-
-  // As tres arvores do comite, no alto (enfeite).
-  "Arvore": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielArvores.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielArvores.json",
-    "animacoes": { "A0": [0], "A1": [1], "A2": [2] },
-    "animacaoInicial": "A0",
-    "ordemDeDesenho": 86
-  },
-
-  // Os tiros: o caco do outlier que estoura, o da resposta errada, o palpite da caixa-preta, as
-  // barras do SHAP e o anel da previsao.
-  "Tiro": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielTiros.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielTiros.json",
-    "animacoes": { "Estouro": [0], "Engano": [1], "Palpite": [2], "BarraMais": [3], "BarraMenos": [4],
-                   "Previsao": [5] },
-    "animacaoInicial": "Estouro",
-    "ordemDeDesenho": 90
-  },
-
-  // As cartas do sorteio: as letras dos candidatos e os numeros da contagem (Chamada::kCartas). A
-  // carta fica em cima da opcao do desenho, e o aluno sorteado responde derrubando a certa.
-  "Resposta": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielRespostas.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielRespostas.json",
-    "animacoes": { "CartaA": [0], "CartaB": [1], "CartaC": [2], "Carta2": [3], "Carta3": [4], "Carta4": [5] },
-    "animacaoInicial": "CartaA",
-    "ordemDeDesenho": 92,
-    "colisorDimensao": "altura",
-    "colisorDivisor": 1.5,
-    "derrubavel": true,
-    "resistencia": 3
-  },
-
-  // As barras do SHAP: o tiro do aluno derruba a barra inteira, e o atributo sai da previsao.
-  "Barra": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielTiros.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielTiros.json",
-    "animacoes": { "BarraMais": [3], "BarraMenos": [4] },
-    "animacaoInicial": "BarraMais",
-    "ordemDeDesenho": 90,
-    "derrubavel": true,
-    "resistencia": 1
-  },
-
-  // O selo do tipo que o aluno escolheu no comeco, ao lado dele (enfeite).
+  // O selo do tipo do aluno, ao lado dele.
   "Selo": {
     "sprite": "Teachers/Projectiles/DPIBHDanielDados.png",
     "dados":  "Teachers/Projectiles/DPIBHDanielDados.json",
@@ -99,12 +23,43 @@
     "ordemDeDesenho": 97
   },
 
-  // A caixa-preta, por cima do professor (enfeite).
-  "Caixa": {
-    "sprite": "Teachers/Projectiles/DPIBHDanielCaixa.png",
-    "dados":  "Teachers/Projectiles/DPIBHDanielCaixa.json",
-    "animacoes": { "Caixa": [0] },
-    "animacaoInicial": "Caixa",
-    "ordemDeDesenho": 140
+  // As fontes dos dados, no alto: o sensor, a planilha e a API (enfeites).
+  "Fonte": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielFontes.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielFontes.json",
+    "animacoes": { "Sensor": [0], "Planilha": [1], "Api": [2] },
+    "animacaoInicial": "Sensor",
+    "ordemDeDesenho": 86
+  },
+
+  // O centroide de cada grupo das k-medias (enfeite), na cor do tipo do grupo (C4: ainda sem tipo).
+  "Centroide": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielCentroides.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielCentroides.json",
+    "animacoes": { "C0": [0], "C1": [1], "C2": [2], "C4": [4] },
+    "animacaoInicial": "C4",
+    "ordemDeDesenho": 91
+  },
+
+  // Os tres nucleos do modelo da fase 3, em volta do professor (enfeites: o Daniel.cpp conta os
+  // acertos, com o fator do triangulo).
+  "Nucleo": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielNucleos.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielNucleos.json",
+    "animacoes": { "FogoFechado": [0], "FogoAberto": [1], "AguaFechado": [2], "AguaAberto": [3],
+                   "PlantaFechado": [4], "PlantaAberto": [5] },
+    "animacaoInicial": "FogoFechado",
+    "escala": 1.8,
+    "ordemDeDesenho": 92
+  },
+
+  // O leque do proprio professor: sem tipo, machuca todo mundo.
+  "Tiro": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielTiros.json",
+    "animacoes": { "Estouro": [0] },
+    "animacaoInicial": "Estouro",
+    "escala": 1.6,
+    "ordemDeDesenho": 90
   }
 }

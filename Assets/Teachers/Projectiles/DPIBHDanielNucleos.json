@@ -1,134 +1,134 @@
 {
  "frames": [
   {
-   "filename": "DPIBHDanielRespostas 0.placeholder",
+   "filename": "DPIBHDanielNucleos 0.placeholder",
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "sourceSize": {
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHDanielRespostas 1.placeholder",
+   "filename": "DPIBHDanielNucleos 1.placeholder",
    "frame": {
-    "x": 50,
+    "x": 24,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "sourceSize": {
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHDanielRespostas 2.placeholder",
+   "filename": "DPIBHDanielNucleos 2.placeholder",
    "frame": {
-    "x": 100,
+    "x": 48,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "sourceSize": {
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHDanielRespostas 3.placeholder",
+   "filename": "DPIBHDanielNucleos 3.placeholder",
    "frame": {
-    "x": 150,
+    "x": 72,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "sourceSize": {
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHDanielRespostas 4.placeholder",
+   "filename": "DPIBHDanielNucleos 4.placeholder",
    "frame": {
-    "x": 200,
+    "x": 96,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "sourceSize": {
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHDanielRespostas 5.placeholder",
+   "filename": "DPIBHDanielNucleos 5.placeholder",
    "frame": {
-    "x": 250,
+    "x": 120,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "sourceSize": {
-    "w": 50,
-    "h": 40
+    "w": 24,
+    "h": 24
    },
    "duration": 120
   }
@@ -136,11 +136,11 @@
  "meta": {
   "app": "gerar_daniel.py",
   "version": "1.0",
-  "image": "DPIBHDanielRespostas.png",
+  "image": "DPIBHDanielNucleos.png",
   "format": "RGBA8888",
   "size": {
-   "w": 300,
-   "h": 40
+   "w": 144,
+   "h": 24
   },
   "scale": "1"
  }

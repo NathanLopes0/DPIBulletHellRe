@@ -76,11 +76,9 @@ namespace {
                                                 "queda", "custo", "estouro", "historia", "titulo", "entrega",
                                                 "daily", "inscrever", "componente", "dividida", "lobisomem",
                                                 "uivo",
-                                                // O Daniel: os dados, os grupos, a fronteira, a explicacao e
-                                                // o sorteio.
-                                                "fonte", "dado", "amostra", "centroide", "convergiu",
-                                                "rotulada", "palpite", "barra", "previsao", "caixa",
-                                                "engano", "roleta", "empurrada",
+                                                // O Daniel: a coleta, as k-medias e o overfitting.
+                                                "fonte", "amostra", "centroide", "convergiu", "outlier",
+                                                "nucleo", "previsao", "decorado", "barra", "caixa",
                                                 // O Michel: a camera escura, a convolucao, a rede e o
                                                 // MaVIlab.
                                                 "objeto", "imagem", "enfeite", "fluxo", "ativacao", "vetor",

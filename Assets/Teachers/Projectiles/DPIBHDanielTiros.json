@@ -21,116 +21,6 @@
     "h": 12
    },
    "duration": 120
-  },
-  {
-   "filename": "DPIBHDanielTiros 1.placeholder",
-   "frame": {
-    "x": 12,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "sourceSize": {
-    "w": 12,
-    "h": 12
-   },
-   "duration": 120
-  },
-  {
-   "filename": "DPIBHDanielTiros 2.placeholder",
-   "frame": {
-    "x": 24,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "sourceSize": {
-    "w": 12,
-    "h": 12
-   },
-   "duration": 120
-  },
-  {
-   "filename": "DPIBHDanielTiros 3.placeholder",
-   "frame": {
-    "x": 36,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "sourceSize": {
-    "w": 12,
-    "h": 12
-   },
-   "duration": 120
-  },
-  {
-   "filename": "DPIBHDanielTiros 4.placeholder",
-   "frame": {
-    "x": 48,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "sourceSize": {
-    "w": 12,
-    "h": 12
-   },
-   "duration": 120
-  },
-  {
-   "filename": "DPIBHDanielTiros 5.placeholder",
-   "frame": {
-    "x": 60,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 12,
-    "h": 12
-   },
-   "sourceSize": {
-    "w": 12,
-    "h": 12
-   },
-   "duration": 120
   }
  ],
  "meta": {
@@ -139,7 +29,7 @@
   "image": "DPIBHDanielTiros.png",
   "format": "RGBA8888",
   "size": {
-   "w": 72,
+   "w": 12,
    "h": 12
   },
   "scale": "1"

@@ -17,14 +17,11 @@ OS PROJETEIS (Assets/Teachers/Projectiles/DPIBHDaniel*), uma folha por assunto:
                                       oco e o cinza, ja imputado
     Fontes     Sensor Planilha Api    de onde os dados vem (enfeite)
     Centroides C0 .. C4               o centroide de cada grupo das k-medias
-    Arvores    A0 A1 A2               as tres arvores do comite (enfeite)
-    Tiros      Estouro Engano Palpite os tiros: o caco do outlier e o da
-               BarraMais BarraMenos   resposta errada, o palpite da caixa-preta,
-               Previsao               as barras do SHAP e o anel da previsao
-    Respostas  CartaA CartaB CartaC   as cartas do sorteio: as letras dos
-               Carta2 Carta3 Carta4   candidatos e os numeros da contagem
-                                      (Chamada::kCartas)
-    Caixa      Caixa                  a caixa-preta sobre o professor (enfeite)
+    Tiros      Estouro                o tiro do leque do professor, sem tipo
+    Nucleos    FogoFechado FogoAberto os tres nucleos do modelo da fase 3 (o
+               AguaFechado AguaAberto overfitting): fechado, a casca cinza com o
+               PlantaFechado          simbolo apagado; aberto, o elemento aceso
+               PlantaAberto
 
 Os monstrinhos sao bichinhos genericos de RPG - uma bolinha com olhos e um
 detalhe do elemento -, de proposito: e so uma piscadela para o professor que
@@ -236,92 +233,48 @@ def centroide(k):
     return im
 
 
-AW, AH = 24, 28
-CORES_DAS_ARVORES = [(150, 230, 150), (240, 200, 120), (170, 190, 255)]
 
-
-def arvore(k):
-    cor = CORES_DAS_ARVORES[k]
-    im = Image.new("RGBA", (AW, AH), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    # Uma arvore de decisao: o no de cima, dois filhos e quatro folhas.
-    d.line([(12, 6), (6, 14), (3, 22)], fill=cor + (255,), width=1)
-    d.line([(6, 14), (9, 22)], fill=cor + (255,), width=1)
-    d.line([(12, 6), (18, 14), (15, 22)], fill=cor + (255,), width=1)
-    d.line([(18, 14), (21, 22)], fill=cor + (255,), width=1)
-    for (x, y, r) in ((12, 5, 3), (6, 14, 2), (18, 14, 2)):
-        d.ellipse([x - r, y - r, x + r, y + r], fill=cor + (255,), outline=escuro(cor))
-    for i, x in enumerate((3, 9, 15, 21)):
-        folha = CORES[0] if i in (0, 3) else CORES[1]
-        d.rectangle([x - 2, 22, x + 2, 26], fill=folha + (255,), outline=escuro(folha))
-    return im
-
-
-# ---- Os tiros ----------------------------------------------------------------------
 
 TW = 12
-TIROS = ["Estouro", "Engano", "Palpite", "BarraMais", "BarraMenos", "Previsao"]
+TIROS = ["Estouro"]
 
 
 def tiro(tipo):
     im = Image.new("RGBA", (TW, TW), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    if tipo == "Estouro":
-        d.polygon([(6, 0), (8, 4), (12, 6), (8, 8), (6, 12), (4, 8), (0, 6), (4, 4)],
-                  fill=(240, 90, 140, 255), outline=(100, 20, 60, 255))
-    elif tipo == "Engano":
-        d.polygon([(1, 2), (10, 1), (11, 6), (6, 11), (2, 8)], fill=(200, 200, 215, 255), outline=(120, 40, 60, 255))
-        d.line([(3, 4), (8, 8)], fill=(220, 60, 80, 255), width=2)
-    elif tipo == "Palpite":
-        d.polygon([(6, 0), (12, 6), (6, 12), (0, 6)], fill=(70, 40, 110, 255), outline=(200, 170, 255, 255))
-        d.rectangle([5, 5, 7, 7], fill=(240, 230, 255, 255))
-    elif tipo == "BarraMais":
-        d.rectangle([0, 2, 11, 9], fill=(255, 90, 90, 255), outline=(110, 20, 20, 255))
-        d.line([(3, 6), (8, 6)], fill=(255, 230, 230, 255))
-        d.line([(6, 4), (6, 8)], fill=(255, 230, 230, 255))
-    elif tipo == "BarraMenos":
-        d.rectangle([0, 2, 11, 9], fill=(80, 150, 255, 255), outline=(20, 40, 110, 255))
-        d.line([(3, 6), (8, 6)], fill=(230, 240, 255, 255))
-    else:  # Previsao
-        d.ellipse([0, 0, 11, 11], fill=AMBAR, outline=(120, 80, 10, 255))
-        d.ellipse([4, 4, 7, 7], fill=(255, 255, 230, 255))
+    # Estouro: a estrela do leque do professor, sem tipo (machuca todo mundo).
+    d.polygon([(6, 0), (8, 4), (12, 6), (8, 8), (6, 12), (4, 8), (0, 6), (4, 4)],
+              fill=(240, 90, 140, 255), outline=(100, 20, 60, 255))
     return im
 
 
-# ---- As cartas do sorteio ------------------------------------------------------------
-# As caras sao as de Chamada::kCartas: as letras dos candidatos e os numeros da contagem. A pergunta
-# e o desenho no campo; a carta so marca a opcao.
-
-CARTAS = ["CartaA", "CartaB", "CartaC", "Carta2", "Carta3", "Carta4"]
-
-RW, RH = 50, 40
+NW = 24
+NUCLEOS = [(e, aberto) for e in ("Fogo", "Agua", "Planta") for aberto in (False, True)]
 
 
-def resposta(nome):
-    im = Image.new("RGBA", (RW, RH), (0, 0, 0, 0))
+def nucleo(especie, aberto):
+    """Um nucleo do modelo: a casca hexagonal e o simbolo do elemento (a chama, a gota, a folha)."""
+    cor = CORES[ESPECIES.index(especie)]
+    im = Image.new("RGBA", (NW, NW), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle([1, 1, RW - 2, RH - 2], radius=8, fill=(244, 238, 218, 255), outline=(150, 110, 50, 255), width=2)
-    d.rounded_rectangle([4, 4, RW - 5, RH - 5], radius=6, outline=(220, 200, 160, 255), width=1)
-    centrado(d, nome[len("Carta"):], RW / 2, RH / 2, fonte(24, True), (40, 30, 20, 255))
+    hexagono = [(12, 1), (22, 6), (22, 17), (12, 22), (2, 17), (2, 6)]
+    if aberto:
+        d.polygon(hexagono, fill=escuro(cor, 0.3), outline=claro(cor, 0.4))
+        d.ellipse([5, 5, 18, 18], fill=cor + (255,), outline=claro(cor, 0.6))
+        simbolo = (255, 250, 230, 255)
+    else:
+        d.polygon(hexagono, fill=(70, 74, 86, 255), outline=(150, 156, 170, 255))
+        d.line([(2, 11), (22, 11)], fill=(110, 116, 130, 255))
+        simbolo = escuro(cor, 0.2)
+    if especie == "Fogo":
+        d.polygon([(9, 16), (8, 11), (11, 6), (12, 9), (14, 7), (15, 12), (14, 16)], fill=simbolo)
+    elif especie == "Agua":
+        d.polygon([(12, 6), (15, 12), (14, 16), (10, 16), (9, 12)], fill=simbolo)
+    else:
+        d.ellipse([8, 8, 16, 15], fill=simbolo)
+        d.line([(8, 16), (14, 9)], fill=escuro(cor) if aberto else (70, 74, 86, 255))
     return im
 
-
-def respostas():
-    return [resposta(n) for n in CARTAS], list(CARTAS)
-
-
-XW, XH = 56, 44
-
-
-def caixa():
-    im = Image.new("RGBA", (XW, XH), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rectangle([1, 1, XW - 2, XH - 2], fill=(12, 12, 16, 245), outline=(90, 80, 120, 255), width=2)
-    centrado(d, "?", XW / 2, XH / 2 - 2, fonte(26, True), (190, 170, 255, 255))
-    return im
-
-
-# ---- Gravar ----------------------------------------------------------------------------
 
 def tira(quadros, w, h, colunas):
     linhas = (len(quadros) + colunas - 1) // colunas
@@ -370,17 +323,13 @@ FONTES = ["Sensor", "Planilha", "Api"]
 
 
 def animacoes():
-    _, nomes = respostas()
     return {
         "Dados": {nome: [i] for i, nome in enumerate(DADOS)},
         "Fontes": {nome: [i] for i, nome in enumerate(FONTES)},
         "Centroides": {f"C{k}": [k] for k in range(len(CORES))},
-        "Arvores": {f"A{k}": [k] for k in range(3)},
         "Tiros": {nome: [i] for i, nome in enumerate(TIROS)},
-        "Respostas": {nome: [i] for i, nome in enumerate(nomes)},
-        "Caixa": {"Caixa": [0]},
+        "Nucleos": {e + ("Aberto" if a else "Fechado"): [i] for i, (e, a) in enumerate(NUCLEOS)},
     }
-
 
 if __name__ == "__main__":
     if "--animacoes" in sys.argv:
@@ -390,8 +339,5 @@ if __name__ == "__main__":
     grava_tira([dado(n) for n in DADOS], "DPIBHDanielDados", DW, DW, len(DADOS))
     grava_tira([fonte_de_dados(q) for q in FONTES], "DPIBHDanielFontes", FW, FH, len(FONTES))
     grava_tira([centroide(k) for k in range(len(CORES))], "DPIBHDanielCentroides", CW, CW, len(CORES))
-    grava_tira([arvore(k) for k in range(3)], "DPIBHDanielArvores", AW, AH, 3)
     grava_tira([tiro(t) for t in TIROS], "DPIBHDanielTiros", TW, TW, len(TIROS))
-    quadros, _ = respostas()
-    grava_tira(quadros, "DPIBHDanielRespostas", RW, RH, len(CARTAS))
-    grava_tira([caixa()], "DPIBHDanielCaixa", XW, XH, 1)
+    grava_tira([nucleo(e, a) for e, a in NUCLEOS], "DPIBHDanielNucleos", NW, NW, len(NUCLEOS))

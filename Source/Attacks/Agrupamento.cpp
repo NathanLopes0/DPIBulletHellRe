@@ -1,51 +1,16 @@
 //
-// A fase 2 do Daniel: os atributos e o aprendizado nao supervisionado.
+// A fase 2 do Daniel: as k-medias.
 //
 
 #include "Agrupamento.h"
 
+#include <array>
 #include <cmath>
 #include <limits>
 
+#include "Tipos.h"
+
 namespace Agrupamento {
-
-    int EtapaNoTempo(const float t) {
-        float fim = 0.0f;
-        for (size_t k = 0; k < kDuracoes.size(); ++k) {
-            fim += kDuracoes[k];
-            if (t < fim) return static_cast<int>(k);
-        }
-        return static_cast<int>(kDuracoes.size()) - 1;
-    }
-
-    Eixo ComponentePrincipal(const std::vector<Vector2>& ps) {
-        Eixo e{Vector2::Zero, Vector2(1.0f, 0.0f)};
-        if (ps.empty()) return e;
-        for (const Vector2& p : ps) e.centro += p;
-        e.centro *= 1.0f / static_cast<float>(ps.size());
-        float sxx = 0.0f, syy = 0.0f, sxy = 0.0f;
-        for (const Vector2& p : ps) {
-            const Vector2 d = p - e.centro;
-            sxx += d.x * d.x;
-            syy += d.y * d.y;
-            sxy += d.x * d.y;
-        }
-        if (std::fabs(sxx - syy) < 1e-6f && std::fabs(sxy) < 1e-6f) return e;
-        // O autovetor do maior autovalor da covariancia, em duas dimensoes, sai do angulo duplo.
-        const float a = 0.5f * Math::Atan2(2.0f * sxy, sxx - syy);
-        e.direcao = Vector2(Math::Cos(a), Math::Sin(a));
-        return e;
-    }
-
-    Vector2 Projetar(const Eixo& e, const Vector2 p) {
-        return e.centro + e.direcao * Vector2::Dot(p - e.centro, e.direcao);
-    }
-
-    Vector2 Girar(const Vector2 p, const Vector2 centro, const float graus) {
-        const float a = Math::ToRadians(graus), c = Math::Cos(a), s = Math::Sin(a);
-        const Vector2 d = p - centro;
-        return centro + Vector2(d.x * c - d.y * s, d.x * s + d.y * c);
-    }
 
     int MaisPerto(const std::vector<Vector2>& centroides, const Vector2 p) {
         int melhor = -1;
@@ -68,76 +33,92 @@ namespace Agrupamento {
     }
 
     std::vector<Vector2> Atualizar(const std::vector<Vector2>& pontos, const std::vector<int>& grupos,
-                                   const std::vector<Vector2>& centroides, const std::vector<Vector2>& alunos,
-                                   const float pesoDoAluno) {
+                                   const std::vector<Vector2>& centroides, const std::vector<Vector2>& pesados,
+                                   const float peso) {
         std::vector<Vector2> soma(centroides.size(), Vector2::Zero);
-        std::vector<float> peso(centroides.size(), 0.0f);
+        std::vector<float> total(centroides.size(), 0.0f);
         for (size_t k = 0; k < pontos.size() && k < grupos.size(); ++k) {
             const int g = grupos[k];
             if (g < 0 || g >= static_cast<int>(centroides.size())) continue;
             soma[static_cast<size_t>(g)] += pontos[k];
-            peso[static_cast<size_t>(g)] += 1.0f;
+            total[static_cast<size_t>(g)] += 1.0f;
         }
-        for (const Vector2& a : alunos) {
+        for (const Vector2& a : pesados) {
             const int g = MaisPerto(centroides, a);
-            if (g < 0 || pesoDoAluno <= 0.0f) continue;
-            soma[static_cast<size_t>(g)] += a * pesoDoAluno;
-            peso[static_cast<size_t>(g)] += pesoDoAluno;
+            if (g < 0 || peso <= 0.0f) continue;
+            soma[static_cast<size_t>(g)] += a * peso;
+            total[static_cast<size_t>(g)] += peso;
         }
         std::vector<Vector2> novos = centroides;
         for (size_t i = 0; i < novos.size(); ++i) {
-            if (peso[i] > 0.0f) novos[i] = soma[i] * (1.0f / peso[i]);
+            if (total[i] > 0.0f) novos[i] = soma[i] * (1.0f / total[i]);
         }
         return novos;
     }
 
-    float Inercia(const std::vector<Vector2>& pontos, const std::vector<int>& grupos,
-                  const std::vector<Vector2>& centroides) {
-        float soma = 0.0f;
-        for (size_t k = 0; k < pontos.size() && k < grupos.size(); ++k) {
-            const int g = grupos[k];
-            if (g < 0 || g >= static_cast<int>(centroides.size())) continue;
-            soma += (pontos[k] - centroides[static_cast<size_t>(g)]).LengthSq();
+    int TipoDoGrupo(const std::vector<int>& tipos, const std::vector<int>& grupos, const int g) {
+        std::array<int, Tipos::kTipos> votos{};
+        int algum = 0;
+        for (size_t k = 0; k < tipos.size() && k < grupos.size(); ++k) {
+            if (grupos[k] != g || tipos[k] < 0 || tipos[k] >= Tipos::kTipos) continue;
+            ++votos[static_cast<size_t>(tipos[k])];
+            ++algum;
         }
-        return soma;
+        if (algum == 0) return -1;
+        int melhor = 0;
+        for (int t = 1; t < Tipos::kTipos; ++t) {
+            if (votos[static_cast<size_t>(t)] > votos[static_cast<size_t>(melhor)]) melhor = t;
+        }
+        return melhor;
     }
 
-    std::vector<Vector2> Celula(const std::vector<Vector2>& centroides, const int i, const Vector2 de, const Vector2 ate) {
-        if (i < 0 || i >= static_cast<int>(centroides.size())) return {};
-        std::vector<Vector2> poligono = {de, Vector2(ate.x, de.y), ate, Vector2(de.x, ate.y)};
-        const Vector2 ci = centroides[static_cast<size_t>(i)];
-        for (size_t j = 0; j < centroides.size() && !poligono.empty(); ++j) {
-            if (static_cast<int>(j) == i) continue;
-            const Vector2 cj = centroides[j];
-            const Vector2 normal = cj - ci;
-            if (normal.LengthSq() < 1e-8f) continue;
-            const Vector2 meio = (ci + cj) * 0.5f;
-            // Fica o lado de ci: (p - meio) . normal <= 0. Sutherland-Hodgman, uma aresta por vez.
-            const auto dentro = [&](const Vector2& p) { return Vector2::Dot(p - meio, normal) <= 0.0f; };
-            std::vector<Vector2> cortado;
-            for (size_t k = 0; k < poligono.size(); ++k) {
-                const Vector2 a = poligono[k], b = poligono[(k + 1) % poligono.size()];
-                const bool da = dentro(a), db = dentro(b);
-                if (da) cortado.push_back(a);
-                if (da != db) {
-                    const float fa = Vector2::Dot(a - meio, normal), fb = Vector2::Dot(b - meio, normal);
-                    const float u = fa / (fa - fb);
-                    cortado.push_back(a + (b - a) * u);
+    std::vector<Vector2> Sementes(const std::vector<Vector2>& pontos, const int k, Variacao::Sorteio& s) {
+        std::vector<Vector2> v;
+        if (pontos.empty() || k <= 0) return v;
+        v.push_back(pontos[static_cast<size_t>(s.Inteiro(0, static_cast<int>(pontos.size()) - 1))]);
+        while (static_cast<int>(v.size()) < k) {
+            size_t melhor = 0;
+            float maisLonge = -1.0f;
+            for (size_t i = 0; i < pontos.size(); ++i) {
+                float perto = std::numeric_limits<float>::max();
+                for (const Vector2& c : v) perto = std::min(perto, (pontos[i] - c).LengthSq());
+                if (perto > maisLonge) {
+                    maisLonge = perto;
+                    melhor = i;
                 }
             }
-            poligono = std::move(cortado);
+            v.push_back(pontos[melhor]);
         }
-        return poligono;
+        return v;
+    }
+
+    Vector2 LugarDoOutlier(const std::vector<Vector2>& centroides, const Vector2 de, const Vector2 ate,
+                           Variacao::Sorteio& s) {
+        Vector2 melhor = (de + ate) * 0.5f;
+        float maisLonge = -1.0f;
+        for (int k = 0; k < 12; ++k) {
+            const Vector2 p(s.Real(de.x, ate.x), s.Real(de.y, ate.y));
+            float perto = std::numeric_limits<float>::max();
+            for (const Vector2& c : centroides) perto = std::min(perto, (p - c).LengthSq());
+            if (centroides.empty()) perto = 0.0f;
+            if (perto > maisLonge) {
+                maisLonge = perto;
+                melhor = p;
+            }
+        }
+        return melhor;
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
-        d.pontos = 66;
-        d.entreIteracoes = 0.95f;
-        d.pesoDoAluno = 13.0f;
-        d.giroDoEixo = 270.0f;
-        d.tirosDoAnel = 16;
+        d.entreIteracoes = 1.25f;
+        d.tirosDoAnel = 28;
+        d.velocidadeDoAnel = 135.0f;
+        d.entreOutliers = 1.0f;
+        d.maisOutliers = 6;
+        d.entreLeques = 1.4f;
+        d.tirosDoLeque = 8;
         return d;
     }
 }

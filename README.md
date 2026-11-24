@@ -777,62 +777,41 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   Ponto Extra limpa a tela, e o escalonador, a memória, o disco e a nuvem
   continuam.
 - **Daniel — INF 425, optativa.** Ciência de Dados, a primeira optativa — e mais
-  difícil que as obrigatórias. O catálogo é o dos **monstrinhos** (o x do
-  gráfico é o ataque, o y a defesa), e as espécies são fogo, água e planta. No
-  começo da batalha, três monstrinhos esperam longe de onde você nasce — um em
-  cada lado e um no alto, numa ordem que muda a cada aula: **fique em cima de
-  um até o arco dele fechar e ele é o seu tipo até o fim** — *"eu escolho
-  você!"* —, com o selo ao seu lado. O tipo
-  vale contra todo tiro com tipo: o do seu passa por você, o do tipo que você
-  vence você **absorve** (super efetivo: vale um pouco de nota), e o do tipo
-  que vence o seu machuca. Na **preparação**, o campo é um gráfico de
-  dispersão: os dados voam das fontes (o sensor, a planilha e a API) até o
-  lugar deles e ficam; o z-score acha o outlier, que estoura, e o nulo é
-  imputado — voa até a média. **E você também é um dado** da sua espécie: a
-  elipse dela fica no campo, e o z-score procura você na limpeza e depois de
-  cada transformação; quem está fora dela é o outlier, e estoura. Depois o
-  gráfico inteiro se **transforma** de uma vez: o min-max espreme tudo na caixa
-  do canto em que **você** está, e a padronização abre tudo em volta do meio —
-  antes de cada uma, uma seta sai de cada dado até onde ele vai parar, e quem
-  joga olha para onde os pontos **vão** (e anda junto com a sua espécie). Nos
-  **atributos e grupos**, a PCA projeta a nuvem na componente principal, e a
-  fileira que sobra **gira** em volta da média, varrendo o campo; nas
-  **k-médias**, o campo vira o Voronoi dos centróides, e você também é um ponto
-  — pesado: o centróide da sua célula vem para cima de você, e atravessar a
-  fronteira troca quem persegue. No **supervisionado**, a fronteira de decisão
-  divide o campo em classes, e a amostra cai com a classe do lugar de onde
-  sai: o placar diz se a próxima rajada passa, se é para absorver ou se é
-  para desviar. As rajadas vêm uma classe por vez (o anel do professor já
-  mostra a próxima), e os dados de treino **nascem na fronteira** e são
-  empurrados, balançando, para o lado da classe deles — o lado em que você fica
-  decide se o que vem machuca ou vale nota. Mas os rótulos têm **ruído**: uma
-  parte sai com a classe do outro lado (no perceptron, tantas quantas ele errou
-  na época), e do lado bom é essa que machuca. E a fronteira muda: no
-  perceptron, uma reta que aprende com os erros (a nova aparece tracejada antes
-  de valer); no **comitê**, três árvores de decisão votam, e o campo vira uma
-  colcha que muda quando uma árvore é replantada. O exame é a
-  **explicabilidade**: na caixa-preta, cada dúvida que acerta o professor é uma
-  pergunta, e quanto mais perguntas, mais cedo a linha de cada palpite aparece
-  — na cor do tipo dele: o placar diz se o palpite passa, se é para absorver ou
-  se é para desviar.
-  No **SHAP**, a previsão desce em cascata — uma faixa de tiros por atributo,
-  cada uma começando onde a anterior acabou —, mas o modelo **errou**: o valor
-  real está marcado em dourado no chão, e um ou dois atributos empurram f(x)
-  para longe dele. O seu tiro atravessa as faixas; só a **ponta** de cada barra
-  cai, e derrubá-la tira o atributo: a cascata se refaz sem ele. Levar f(x) até
-  o dourado explica a previsão (vale nota, e as faixas somem); se o tempo
-  acabar, a previsão estoura num anel e as faixas caem como cortina. E o
-  professor **sorteia** quem explica a aula passada: no começo das fases 2, 3 e
-  da final, uma roleta passa pelos nomes da turma; se para num colega, ele
-  explica; se para em você, a pergunta aparece no placar e o **desenho** dela
-  no campo — o dado que não combina, a cor trocada, quantos grupos há, o
-  centróide, a reta que separa as cores, o grupo do ponto cinza. Não é de
-  decorar, é de olhar: as três cartas ficam no desenho, presas aos candidatos;
-  derrubar a certa vale nota, a errada estoura em cacos, e enquanto a pergunta
-  está aberta o professor só espera a resposta. Enquanto a turma espera, a
-  **roda dos tipos** gira: três braços, um de cada tipo, saem do professor
-  girando — cada aula para um lado — e soltam espirais de monstrinhos; o do seu
-  tipo passa, o que você vence você absorve, e o que vence o seu machuca.
+  difícil que as obrigatórias. O campo é um laboratório de dados: um gráfico de
+  dispersão (o x é o ataque, o y a defesa), e os dados são **monstrinhos** de
+  fogo, água e planta. No começo, três esperam longe de onde você nasce: **fique
+  em cima de um até o anel dele fechar e ele é o seu tipo até o fim** — o
+  elemento explode, e o selo fica ao seu lado. O triângulo (fogo vence planta,
+  planta vence água, água vence fogo) fica desenhado no canto, e vale nos dois
+  sentidos: o tiro do seu tipo passa por você, o do tipo que você vence você
+  **absorve** (vale um pouco de nota), o do que vence o seu machuca; e o **seu**
+  tiro tira o dobro do que você vence e a metade do que te vence. Cada elemento
+  tem o seu efeitinho — a fagulha que sobe, a gota que cai, a folha que gira —,
+  e eles contam o que aconteceu sem uma palavra: ao escolher, ao absorver, ao
+  atravessar um do seu tipo, no rastro do seu tiro, no acerto com vantagem (o
+  elemento explode, com um anel branco) e na resistência (só um arco cinza). A
+  **coleta**: os dados voam das fontes (o sensor, a planilha e a API) e pousam no
+  gráfico, cada espécie na sua região, e as ondas ensinam o triângulo na ordem —
+  primeiro só os que você absorve, depois só os do seu tipo, depois só os que
+  te vencem, e por fim todos misturados; parte deles é "medida" em você e passa
+  por onde você estava. Nas **k-médias**, os pontos da coleta viram três grupos:
+  a cada iteração, a linha de cada ponto até o centróide mais perto e o
+  centróide deslizando até a média — e cada grupo atira um anel no tipo da
+  maioria dele, que sai devagar e acelera. Depois chegam os **outliers**, que
+  pousam longe de tudo e puxam um centróide para fora (a linha vermelha mostra
+  qual); derrubá-los conserta o grupo. No **overfitting**, o próprio professor
+  treina um modelo com os seus passos: os pontos brancos são os dados de
+  treino, e a curva passa exatamente por todos eles, cheia de voltas. Os três
+  **núcleos** do modelo, um de cada tipo, giram em volta dele e atiram juntos
+  para onde você estava indo, e também no lugar por onde você mais passou (a
+  mira aparece antes) — quem muda o caminho faz o modelo errar. Um núcleo abre
+  por vez; o fechado só faz "tim". Na **validação**, o modelo não generaliza: a
+  curva treme e fica vermelha, e o professor — que não gosta de overfitting —
+  risca o modelo com um X; a curva se desfaz em pedaços, os tiros do modelo
+  param e os três núcleos ficam abertos: quebrá-los vale muita nota, e o tipo
+  certo quebra em metade do tempo. O exame é o **conjunto de teste**: dados que
+  o modelo nunca viu, vindo das laterais, e as espécies morando em outros
+  lugares do gráfico — a distribuição mudou.
 - **Michel — INF 429, optativa.** Visão Computacional, do
   professor que lidera o MaVIlab — uma optativa que pede
   menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do

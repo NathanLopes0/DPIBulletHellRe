@@ -403,18 +403,14 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Paginacao.h
         Source/Attacks/Disco.cpp
         Source/Attacks/Disco.h
-        Source/Attacks/Preparacao.cpp
-        Source/Attacks/Preparacao.h
         Source/Attacks/Agrupamento.cpp
         Source/Attacks/Agrupamento.h
-        Source/Attacks/Classificacao.cpp
-        Source/Attacks/Classificacao.h
-        Source/Attacks/Explicacao.cpp
-        Source/Attacks/Explicacao.h
-        Source/Attacks/Chamada.cpp
-        Source/Attacks/Chamada.h
         Source/Attacks/Tipos.cpp
         Source/Attacks/Tipos.h
+        Source/Attacks/Ecossistema.cpp
+        Source/Attacks/Ecossistema.h
+        Source/Attacks/Sobreajuste.cpp
+        Source/Attacks/Sobreajuste.h
         Source/Attacks/CameraEscura.cpp
         Source/Attacks/CameraEscura.h
         Source/Attacks/Convolucao.cpp
@@ -929,18 +925,14 @@ add_executable(dpi_tests
         Source/Attacks/Paginacao.h
         Source/Attacks/Disco.cpp
         Source/Attacks/Disco.h
-        Source/Attacks/Preparacao.cpp
-        Source/Attacks/Preparacao.h
         Source/Attacks/Agrupamento.cpp
         Source/Attacks/Agrupamento.h
-        Source/Attacks/Classificacao.cpp
-        Source/Attacks/Classificacao.h
-        Source/Attacks/Explicacao.cpp
-        Source/Attacks/Explicacao.h
-        Source/Attacks/Chamada.cpp
-        Source/Attacks/Chamada.h
         Source/Attacks/Tipos.cpp
         Source/Attacks/Tipos.h
+        Source/Attacks/Ecossistema.cpp
+        Source/Attacks/Ecossistema.h
+        Source/Attacks/Sobreajuste.cpp
+        Source/Attacks/Sobreajuste.h
         Source/Attacks/CameraEscura.cpp
         Source/Attacks/CameraEscura.h
         Source/Attacks/Convolucao.cpp

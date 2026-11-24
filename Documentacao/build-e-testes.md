@@ -297,21 +297,20 @@ encaixa no sítio ativo e não lê o guia do CRISPR: a parede do genoma o acerta
 cada fita. São três coisas que quem entende a fase faz, e o número dele é o de
 quem só desvia.
 
-Na INF 425, do Daniel, a ordem se inverte no Normal: o `segue` vai melhor que
-o `esquiva`. Sozinho, com as sementes 101 a 103:
+Na INF 425, do Daniel, o `esquiva` vai melhor que o `segue`. Sozinho, com as
+sementes 101 a 103:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 62 a 74 (aprova nas três) | 0 a 76 (aprova em uma) |
-| `esquiva` | 40 a 65 (aprova em duas) | 22 a 67 (aprova em duas) |
+| `segue` | 72 a 77 (aprova nas três) | 30 a 74 (aprova em duas) |
+| `esquiva` | 78 a 88 (aprova nas três) | 84 a 94 (aprova nas três) |
 
-O `esquiva` fica longe do professor e atira menos, e desvia até da amostra que
-poderia absorver (ele só sabe que a do próprio tipo passa). A fase 3 é a que
-mais o acerta (de 2 a 9 vezes): os dados de treino saem da fronteira
-balançando, e uma parte vem com o rótulo trocado. Nenhum dos dois faz
-o que a fase pede: ficar na elipse da espécie quando o z-score varre (cada
-varredura fora dela é um acerto certo), ficar do lado da fronteira que o seu
-tipo vence, responder o sorteio e levar f(x) ao valor real no SHAP.
+A luta é feita de tiros com tipo, e o `esquiva` desvia de todos (ele só sabe
+que o do próprio tipo passa: não absorve nada). O `segue` fica embaixo do
+professor, no caminho dos leques e dos tiros que o modelo da fase 3 manda para
+onde ele estava indo. Nenhum dos dois faz o que a fase pede: absorver o que o
+seu tipo vence, derrubar os outliers e quebrar os núcleos na validação, com o
+tipo certo.
 
 A INF 216, do Lucas Ferreira — a secreta —, é a mais dura de todas, e de
 longe. Sozinho, com as sementes 101 a 103:
