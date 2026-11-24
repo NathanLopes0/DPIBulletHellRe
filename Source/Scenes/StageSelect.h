@@ -14,6 +14,8 @@
 #include <memory>
 #include "../Aluno/Exportacao.h"
 #include "../Curso/MapaDaGrade.h"
+#include "PainelDeMenu.h"
+#include "Battle/LeitorDoMenu.h"
 
 class DrawAnimatedComponent;
 class DrawCaixaComponent;
@@ -302,6 +304,17 @@ private:
     /// Com a borda em false, voltar do ranking com o botao ainda apertado jogava o aluno direto
     /// para a tela de matricula.
     Borda mBordaTrocar{true};
+    /// O START (no computador, o ESC) pergunta se o aluno quer voltar ao menu principal: o painel,
+    /// com o foco no "nao", e o Botao 2 ou o START de novo fecham sem sair.
+    Borda mBordaDoStart{true};
+    Borda mBordaDoNao{true};
+    std::unique_ptr<PainelDeMenu> mPainelDeSaida;
+    std::unique_ptr<LeitorDoMenu> mLeitorDaSaida;
+    bool mPerguntandoSaida = false;
+    int mOpcaoDeSaida = 0;   ///< 0: ficar; 1: voltar ao menu
+    void AbrirASaida();
+    void FecharASaida();
+    void LerASaida(const Uint8* keyState, bool startNovo);
     /// O Botao 4: a troca de aluno(s) (TrocaDeAlunos).
     Borda mBordaTrocarAlunos{true};
 

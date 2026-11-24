@@ -36,6 +36,8 @@
 
 #include "../Motor/CaminhosArquivo.h"
 #include "../Motor/Fontes.h"
+#include "PainelDeMenu.h"
+#include "Battle/LeitorDoMenu.h"
 
 namespace {
     /// A optativa que acabou de ser comprada: a tela volta com a faixa de "matriculado" nela.
@@ -117,7 +119,8 @@ void StageSelect::CriarIdentificacaoNaTela() {
         Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "jogar"},
                         {Painel::Jogador::Um, Painel::Botao::Dois, "dificuldade"},
                         {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"},
-                        Painel::BotaoQuatro(Painel::Jogador::Um, "trocar aluno(s)")},
+                        Painel::BotaoQuatro(Painel::Jogador::Um, "trocar aluno(s)"),
+                        Painel::BotaoDeSistema(Painel::Jogador::Um, Painel::Sistema::Start, "menu")},
                        mGame->JeitoDoRodape()),
         mStageSelectFont.get(), 1100, 34, 22, 255);
     rodape->SetLarguraDeQuebra(1100);
@@ -667,9 +670,20 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
         return;
     }
 
+    // O START (no computador, tambem o ESC): "voltar ao menu principal?".
+    const bool start = Painel::AlgumApertado(keyState, Painel::Sistema::Start) || keyState[SDL_SCANCODE_ESCAPE];
+    const bool startNovo = mBordaDoStart.Bateu(start);
+    if (mPerguntandoSaida) {
+        LerASaida(keyState, startNovo);
+        return;
+    }
+    if (startNovo) {
+        AbrirASaida();
+        return;
+    }
+
     // Voltar e voltar um passo: a escolha da dificuldade, e de la a troca de aluno (a identificacao).
-    const bool trocar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
-                     || keyState[SDL_SCANCODE_ESCAPE];
+    const bool trocar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois);
     if (mBordaTrocar.Bateu(trocar)) {
         mGame->RequestSceneChange(SceneType::EscolhaDaDificuldade);
         return;
@@ -683,6 +697,55 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
 
     HandleSelectionInput(keyState);
 }
+void StageSelect::AbrirASaida() {
+    if (!mPainelDeSaida) {
+        const std::string rodape = Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
+                                                   {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"},
+                                                   {Painel::Jogador::Um, Painel::Botao::Dois, "ficar"}},
+                                                  mGame->JeitoDoRodape());
+        PainelDeMenu::Medidas medidas;
+        medidas.alturaDaPlaca = PainelDeMenu::AlturaPara(1);
+        // \xc3\xa3 e o a til.
+        mPainelDeSaida = std::make_unique<PainelDeMenu>(
+            *this, mStageSelectFont.get(), "MENU PRINCIPAL",
+            std::vector<std::string>{"N\xc3\xa3o, continuar aqui", "Sim, voltar ao menu"}, rodape, 1, medidas);
+        mPainelDeSaida->SetLinhas({"Tem certeza que quer voltar ao menu principal?"});
+        mLeitorDaSaida = std::make_unique<LeitorDoMenu>();
+    }
+    mPerguntandoSaida = true;
+    mOpcaoDeSaida = 0;
+    // Quem vinha segurando o manche ou o botao nao anda no painel por isso.
+    mLeitorDaSaida->Segurar();
+    mBordaDoNao.Segurar();
+    mPainelDeSaida->Selecionar(mOpcaoDeSaida);
+    mPainelDeSaida->Mostrar(true);
+}
+
+void StageSelect::FecharASaida() {
+    mPerguntandoSaida = false;
+    if (mPainelDeSaida) mPainelDeSaida->Mostrar(false);
+    // O Botao 2 que fechou o painel nao volta, no quadro seguinte, para a dificuldade.
+    mBordaTrocar.Segurar();
+}
+
+void StageSelect::LerASaida(const Uint8* keyState, const bool startNovo) {
+    const bool nao = mBordaDoNao.Bateu(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois));
+    if (startNovo || nao) {
+        FecharASaida();
+        return;
+    }
+    const LeitorDoMenu::Batidas b = mLeitorDaSaida->Ler(keyState);
+    if (b.cima || b.baixo) mOpcaoDeSaida = 1 - mOpcaoDeSaida;
+    mPainelDeSaida->Selecionar(mOpcaoDeSaida);
+    if (!b.confirmar) return;
+    if (mOpcaoDeSaida == 1) {
+        mPerguntandoSaida = false;
+        mGame->RequestSceneChange(SceneType::MainMenu);
+        return;
+    }
+    FecharASaida();
+}
+
 void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     size_t currSelected = mSelectedIndex;
@@ -1335,7 +1398,8 @@ void StageSelect::AtualizarRodape(const std::string& acao) const {
         dc->SetText(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, acao},
                                     {Painel::Jogador::Um, Painel::Botao::Dois, "dificuldade"},
                                     {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"},
-                                    Painel::BotaoQuatro(Painel::Jogador::Um, "trocar aluno(s)")},
+                                    Painel::BotaoQuatro(Painel::Jogador::Um, "trocar aluno(s)"),
+                        Painel::BotaoDeSistema(Painel::Jogador::Um, Painel::Sistema::Start, "menu")},
                                    mGame->JeitoDoRodape()));
     }
 }
