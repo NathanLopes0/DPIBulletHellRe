@@ -177,6 +177,11 @@ TEST_CASE("Pareamento: a onda e quase toda da base dominante, as sequencias repe
     CHECK(Perto(p0, V(1000.0f, 500.0f)));
     CHECK(Perto(p1, V(600.0f, 600.0f)));
     CHECK(Perto(NaOrbita(0, 4, Math::Pi, c, raios, 0.5f), p1, 1e-2f));
+
+    // E a elipse do campo fica no quarto de baixo - nem a mais alta sobe para a parede de tiros que
+    // desce -, mas acima de quem esta parado no chao.
+    CHECK(kAlturaDaOrbita - kAchatamentoDaOrbita >= 0.72f);
+    CHECK(kAlturaDaOrbita + kAchatamentoDaOrbita <= 0.86f);
 }
 
 // ---- A dupla helice ----

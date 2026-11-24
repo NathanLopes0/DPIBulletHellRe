@@ -662,13 +662,14 @@ void Sabrina::AtualizarBases(const float deltaTime, const bool rna) {
         for (size_t i = 0; i < mSelos.size(); ++i) mSelos[i].classe = (primeira + 2 * static_cast<int>(i)) % 4;
     }
 
-    // As capsulas de nucleotideo livre giram na metade de baixo.
+    // As capsulas de nucleotideo livre giram rente ao chao (Pareamento::kAlturaDaOrbita).
     if (mCapsulas.empty()) {
         mCapsulas.assign(4, Capsula{});
         for (int k = 0; k < 4; ++k) mCapsulas[static_cast<size_t>(k)].classe = k;
     }
     mOrbita += g.rapidezDaOrbita * deltaTime;
-    const Vector2 centro(c.x + 0.5f * c.w, c.y + 0.69f * c.h), raios(0.38f * c.w, 0.15f * c.h);
+    const Vector2 centro(c.x + 0.5f * c.w, c.y + kAlturaDaOrbita * c.h);
+    const Vector2 raios(kLarguraDaOrbita * c.w, kAchatamentoDaOrbita * c.h);
     for (int k = 0; k < 4; ++k) {
         Capsula& cap = mCapsulas[static_cast<size_t>(k)];
         const Vector2 onde = NaOrbita(k, 4, mOrbita, centro, raios, 1.0f);
