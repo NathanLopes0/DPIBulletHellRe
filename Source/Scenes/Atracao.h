@@ -11,6 +11,7 @@
 #include "Scene.h"
 #include "../Aluno/Exportacao.h"
 #include "../Aluno/Ficha.h"
+#include "../Aluno/Ranking.h"
 #include "../Entrada/Borda.h"
 #include "../Motor/Gabinete.h"
 #include "../Motor/Math.h"
@@ -19,7 +20,8 @@ class DrawComponent;
 class Font;
 
 /// A tela de atracao do gabinete. Um arcade parado num corredor tem um trabalho: convidar quem
-/// passa. Os cartazes se revezam: a chamada, os melhores do curso e o mural dos formados.
+/// passa. Os cartazes se revezam: a chamada, os melhores do curso (no Normal, no Dificil e nas duas
+/// listas de dupla) e o mural dos formados.
 class Atracao : public Scene {
 public:
     explicit Atracao(Game* game);
@@ -50,8 +52,13 @@ private:
 
     Cartaz CriarChamada();
     /// 'dados': as fichas inteiras, de onde sai a personagem de cada um.
+    /// Um cartaz por lista do ranking (Ranking::kListas): Normal, Dificil e as duas em dupla. Vazio se
+    /// ninguem jogou nela.
     Cartaz CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                         const std::vector<Ficha::Dados>& dados);
+                         const std::vector<Ficha::Dados>& dados, Ranking::Lista lista);
+    /// A personagem parada de 'matricula' em (x, y), entrando no cartaz; nada se ela nao tem uma.
+    void Avatar(Cartaz& cartaz, const std::vector<Ficha::Dados>& dados, const std::string& matricula,
+                Vector2 onde, int formatura);
     /// Quem passou no TCC, de capelo, dos mais recentes (Mural.h). Vazio se ninguem se formou.
     Cartaz CriarMural(const std::vector<Exportacao::FichaDeAluno>& fichas, const std::vector<Ficha::Dados>& dados);
 

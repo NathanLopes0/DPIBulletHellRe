@@ -206,6 +206,8 @@ void Game::LoadInitialScene()
             }
             else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);
             else if (mSimulacao.cena == "horas") ChangeScene(Scene::SceneType::Horas);
+            // A atracao do gabinete, com as fichas que estiverem na pasta dos saves.
+            else if (mSimulacao.cena == "atracao") ChangeScene(Scene::SceneType::Atracao);
             // A pagina das mencoes que a matricula nova ve antes da selecao (IrParaASelecao).
             else if (mSimulacao.cena == "comojogar") ChangeScene(Scene::SceneType::ComoJogar);
             else if (mSimulacao.cena == "troca") ChangeScene(Scene::SceneType::TrocaDeAlunos);

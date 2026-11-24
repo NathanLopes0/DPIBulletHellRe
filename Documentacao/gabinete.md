@@ -98,7 +98,7 @@ ela já termina por tempo. A exceção é a batalha **pausada**, que ninguém re
 
 **Do menu a ociosidade leva para a frente**, não de volta: passado o mesmo tempo
 parado no menu principal, entra a **tela de atração** — o título com a chamada,
-os melhores do curso (com a personagem de cada um) e o mural dos formados (quem passou no TCC, de capelo, dos
+os melhores do curso (no Normal, no Difícil e as duplas de cada um, com a personagem de cada aluno) e o mural dos formados (quem passou no TCC, de capelo, dos
 mais recentes), alternando a cada seis segundos. Um cartaz sem ninguém para
 mostrar não entra. Qualquer tecla volta ao menu; não há o que escolher ali,
 então não há botão certo.

@@ -246,9 +246,9 @@ joga o que ainda não alcançou. Quando só um dos dois falta, o cartão da mat�
 diz quem ("J2 precisa passar em INF 110"). Passar jogando em dupla destranca a
 próxima matéria para cada um, como no solo.
 
-Parado no menu, o gabinete entra na tela de atração, que reveza três cartazes:
-a chamada, os melhores do curso — cada um com a sua personagem ao lado da
-matrícula — e o **mural dos formados** — quem passou no
+Parado no menu, o gabinete entra na tela de atração, que reveza os cartazes:
+a chamada, os melhores do curso — no Normal, no Difícil e as melhores duplas
+nos dois, cada um com a sua personagem ao lado da matrícula — e o **mural dos formados** — quem passou no
 TCC, de capelo, dos mais recentes, com a data em que passou.
 
 Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor

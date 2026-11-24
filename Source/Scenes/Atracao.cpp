@@ -62,9 +62,11 @@ void Atracao::Load() {
 
     mCartazes.push_back(CriarChamada());
 
-    // O painel dos melhores e o mural so existem se houver quem mostrar.
-    Cartaz melhores = CriarMelhores(fichas, dados);
-    if (!melhores.empty()) mCartazes.push_back(std::move(melhores));
+    // Os paineis dos melhores (um por lista) e o mural so existem se houver quem mostrar.
+    for (const Ranking::Lista& lista : Ranking::kListas) {
+        Cartaz melhores = CriarMelhores(fichas, dados, lista);
+        if (!melhores.empty()) mCartazes.push_back(std::move(melhores));
+    }
     Cartaz mural = CriarMural(fichas, dados);
     if (!mural.empty()) mCartazes.push_back(std::move(mural));
 
@@ -98,7 +100,7 @@ Atracao::Cartaz Atracao::CriarChamada() {
 }
 
 Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                       const std::vector<Ficha::Dados>& dados) {
+                                       const std::vector<Ficha::Dados>& dados, const Ranking::Lista lista) {
 
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura = static_cast<float>(mGame->GetWindowHeight());
@@ -107,17 +109,30 @@ Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAlun
 
     // A mesma conta do ranking do menu, e pelo mesmo caminho.
     const std::vector<int> contadas = materias.DoGeral();
-    const std::vector<Ranking::Linha> linhas =
-        Ranking::Geral(fichas, contadas, Dificuldade::Nivel::Normal, kQuantasLinhas);
-
+    const bool dupla = lista.modo == Progresso::Modo::Dupla;
+    struct Linha { int posicao; std::string um, dois; float nota; };
+    std::vector<Linha> linhas;
+    if (dupla) {
+        for (const auto& l : Ranking::DuplasGeral(fichas, contadas, lista.nivel, kQuantasLinhas)) {
+            linhas.push_back({l.posicao, l.um, l.dois, l.nota});
+        }
+    } else {
+        for (const auto& l : Ranking::Geral(fichas, contadas, lista.nivel, kQuantasLinhas)) {
+            linhas.push_back({l.posicao, l.matricula, "", l.nota});
+        }
+    }
     if (linhas.empty()) return {};
 
     Cartaz cartaz;
 
-    cartaz.push_back(Texto("MELHORES DO CURSO", largura / 2.0f, altura * 0.14f,
-                           44, 900, Color::White));
-    cartaz.push_back(Texto("media das melhores notas no Normal, sobre as "
-                           + std::to_string(contadas.size()) + " materias",
+    const bool dificil = lista.nivel == Dificuldade::Nivel::Dificil;
+    // \xc3\xad e o i agudo.
+    const std::string titulo = std::string(dupla ? "MELHORES DUPLAS" : "MELHORES DO CURSO") +
+                               (dificil ? " \xc2\xb7 DIF\xc3\x8d" "CIL" : "");
+    cartaz.push_back(Texto(titulo, largura / 2.0f, altura * 0.14f, 44, 1000, dificil ? Color::LightPink : Color::White));
+    cartaz.push_back(Texto("media das melhores notas " + std::string(dupla ? "em dupla " : "") + "no " +
+                               (dificil ? "Dif\xc3\xad" "cil" : "Normal") + ", sobre as " +
+                               std::to_string(contadas.size()) + " materias",
                            largura / 2.0f, altura * 0.21f, 22, 1100, Color::LightBlue));
 
     constexpr float kPrimeira = 0.32f;
@@ -130,36 +145,46 @@ Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAlun
     for (size_t i = 0; i < linhas.size(); ++i) {
 
         const float y = altura * (kPrimeira + kEspaco * static_cast<float>(i));
-        const Ranking::Linha& l = linhas[i];
+        const Linha& l = linhas[i];
 
-        cartaz.push_back(Texto(std::to_string(l.posicao) + ".", largura * 0.31f, y,
+        cartaz.push_back(Texto(std::to_string(l.posicao) + ".", largura * (dupla ? 0.25f : 0.31f), y,
                                32, 90, Color::White));
-
-        // A personagem de quem esta ali, parada: numa lista, seis andando distrairiam do que ela diz.
-        for (const Ficha::Dados& d : dados) {
-            if (d.matricula != l.matricula || d.aparencia.Vazia()) continue;
-            const bool formado = formatura >= 0 && d.progresso.Aprovado(formatura);
-            const Personagens::Composta c = Personagens::Compor(mGame, catalogo, d.aparencia, formado);
-            if (!c.ok) break;
-            auto ator = std::make_unique<Actor>(this);
-            ator->SetPosition(Vector2(largura * 0.375f, y));
-            ator->SetScale(kEscalaNosMelhores);
-            auto* desenho = ator->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, 100);
-            desenho->AddAnimation("Parado", {0});
-            desenho->SetAnimation("Parado");
-            cartaz.push_back(desenho);
-            AddActor(std::move(ator));
-            break;
+        if (dupla) {
+            Avatar(cartaz, dados, l.um, Vector2(largura * 0.30f, y), formatura);
+            Avatar(cartaz, dados, l.dois, Vector2(largura * 0.335f, y), formatura);
+            cartaz.push_back(Texto(Matricula::ParaExibir(l.um) + " + " + Matricula::ParaExibir(l.dois),
+                                   largura * 0.50f, y, 30, 420, Color::White));
+        } else {
+            Avatar(cartaz, dados, l.um, Vector2(largura * 0.375f, y), formatura);
+            cartaz.push_back(Texto(Matricula::ParaExibir(l.um), largura * 0.50f, y, 32, 240, Color::White));
         }
-
-        cartaz.push_back(Texto(Matricula::ParaExibir(l.matricula), largura * 0.50f, y,
-                               32, 240, Color::White));
         // Sem dourado por nota cheia aqui, e sem verde de aprovacao.
-        cartaz.push_back(Texto(ComDuasCasas(l.nota), largura * 0.64f, y, 32, 200,
+        cartaz.push_back(Texto(ComDuasCasas(l.nota), largura * (dupla ? 0.69f : 0.64f), y, 32, 200,
                                l.posicao == 1 ? Color::Gold : Color::White));
     }
 
     return cartaz;
+}
+
+void Atracao::Avatar(Cartaz& cartaz, const std::vector<Ficha::Dados>& dados, const std::string& matricula,
+                     const Vector2 onde, const int formatura) {
+    // A personagem de quem esta ali, parada: numa lista, seis andando distrairiam do que ela diz.
+    const Personagens::Catalogo& catalogo = Personagens::Carregado();
+    for (const Ficha::Dados& d : dados) {
+        if (d.matricula != matricula || d.aparencia.Vazia()) continue;
+        const bool formado = formatura >= 0 && d.progresso.Aprovado(formatura);
+        const Personagens::Composta c = Personagens::Compor(mGame, catalogo, d.aparencia, formado);
+        if (!c.ok) return;
+        auto ator = std::make_unique<Actor>(this);
+        ator->SetPosition(onde);
+        ator->SetScale(kEscalaNosMelhores);
+        auto* desenho = ator->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, 100);
+        desenho->AddAnimation("Parado", {0});
+        desenho->SetAnimation("Parado");
+        cartaz.push_back(desenho);
+        AddActor(std::move(ator));
+        return;
+    }
 }
 
 Atracao::Cartaz Atracao::CriarMural(const std::vector<Exportacao::FichaDeAluno>& fichas,
