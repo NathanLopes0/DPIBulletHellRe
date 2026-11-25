@@ -60,9 +60,6 @@ public:
     void AoTerminarABatalha() override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -81,19 +78,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram. 'quantos', 'centro'
-    /// (graus), 'abertura' (graus) e 'velocidade' trocam o que fases.json diz, quando dados.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
     /// O primeiro que nasceu, ja com a cara. Com 'velocidade', nasce andando.
     BossProjectile* Um(const char* gatilho, Vector2 onde, const std::string& cara,
                        std::optional<Vector2> velocidade = std::nullopt);
@@ -109,12 +93,6 @@ private:
     std::vector<BossProjectile*> Leque(const char* gatilho, int quantos, float abertura, float velocidade,
                                        const std::string& cara);
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
-    static void MatarTodos(std::vector<BossProjectile*>& ps);
-    static void Cara(BossProjectile* p, const std::string& cara);
-    static void Parar(BossProjectile* p);
-    static void Andar(BossProjectile* p, Vector2 velocidade);
     [[nodiscard]] static Vector2 VelocidadeDe(const BossProjectile* p);
     [[nodiscard]] std::vector<Player*> Jogadores() const;
     [[nodiscard]] static float RaioDe(const Player* aluno);
@@ -137,7 +115,6 @@ private:
     void DesmontarEtapa();
     void Desmontar();
 
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 82;
     /// O chao do jogo de plataforma vai embaixo de tudo o que a HUD do campo mostra (o placar e 60).
     DrawLinhasComponent* mLinhasDoChao = nullptr;
@@ -145,10 +122,6 @@ private:
     /// O contador de FPS e um overlay: vai por cima de tudo, o cartao do professor inclusive.
     DrawLinhasComponent* mLinhasDoContador = nullptr;
     static constexpr int kOrdemDoContador = 160;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
-    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16);
-    void Retangulo(Vector2 de, Vector2 ate, SDL_Color cor);
     void Preencher(Vector2 de, Vector2 ate, SDL_Color cor);
     void Seta(Vector2 de, Vector2 ate, SDL_Color cor);
     /// A seta grossa da virada da gravidade, no meio do campo.

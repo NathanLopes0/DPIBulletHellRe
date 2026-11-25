@@ -33,8 +33,6 @@ public:
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -81,12 +79,9 @@ private:
     /// Varre a linha ou a coluna 'indice' (gatilho da selecao ou da projecao).
     void Varrer(const char* gatilho, int indice, float aviso, float velocidade);
 
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
     int mIndiceDaConsulta = 0;
     float mAvisoDaConsulta = 1.0f;
     float mVelocidadeDaConsulta = 700.0f;
-    std::vector<BossProjectile*> mCriados;
 
     // ---- A fase 1: o select ----
 

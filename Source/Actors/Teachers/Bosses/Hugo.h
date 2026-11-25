@@ -96,7 +96,6 @@ private:
     float mRumoDoDisparo = 90.0f;
     std::vector<BossProjectile*> mDisparados;
 
-    DrawLinhasComponent* mLinhas = nullptr;
     void CriarLinhas();
 
     std::string mFase;

@@ -35,9 +35,6 @@ public:
     void AoTerminarABatalha() override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -64,12 +61,6 @@ private:
                                             std::optional<float> abertura = std::nullopt,
                                             float rapidez = 1.0f);
 
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::vector<BossProjectile*> mCriados;
 
     /// O angulo, em graus, de 'de' ate o aluno.
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
@@ -77,9 +68,6 @@ private:
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;
 
-    /// As linhas do campo - a busca do nome, a chamada de f, a conta -, limpas a cada quadro e
-    /// redesenhadas por quem estiver rodando.
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
 
     // ---- A fase 1: as amarracoes ----

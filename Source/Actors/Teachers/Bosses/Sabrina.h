@@ -42,9 +42,6 @@ public:
     void AoTerminarABatalha() override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -59,19 +56,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram. 'quantos', 'centro'
-    /// (graus), 'abertura' (graus) e 'velocidade' trocam o que fases.json diz, quando dados.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
 
     /// O primeiro que nasceu, ja com a cara. Com 'velocidade', nasce andando.
     BossProjectile* Um(const char* gatilho, Vector2 onde, const std::string& cara,
@@ -85,10 +69,6 @@ private:
 
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
     [[nodiscard]] static float AnguloAte(Vector2 de, Vector2 para);
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
-    static void Cara(BossProjectile* p, const std::string& cara);
-    static void Parar(BossProjectile* p);
     static void Mover(BossProjectile* p, Vector2 onde, Vector2 velocidade);
     [[nodiscard]] std::vector<Player*> Jogadores() const;
     [[nodiscard]] bool NoCampo(Vector2 p, float folga = 0.0f) const;
@@ -96,12 +76,7 @@ private:
     std::string mFase;
     void Desmontar();
 
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 82;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
-    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16);
-    void Retangulo(Vector2 de, Vector2 ate, SDL_Color cor);
     void Preencher(Vector2 de, Vector2 ate, SDL_Color cor);
     /// O termometro na beirada direita do campo: de 'minima' a 'maxima' graus, cheio ate 'agora'.
     void Termometro(float agora, float minima, float maxima);

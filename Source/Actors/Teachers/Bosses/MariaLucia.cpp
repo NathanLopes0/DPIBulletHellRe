@@ -44,26 +44,6 @@ void MariaLucia::SortearALuta() {
 
 // ---- O que as fases dividem ----
 
-std::vector<BossProjectile*> MariaLucia::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                    const std::optional<float> centro,
-                                                    const std::optional<float> abertura,
-                                                    const std::optional<float> velocidade, const int alvo) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mVelocidadeEm = velocidade;
-    mCriados.clear();
-    Disparar(gatilho, alvo);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    mVelocidadeEm.reset();
-    return mCriados;
-}
-
 BossProjectile* MariaLucia::Um(const char* gatilho, const Vector2 onde, const std::string& cara, const float escala,
                                const std::optional<Vector2> velocidade) {
     std::optional<float> centro, rapidez;
@@ -81,56 +61,9 @@ BossProjectile* MariaLucia::Um(const char* gatilho, const Vector2 onde, const st
     return p;
 }
 
-void MariaLucia::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mCentroEm) params.centralAngle = *mCentroEm;
-    if (mAberturaEm) params.angle = *mAberturaEm;
-    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
-}
-
-void MariaLucia::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                      const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 float MariaLucia::AnguloAte(const Vector2 de, const Vector2 para) const {
     const Vector2 d = para - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-bool MariaLucia::Vivo(const BossProjectile* p) {
-    return p && p->GetState() == ActorState::Active;
-}
-
-void MariaLucia::Matar(BossProjectile*& p) {
-    if (Vivo(p)) p->Kill();
-    p = nullptr;
-}
-
-void MariaLucia::Cara(BossProjectile* p, const std::string& cara) {
-    if (!p || cara.empty()) return;
-    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
-}
-
-void MariaLucia::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
-}
-
-void MariaLucia::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int segmentos) {
-    Vector2 antes(centro.x + raio, centro.y);
-    for (int k = 1; k <= segmentos; ++k) {
-        const float a = Math::TwoPi * static_cast<float>(k) / static_cast<float>(segmentos);
-        const Vector2 agora(centro.x + raio * Math::Cos(a), centro.y + raio * Math::Sin(a));
-        Linha(antes, agora, cor);
-        antes = agora;
-    }
 }
 
 void MariaLucia::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {

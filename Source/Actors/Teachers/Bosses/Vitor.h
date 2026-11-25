@@ -40,9 +40,6 @@ public:
     static constexpr const char* kFaseDoFork = Nuvem::kFaseDoFork;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- O que as fases dividem ----
@@ -54,12 +51,6 @@ private:
                                             std::optional<float> abertura = std::nullopt,
                                             float rapidez = 1.0f);
 
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::vector<BossProjectile*> mCriados;
 
 
     /// Como o aluno anda: a velocidade media dos ultimos instantes, e nao a do quadro.
@@ -79,9 +70,6 @@ private:
     Variacao::Sorteio& Acaso(const std::string& fase);
     std::map<std::string, Variacao::Sorteio> mAcasos;
 
-    /// As linhas do campo, limpas a cada quadro e redesenhadas por quem
-    /// estiver rodando.
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
 
     // ---- A fase 1: os semaforos ----

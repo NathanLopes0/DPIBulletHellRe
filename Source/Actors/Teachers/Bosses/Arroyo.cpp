@@ -39,26 +39,6 @@ void Arroyo::SortearALuta() {
 
 // ---- O que as fases dividem ----
 
-std::vector<BossProjectile*> Arroyo::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                const std::optional<float> centro,
-                                                const std::optional<float> abertura,
-                                                const std::optional<float> velocidade) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mVelocidadeEm = velocidade;
-    mCriados.clear();
-    Disparar(gatilho);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    mVelocidadeEm.reset();
-    return mCriados;
-}
-
 BossProjectile* Arroyo::Um(const char* gatilho, const Vector2 onde, const std::string& cara, const float escala,
                            const std::optional<Vector2> velocidade) {
     std::optional<float> centro, rapidez;
@@ -78,41 +58,9 @@ BossProjectile* Arroyo::Um(const char* gatilho, const Vector2 onde, const std::s
     return p;
 }
 
-void Arroyo::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mCentroEm) params.centralAngle = *mCentroEm;
-    if (mAberturaEm) params.angle = *mAberturaEm;
-    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
-}
-
-void Arroyo::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                  const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 float Arroyo::AnguloAteOAluno(const Vector2 de) const {
     const Vector2 d = PosicaoDoAluno() - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-bool Arroyo::Vivo(const BossProjectile* p) {
-    return p && p->GetState() == ActorState::Active;
-}
-
-void Arroyo::Matar(BossProjectile*& p) {
-    if (Vivo(p)) p->Kill();
-    p = nullptr;
-}
-
-void Arroyo::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
 }
 
 void Arroyo::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
@@ -194,7 +142,7 @@ void Arroyo::AtualizarArvore(const float t) {
         Vector2 rumo(0.0f, 1.0f);
         ApontarParaOAluno(onde, rumo);
         rumo = rumo * mDegrauDaArvore.velocidade;
-        if (BossProjectile* raiz = Um(kGatilhoDoNo, onde, Cara(caso, 0), 1.3f, rumo)) {
+        if (BossProjectile* raiz = Um(kGatilhoDoNo, onde, Recorrencia::Cara(caso, 0), 1.3f, rumo)) {
             raiz->DefinirResistencia(Resistencia(0));
             mNos.push_back(No{raiz, 0, t, rumo, onde});
         }
@@ -224,7 +172,7 @@ void Arroyo::AtualizarArvore(const float t) {
             const float a = base + Math::ToRadians(desvio);
             const float escala = n.nivel + 1 >= Niveis(caso) ? 0.85f : 1.05f;
             const Vector2 v(Math::Cos(a) * rapidez, Math::Sin(a) * rapidez);
-            BossProjectile* filho = Um(kGatilhoDoNo, onde, Cara(caso, n.nivel + 1), escala, v);
+            BossProjectile* filho = Um(kGatilhoDoNo, onde, Recorrencia::Cara(caso, n.nivel + 1), escala, v);
             if (!filho) continue;
             filho->DefinirResistencia(Resistencia(n.nivel + 1));
             seguem.push_back(No{filho, n.nivel + 1, t, v, onde});
@@ -584,16 +532,6 @@ void Arroyo::DesmontarTempera() {
     mMetadeCongelada = -1;
     mSaltos.clear();
     mAvisoDaTemperaAte = -1.0f;
-}
-
-void Arroyo::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int segmentos) {
-    Vector2 antes(centro.x + raio, centro.y);
-    for (int k = 1; k <= segmentos; ++k) {
-        const float a = Math::TwoPi * static_cast<float>(k) / static_cast<float>(segmentos);
-        const Vector2 agora(centro.x + raio * Math::Cos(a), centro.y + raio * Math::Sin(a));
-        Linha(antes, agora, cor);
-        antes = agora;
-    }
 }
 
 void Arroyo::Termometro(const float temperatura) {

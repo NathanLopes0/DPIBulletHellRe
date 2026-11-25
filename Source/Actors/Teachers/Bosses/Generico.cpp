@@ -303,26 +303,6 @@ void Generico::AoTerminarABatalha() {
 
 // ---- O desenho ----
 
-void Generico::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
-}
-
-void Generico::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int lados) {
-    for (int k = 0; k < lados; ++k) {
-        const float a0 = Math::TwoPi * static_cast<float>(k) / static_cast<float>(lados);
-        const float a1 = Math::TwoPi * static_cast<float>(k + 1) / static_cast<float>(lados);
-        Linha(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * raio, centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * raio, cor);
-    }
-}
-
-void Generico::Disco(const Vector2 centro, const float raio, const SDL_Color cor) {
-    // Linhas horizontais, uma por pixel: o disco cheio.
-    for (float dy = -raio; dy <= raio; dy += 1.0f) {
-        const float dx = std::sqrt(std::max(0.0f, raio * raio - dy * dy));
-        Linha(centro + Vector2(-dx, dy), centro + Vector2(dx, dy), cor);
-    }
-}
-
 void Generico::Seta(const Vector2 de, const Vector2 ate, const SDL_Color cor, const float ponta) {
     const Vector2 d = ate - de;
     const float comprimento = d.Length();

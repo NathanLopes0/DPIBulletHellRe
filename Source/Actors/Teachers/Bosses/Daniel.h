@@ -48,9 +48,6 @@ public:
     void AoTerminarABatalha() override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -66,19 +63,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram. 'quantos', 'centro'
-    /// (graus), 'abertura' (graus) e 'velocidade' trocam o que fases.json diz, quando dados.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
 
     /// O primeiro que nasceu, ja com a cara. Com 'velocidade', nasce andando.
     BossProjectile* Um(const char* gatilho, Vector2 onde, const std::string& cara,
@@ -89,11 +73,6 @@ private:
     void Leque(Vector2 de, int quantos, float abertura, float velocidade);
 
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
-    static void Cara(BossProjectile* p, const std::string& cara);
-    static void Parar(BossProjectile* p);
-    static void Andar(BossProjectile* p, Vector2 velocidade);
 
     std::string mFase;
     float mRelogio = 0.0f;
@@ -103,13 +82,11 @@ private:
     /// O professor varre o alto devagar: 'periodo' segundos de um lado ao outro e de volta.
     void Varrer(float t, float amplitude, float periodo);
 
-    // O desenho: o das linhas embaixo dos projeteis, e o dos efeitos por cima.
-    DrawLinhasComponent* mLinhas = nullptr;
+    // O desenho: o das linhas (Boss::mLinhas) embaixo dos projeteis, e o dos efeitos por cima.
     DrawLinhasComponent* mEfeitos = nullptr;
     static constexpr int kOrdemDasLinhas = 82;
     static constexpr int kOrdemDosEfeitos = 99;
     void Linha(Vector2 de, Vector2 ate, SDL_Color cor, bool emCima = false);
-    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
     void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16, bool emCima = false);
     void Disco(Vector2 centro, float raio, SDL_Color cor, bool emCima = false);
     std::vector<EtiquetaDeCodigo*> mEtiquetas;

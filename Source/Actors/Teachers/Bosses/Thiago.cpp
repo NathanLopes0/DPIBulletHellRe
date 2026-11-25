@@ -79,12 +79,7 @@ Vector2 Thiago::LugarDoDado(const int linha, const int coluna) const {
 }
 
 std::vector<BossProjectile*> Thiago::DispararEm(const char* gatilho, const Vector2 onde) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mCriados.clear();
-    Disparar(gatilho);
-    mDisparandoEm = false;
-    return mCriados;
+    return Boss::DispararEm(gatilho, onde);
 }
 
 void Thiago::Varrer(const char* gatilho, const int indice, const float aviso, const float velocidade) {
@@ -905,21 +900,11 @@ void Thiago::OnDerrubou(BossProjectile* qual) {
     }
 }
 
-void Thiago::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                  const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 void Thiago::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // O que o Thiago dispara num lugar nasce nele.
-    if (mDisparandoEm) {
-        params.firePosition = mOndeDisparar;
+    // O que o Thiago dispara num lugar nasce nele (Boss::DispararEm); a consulta leva o resto.
+    if (EmDisparoDirigido()) {
         if (auto* consulta = dynamic_cast<ConsultaAttackParams*>(&params)) {
             consulta->indice = mIndiceDaConsulta;
             consulta->aviso = mAvisoDaConsulta;

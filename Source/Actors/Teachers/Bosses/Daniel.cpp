@@ -199,26 +199,6 @@ void Daniel::Varrer(const float t, const float amplitude, const float periodo) {
 
 // ---- O que as fases dividem ----
 
-std::vector<BossProjectile*> Daniel::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                const std::optional<float> centro,
-                                                const std::optional<float> abertura,
-                                                const std::optional<float> velocidade) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mVelocidadeEm = velocidade;
-    mCriados.clear();
-    Disparar(gatilho);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    mVelocidadeEm.reset();
-    return mCriados;
-}
-
 BossProjectile* Daniel::Um(const char* gatilho, const Vector2 onde, const std::string& cara,
                            const std::optional<Vector2> velocidade) {
     std::optional<float> centro, rapidez;
@@ -256,64 +236,14 @@ void Daniel::Leque(const Vector2 de, const int quantos, const float abertura, co
     SomDoDisparo();
 }
 
-void Daniel::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mCentroEm) params.centralAngle = *mCentroEm;
-    if (mAberturaEm) params.angle = *mAberturaEm;
-    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
-}
-
-void Daniel::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                  const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 float Daniel::AnguloAteOAluno(const Vector2 de) const {
     const Vector2 d = PosicaoDoAluno() - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
 }
 
-bool Daniel::Vivo(const BossProjectile* p) {
-    return p && p->GetState() == ActorState::Active;
-}
-
-void Daniel::Matar(BossProjectile*& p) {
-    if (Vivo(p)) p->Kill();
-    p = nullptr;
-}
-
-void Daniel::Cara(BossProjectile* p, const std::string& cara) {
-    if (!p || cara.empty()) return;
-    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
-}
-
-void Daniel::Parar(BossProjectile* p) {
-    Andar(p, Vector2::Zero);
-}
-
-void Daniel::Andar(BossProjectile* p, const Vector2 velocidade) {
-    if (!p) return;
-    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(velocidade);
-}
-
 void Daniel::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor, const bool emCima) {
     DrawLinhasComponent* onde = emCima ? mEfeitos : mLinhas;
     if (onde) onde->Acrescentar(de, ate, cor);
-}
-
-void Daniel::Tracejada(const Vector2 de, const Vector2 ate, const SDL_Color cor, const float traco) {
-    const Vector2 d = ate - de;
-    const float comprimento = d.Length();
-    if (comprimento < 1.0f) return;
-    const Vector2 u = d * (1.0f / comprimento);
-    for (float s = 0.0f; s < comprimento; s += 2.0f * traco) Linha(de + u * s, de + u * std::min(comprimento, s + traco), cor);
 }
 
 void Daniel::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int lados, const bool emCima) {

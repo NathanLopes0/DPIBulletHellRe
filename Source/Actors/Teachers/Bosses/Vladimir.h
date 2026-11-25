@@ -127,9 +127,6 @@ private:
     std::vector<BossProjectile*> mLexemas;   ///< a ficha de cada token caindo, por indice
     bool mFilaParada = false;            ///< os tokens ja pararam para o parser
 
-    /// As arestas da arvore, e a cabeca da fita: um desenho so, que cada fase
-    /// limpa ao sair.
-    DrawLinhasComponent* mLinhas = nullptr;
     void CriarLinhas();
 
     /// Disparando de um lugar (DispararDe): de onde e para onde sai o que

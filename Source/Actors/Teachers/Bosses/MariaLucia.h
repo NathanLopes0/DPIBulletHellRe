@@ -44,9 +44,6 @@ public:
     static constexpr const char* kFaseDaBala = "StateFinal";
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -62,18 +59,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt,
-                                            int alvo = -1);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
 
     /// O primeiro que nasceu, ja com a cara e a escala. Com 'velocidade', nasce andando (o
     /// WaveAttack poe a do disparo no primeiro quadro do projetil).
@@ -81,16 +66,13 @@ private:
                        std::optional<Vector2> velocidade = std::nullopt);
 
     [[nodiscard]] float AnguloAte(Vector2 de, Vector2 para) const;
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
-    static void Cara(BossProjectile* p, const std::string& cara);
 
     std::string mFase;
     void Desmontar();
 
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 85;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
+    /// Os circulos dela sao mais redondos que o padrao (Boss::Circulo).
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 40) { Boss::Circulo(centro, raio, cor, lados); }
 
     void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
     void PlacarDaFase(const std::string& fase, const std::string& texto);
@@ -158,7 +140,6 @@ private:
         float desde = 0.0f;
     };
     std::vector<Onda> mOndas;
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int segmentos = 40);
 
     struct Decorada {
         BossProjectile* p = nullptr;

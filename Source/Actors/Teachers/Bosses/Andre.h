@@ -32,9 +32,6 @@ public:
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- O que as tres fases dividem ----
@@ -64,11 +61,6 @@ private:
                                             std::optional<float> angulo = std::nullopt,
                                             float rapidez = 1.0f);
 
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mAnguloEm;
-    std::vector<BossProjectile*> mCriados;
 
     std::optional<Vector2> mAlvo;
 
@@ -80,9 +72,6 @@ private:
     /// que o vetor do chao conta os avisos e os cachos.
     float mRelogio = 0.0f;
 
-    /// As linhas do campo - o fluxograma, as chamadas, o ponteiro -, limpas a
-    /// cada quadro e redesenhadas por quem estiver rodando.
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
 
     // ---- O vetor do chao (fases 2 e 3) ----

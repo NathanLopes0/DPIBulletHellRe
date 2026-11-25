@@ -36,9 +36,6 @@ public:
     void OnDerrubou(BossProjectile* qual) override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -53,19 +50,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    /// Dispara 'gatilho' em 'onde' e devolve o que nasceu; 'quantos', 'centro' e 'abertura' (graus)
-    /// e 'velocidade' trocam o que fases.json diz, quando dados.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
     /// Um so, com a cara dada, andando a 'velocidade' (parado sem ela).
     BossProjectile* Um(const char* gatilho, Vector2 onde, const std::string& cara,
                        std::optional<Vector2> velocidade = std::nullopt);
@@ -74,11 +58,6 @@ private:
     /// Um leque mirado no aluno, saindo de 'de'.
     void Leque(const char* gatilho, Vector2 de, int quantos, float abertura, float velocidade);
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
-    static void MatarTodos(std::vector<BossProjectile*>& ps);
-    static void Cara(BossProjectile* p, const std::string& cara);
-    static void Andar(BossProjectile* p, Vector2 velocidade);
     /// Segura no lugar: a peca nao anda nem envelhece (o projetil morre aos 20 s de vida).
     static void Prender(BossProjectile* p, Vector2 onde);
     [[nodiscard]] Dom::Campo CampoPuro() const;
@@ -95,15 +74,12 @@ private:
     /// O professor no alto, de um lado ao outro.
     void Varrer(float t, float amplitude, float periodo);
 
-    // ---- O desenho ----
-    DrawLinhasComponent* mLinhas = nullptr;
+    // ---- O desenho (Boss::Linha e companhia) ----
     static constexpr int kOrdemDasLinhas = 84;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
-    void Retangulo(Vector2 centro, float largura, float altura, SDL_Color cor);
+    /// Os circulos e os tracejados do Lucas sao mais finos que o padrao.
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 20) { Boss::Circulo(centro, raio, cor, lados); }
+    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 10.0f) { Boss::Tracejada(de, ate, cor, traco); }
     void Preencher(Vector2 centro, float largura, float altura, SDL_Color cor);
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 20);
-    void Disco(Vector2 centro, float raio, SDL_Color cor);
-    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 10.0f);
     void Coracao(Vector2 centro, float tamanho, SDL_Color cor);
 
     std::vector<EtiquetaDeCodigo*> mEtiquetas;

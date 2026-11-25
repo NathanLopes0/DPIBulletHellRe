@@ -42,9 +42,6 @@ public:
     void AoTerminarABatalha() override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -59,19 +56,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram. 'quantos', 'centro'
-    /// (graus), 'abertura' (graus) e 'velocidade' trocam o que fases.json diz, quando dados.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
 
     /// O primeiro que nasceu, ja com a cara e a escala. Com 'velocidade', nasce andando (o
     /// WaveAttack poe a do disparo no primeiro quadro do projetil).
@@ -79,19 +63,13 @@ private:
                        std::optional<Vector2> velocidade = std::nullopt);
 
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
-    static void Cara(BossProjectile* p, const std::string& cara);
     /// Leva o projetil 'p' na direcao de 'para', sem passar dele: o cartao que anda ate a vaga.
     static void Levar(BossProjectile* p, Vector2 para, float deltaTime, float rapidez = 9.0f);
 
     std::string mFase;
     void Desmontar();
 
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 82;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
-    void Retangulo(Vector2 centro, float largura, float altura, SDL_Color cor);
     /// Uma faixa grossa: 'linhas' linhas lado a lado, de 'de' a 'ate' em x, na altura 'y'.
     void Faixa(float de, float ate, float y, int linhas, SDL_Color cor);
 

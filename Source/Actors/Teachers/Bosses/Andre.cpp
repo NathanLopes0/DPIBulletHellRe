@@ -169,16 +169,8 @@ int Andre::CasaDoAluno() const {
 
 std::vector<BossProjectile*> Andre::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
                                                const std::optional<float> angulo, const float rapidez) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mAnguloEm = angulo;
-    mCriados.clear();
-    Disparar(gatilho, -1, rapidez);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mAnguloEm.reset();
-    return mCriados;
+    // O disparo dirigido do Boss: o angulo e o centro do leque, e a rapidez vai para o Disparar.
+    return Boss::DispararEm(gatilho, onde, quantos, angulo, std::nullopt, std::nullopt, -1, rapidez);
 }
 
 void Andre::MudarDeLugar(const float de, const float ate, const float y) {
@@ -910,21 +902,3 @@ void Andre::AtualizarProva() {
 
 // Os ganchos do disparo.
 
-void Andre::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-
-    // Todo ataque do Andre e de gatilho: nasce onde ele disse, no numero e na direcao que ele pediu.
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mAnguloEm) params.centralAngle = *mAnguloEm;
-}
-
-void Andre::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                 const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}

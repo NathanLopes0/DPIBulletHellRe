@@ -121,30 +121,10 @@ void Vitor::AoTerminarABatalha() {
 }
 
 std::vector<BossProjectile*> Vitor::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                              const std::optional<float> centro,
-                                              const std::optional<float> abertura,
-                                              const float rapidez) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mCriados.clear();
-    Disparar(gatilho, -1, rapidez);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    return mCriados;
-}
-
-void Vitor::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                 const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
+                                  const std::optional<float> centro,
+                                  const std::optional<float> abertura, const float rapidez) {
+    // O disparo dirigido do Boss, com o fator de rapidez do Disparar no lugar da velocidade.
+    return Boss::DispararEm(gatilho, onde, quantos, centro, abertura, std::nullopt, -1, rapidez);
 }
 
 void Vitor::AcompanharOAluno(const float deltaTime) {
@@ -847,18 +827,6 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
 
     const char* cara = Nuvem::Processando(mChuva) ? Nuvem::kCaraProcessando : Nuvem::kCaraOciosa;
     for (BossProjectile* nuvem : Nuvens()) PorCara(nuvem, cara);
-}
-
-void Vitor::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-
-    Boss::CustomizeAttackParams(params, stateName);
-
-    if (mDisparandoEm) {
-        params.firePosition = mOndeDisparar;
-        if (mQuantos > 0) params.numProjectiles = mQuantos;
-        if (mCentroEm) params.centralAngle = *mCentroEm;
-        if (mAberturaEm) params.angle = *mAberturaEm;
-    }
 }
 
 // A final: o jantar dos filosofos.

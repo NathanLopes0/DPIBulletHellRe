@@ -56,26 +56,6 @@ void Michel::SortearALuta() {
 
 // ---- O que as fases dividem ----
 
-std::vector<BossProjectile*> Michel::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                const std::optional<float> centro,
-                                                const std::optional<float> abertura,
-                                                const std::optional<float> velocidade) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mVelocidadeEm = velocidade;
-    mCriados.clear();
-    Disparar(gatilho);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    mVelocidadeEm.reset();
-    return mCriados;
-}
-
 BossProjectile* Michel::Um(const char* gatilho, const Vector2 onde, const std::string& cara,
                            const std::optional<Vector2> velocidade) {
     std::optional<float> centro, rapidez;
@@ -93,25 +73,6 @@ BossProjectile* Michel::Um(const char* gatilho, const Vector2 onde, const std::s
     return p;
 }
 
-void Michel::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mCentroEm) params.centralAngle = *mCentroEm;
-    if (mAberturaEm) params.angle = *mAberturaEm;
-    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
-}
-
-void Michel::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                  const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 float Michel::AnguloAteOAluno(const Vector2 de) const {
     return AnguloAte(de, PosicaoDoAluno());
 }
@@ -119,25 +80,6 @@ float Michel::AnguloAteOAluno(const Vector2 de) const {
 float Michel::AnguloAte(const Vector2 de, const Vector2 para) {
     const Vector2 d = para - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-bool Michel::Vivo(const BossProjectile* p) {
-    return p && p->GetState() == ActorState::Active;
-}
-
-void Michel::Matar(BossProjectile*& p) {
-    if (Vivo(p)) p->Kill();
-    p = nullptr;
-}
-
-void Michel::Cara(BossProjectile* p, const std::string& cara) {
-    if (!p || cara.empty()) return;
-    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
-}
-
-void Michel::Parar(BossProjectile* p) {
-    if (!p) return;
-    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
 }
 
 void Michel::Mover(BossProjectile* p, const Vector2 onde, const Vector2 velocidade) {
@@ -161,28 +103,6 @@ std::vector<Vector2> Michel::Alunos() const {
 bool Michel::NoCampo(const Vector2 p, const float folga) const {
     const SDL_FRect c = Campo();
     return p.x >= c.x - folga && p.x <= c.x + c.w + folga && p.y >= c.y - folga && p.y <= c.y + c.h + folga;
-}
-
-void Michel::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
-}
-
-void Michel::Tracejada(const Vector2 de, const Vector2 ate, const SDL_Color cor, const float traco) {
-    const Vector2 d = ate - de;
-    const float comprimento = d.Length();
-    if (comprimento < 1.0f) return;
-    const Vector2 u = d * (1.0f / comprimento);
-    for (float s = 0.0f; s < comprimento; s += 2.0f * traco) {
-        Linha(de + u * s, de + u * std::min(comprimento, s + traco), cor);
-    }
-}
-
-void Michel::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int lados) {
-    for (int k = 0; k < lados; ++k) {
-        const float a0 = Math::TwoPi * static_cast<float>(k) / static_cast<float>(lados);
-        const float a1 = Math::TwoPi * static_cast<float>(k + 1) / static_cast<float>(lados);
-        Linha(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * raio, centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * raio, cor);
-    }
 }
 
 void Michel::Retangulo(const Vector2 de, const Vector2 ate, const SDL_Color cor, const bool tracejado) {

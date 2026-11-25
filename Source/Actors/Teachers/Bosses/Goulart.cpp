@@ -29,26 +29,6 @@ void Goulart::SortearALuta() {
 
 // ---- O que as fases dividem ----
 
-std::vector<BossProjectile*> Goulart::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                 const std::optional<float> centro,
-                                                 const std::optional<float> abertura,
-                                                 const std::optional<float> velocidade) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mVelocidadeEm = velocidade;
-    mCriados.clear();
-    Disparar(gatilho);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    mVelocidadeEm.reset();
-    return mCriados;
-}
-
 BossProjectile* Goulart::Um(const char* gatilho, const Vector2 onde, const std::string& cara, const float escala,
                             const std::optional<Vector2> velocidade) {
     std::optional<float> centro, rapidez;
@@ -66,42 +46,9 @@ BossProjectile* Goulart::Um(const char* gatilho, const Vector2 onde, const std::
     return p;
 }
 
-void Goulart::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mCentroEm) params.centralAngle = *mCentroEm;
-    if (mAberturaEm) params.angle = *mAberturaEm;
-    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
-}
-
-void Goulart::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                   const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 float Goulart::AnguloAteOAluno(const Vector2 de) const {
     const Vector2 d = PosicaoDoAluno() - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-bool Goulart::Vivo(const BossProjectile* p) {
-    return p && p->GetState() == ActorState::Active;
-}
-
-void Goulart::Matar(BossProjectile*& p) {
-    if (Vivo(p)) p->Kill();
-    p = nullptr;
-}
-
-void Goulart::Cara(BossProjectile* p, const std::string& cara) {
-    if (!p || cara.empty()) return;
-    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
 }
 
 void Goulart::Levar(BossProjectile* p, const Vector2 para, const float deltaTime, const float rapidez) {
@@ -109,18 +56,6 @@ void Goulart::Levar(BossProjectile* p, const Vector2 para, const float deltaTime
     const Vector2 aqui = p->GetPosition();
     p->SetPosition(aqui + (para - aqui) * std::min(1.0f, rapidez * deltaTime));
     if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-}
-
-void Goulart::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
-}
-
-void Goulart::Retangulo(const Vector2 centro, const float largura, const float altura, const SDL_Color cor) {
-    const float l = largura / 2.0f, a = altura / 2.0f;
-    Linha(centro + Vector2(-l, -a), centro + Vector2(l, -a), cor);
-    Linha(centro + Vector2(l, -a), centro + Vector2(l, a), cor);
-    Linha(centro + Vector2(l, a), centro + Vector2(-l, a), cor);
-    Linha(centro + Vector2(-l, a), centro + Vector2(-l, -a), cor);
 }
 
 void Goulart::Faixa(const float de, const float ate, const float y, const int linhas, const SDL_Color cor) {

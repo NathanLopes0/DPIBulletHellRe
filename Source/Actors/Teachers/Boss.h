@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <SDL_pixels.h>
 #include <SDL_rect.h>
 
 #include "../Actor.h"
@@ -29,6 +30,7 @@ class ProjectileManager;
 class Player;
 class ProjectileFactory;
 class Projectile;
+class DrawLinhasComponent;
 
 using ProjectileConfigurator = std::function<void(Projectile* projectile, int index)>;
 
@@ -285,7 +287,57 @@ protected:
     /// aluno mudar de estado (Observer.h).
     void Disparar(const std::string& gatilho, int alvo = -1, float rapidez = 1.0f);
 
+    // ---- O disparo dirigido ----
+
+    /// Puxa 'gatilho' com o ataque nascendo em 'onde', e devolve os projeteis que nasceram. 'quantos',
+    /// 'centro' e 'abertura' (graus) e 'velocidade' trocam o que fases.json diz, quando dados; 'alvo' e
+    /// 'rapidez' vao para Disparar. E o caminho de quem decide no codigo onde cada tiro nasce.
+    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
+                                            std::optional<float> centro = std::nullopt,
+                                            std::optional<float> abertura = std::nullopt,
+                                            std::optional<float> velocidade = std::nullopt, int alvo = -1,
+                                            float rapidez = 1.0f);
+    /// Se um disparo dirigido esta em curso: o chefe que acrescenta algo a ele, no CustomizeAttackParams.
+    [[nodiscard]] bool EmDisparoDirigido() const { return mDirigido.has_value(); }
+
+    // ---- Os projeteis que o chefe segura (pelo ponteiro cru, enquanto vivem) ----
+
+    /// Se 'p' ainda esta no campo: o pool reaproveita o morto, e o ponteiro passa a ser de outro.
+    [[nodiscard]] static bool Vivo(const BossProjectile* p);
+    /// Mata 'p' se ainda vive, e esquece o ponteiro.
+    static void Matar(BossProjectile*& p);
+    static void MatarTodos(std::vector<BossProjectile*>& ps);
+    /// Troca a animacao (a cara) de 'p', se ela e outra.
+    static void Cara(BossProjectile* p, const std::string& cara);
+    static void Andar(BossProjectile* p, Vector2 velocidade);
+    static void Parar(BossProjectile* p);
+
+    // ---- O desenho de linhas no campo ----
+
+    /// As linhas do quadro: o chefe que desenha a cria na primeira vez e a limpa a cada quadro.
+    DrawLinhasComponent* mLinhas = nullptr;
+    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
+    void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16);
+    /// O disco cheio: uma linha horizontal por pixel.
+    void Disco(Vector2 centro, float raio, SDL_Color cor);
+    /// O contorno, pelos cantos opostos - ou pelo centro e o tamanho.
+    void Retangulo(Vector2 de, Vector2 ate, SDL_Color cor);
+    void Retangulo(Vector2 centro, float largura, float altura, SDL_Color cor);
+
 private:
+    /// O disparo dirigido em curso: CustomizeAttackParams o aplica, OnProjectilesCreated guarda o que
+    /// nasceu.
+    struct Dirigido {
+        Vector2 onde;
+        int quantos = 0;
+        std::optional<float> centro;
+        std::optional<float> abertura;
+        std::optional<float> velocidade;
+    };
+    std::optional<Dirigido> mDirigido;
+    std::vector<BossProjectile*> mCriadosNoDirigido;
+
     Battle* mBatalha = nullptr;
 
     // Função interna para executar um ataque específico.

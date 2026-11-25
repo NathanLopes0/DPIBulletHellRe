@@ -114,43 +114,11 @@ void Luizinho::AoTerminarABatalha() {
     }
 }
 
-void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-
-    // O ataque de gatilho nasce onde o professor disse, no numero que ele pediu - e so ele.
-    if (mDisparandoEm) {
-        params.firePosition = mOndeDisparar;
-        if (mQuantos > 0) params.numProjectiles = mQuantos;
-        if (mCentroEm) params.centralAngle = *mCentroEm;
-        if (mAberturaEm) params.angle = *mAberturaEm;
-    }
-}
-
-void Luizinho::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                    const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                 const std::optional<float> centro,
-                                                 const std::optional<float> abertura,
-                                                 const float rapidez) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mCriados.clear();
-    Disparar(gatilho, -1, rapidez);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    return mCriados;
+                                     const std::optional<float> centro,
+                                     const std::optional<float> abertura, const float rapidez) {
+    // O disparo dirigido do Boss, com o fator de rapidez do Disparar no lugar da velocidade.
+    return Boss::DispararEm(gatilho, onde, quantos, centro, abertura, std::nullopt, -1, rapidez);
 }
 
 float Luizinho::AnguloAteOAluno(const Vector2 de) const {

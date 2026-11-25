@@ -83,26 +83,6 @@ void Ferreira::SortearALuta() {
 
 // ---- O que as fases dividem ----
 
-std::vector<BossProjectile*> Ferreira::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                                  const std::optional<float> centro,
-                                                  const std::optional<float> abertura,
-                                                  const std::optional<float> velocidade) {
-    mDisparandoEm = true;
-    mOndeDisparar = onde;
-    mQuantos = quantos;
-    mCentroEm = centro;
-    mAberturaEm = abertura;
-    mVelocidadeEm = velocidade;
-    mCriados.clear();
-    Disparar(gatilho);
-    mDisparandoEm = false;
-    mQuantos = 0;
-    mCentroEm.reset();
-    mAberturaEm.reset();
-    mVelocidadeEm.reset();
-    return mCriados;
-}
-
 BossProjectile* Ferreira::Um(const char* gatilho, const Vector2 onde, const std::string& cara,
                              const std::optional<Vector2> velocidade) {
     std::optional<float> centro, rapidez;
@@ -167,56 +147,9 @@ std::vector<BossProjectile*> Ferreira::Leque(const char* gatilho, const int quan
     return criados;
 }
 
-void Ferreira::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
-    Boss::CustomizeAttackParams(params, stateName);
-    if (!mDisparandoEm) return;
-    params.firePosition = mOndeDisparar;
-    if (mQuantos > 0) params.numProjectiles = mQuantos;
-    if (mCentroEm) params.centralAngle = *mCentroEm;
-    if (mAberturaEm) params.angle = *mAberturaEm;
-    if (mVelocidadeEm) params.projectileSpeed = *mVelocidadeEm;
-}
-
-void Ferreira::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                                    const std::string& stateName) {
-    Boss::OnProjectilesCreated(projectiles, stateName);
-    if (!mDisparandoEm) return;
-    for (auto& p : projectiles) {
-        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-    }
-}
-
 float Ferreira::AnguloAteOAluno(const Vector2 de) const {
     const Vector2 d = PosicaoDoAluno() - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-bool Ferreira::Vivo(const BossProjectile* p) {
-    return p && p->GetState() == ActorState::Active;
-}
-
-void Ferreira::Matar(BossProjectile*& p) {
-    if (Vivo(p)) p->Kill();
-    p = nullptr;
-}
-
-void Ferreira::MatarTodos(std::vector<BossProjectile*>& ps) {
-    for (BossProjectile*& p : ps) Matar(p);
-    ps.clear();
-}
-
-void Ferreira::Cara(BossProjectile* p, const std::string& cara) {
-    if (!p || cara.empty()) return;
-    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
-}
-
-void Ferreira::Parar(BossProjectile* p) {
-    Andar(p, Vector2::Zero);
-}
-
-void Ferreira::Andar(BossProjectile* p, const Vector2 velocidade) {
-    if (!p) return;
-    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(velocidade);
 }
 
 Vector2 Ferreira::VelocidadeDe(const BossProjectile* p) {
@@ -443,33 +376,6 @@ void Ferreira::AoTerminarABatalha() {
 }
 
 // ---- O desenho e o texto ----
-
-void Ferreira::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
-}
-
-void Ferreira::Tracejada(const Vector2 de, const Vector2 ate, const SDL_Color cor, const float traco) {
-    const Vector2 d = ate - de;
-    const float comprimento = d.Length();
-    if (comprimento < 1.0f) return;
-    const Vector2 u = d * (1.0f / comprimento);
-    for (float s = 0.0f; s < comprimento; s += 2.0f * traco) {
-        Linha(de + u * s, de + u * std::min(comprimento, s + traco), cor);
-    }
-}
-
-void Ferreira::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int lados) {
-    for (int k = 0; k < lados; ++k) {
-        const float a0 = Math::TwoPi * static_cast<float>(k) / static_cast<float>(lados);
-        const float a1 = Math::TwoPi * static_cast<float>(k + 1) / static_cast<float>(lados);
-        Linha(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * raio, centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * raio, cor);
-    }
-}
-
-void Ferreira::Retangulo(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    const Vector2 cantos[4] = {de, Vector2(ate.x, de.y), ate, Vector2(de.x, ate.y)};
-    for (int k = 0; k < 4; ++k) Linha(cantos[k], cantos[(k + 1) % 4], cor);
-}
 
 void Ferreira::Preencher(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
     if (mLinhas) mLinhas->Preencher(Vector2(std::min(de.x, ate.x), std::min(de.y, ate.y)),

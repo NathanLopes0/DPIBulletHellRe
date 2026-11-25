@@ -5,6 +5,7 @@
 #include "Boss.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include "../../Scenes/Battle/Battle.h"
 #include "../Projectile.h"
@@ -20,6 +21,8 @@
 #include "../../Attacks/AttackParameters/PontosAttackParams.h"
 #include "SDL_log.h"
 #include "../Player/PlayerProjectile.h"
+#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../Components/DrawComponents/DrawLinhasComponent.h"
 
 Boss::Boss(Scene* scene) : Actor(scene), mBatalha(dynamic_cast<Battle*>(scene)) {
 
@@ -401,10 +404,101 @@ std::vector<std::string> Boss::GetProjectileFactoryNames() const {
 // nos projeteis depois de criados, entao herda este corpo vazio.
 void Boss::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                 const std::string& stateName) {
+    (void)stateName;
+    if (!mDirigido) return;
+    for (auto& p : projectiles) {
+        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriadosNoDirigido.push_back(b);
+    }
+}
+
+std::vector<BossProjectile*> Boss::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
+                                             const std::optional<float> centro, const std::optional<float> abertura,
+                                             const std::optional<float> velocidade, const int alvo, const float rapidez) {
+    mDirigido = Dirigido{onde, quantos, centro, abertura, velocidade};
+    mCriadosNoDirigido.clear();
+    Disparar(gatilho, alvo, rapidez);
+    mDirigido.reset();
+    return mCriadosNoDirigido;
+}
+
+// ---- Os projeteis que o chefe segura ----
+
+bool Boss::Vivo(const BossProjectile* p) {
+    return p && p->GetState() == ActorState::Active;
+}
+
+void Boss::Matar(BossProjectile*& p) {
+    if (Vivo(p)) p->Kill();
+    p = nullptr;
+}
+
+void Boss::MatarTodos(std::vector<BossProjectile*>& ps) {
+    for (BossProjectile*& p : ps) Matar(p);
+    ps.clear();
+}
+
+void Boss::Cara(BossProjectile* p, const std::string& cara) {
+    if (!p || cara.empty()) return;
+    if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
+}
+
+void Boss::Andar(BossProjectile* p, const Vector2 velocidade) {
+    if (!p) return;
+    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(velocidade);
+}
+
+void Boss::Parar(BossProjectile* p) {
+    Andar(p, Vector2::Zero);
+}
+
+// ---- O desenho de linhas ----
+
+void Boss::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
+    if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
+}
+
+void Boss::Tracejada(const Vector2 de, const Vector2 ate, const SDL_Color cor, const float traco) {
+    const Vector2 d = ate - de;
+    const float comprimento = d.Length();
+    if (comprimento < 1.0f) return;
+    const Vector2 u = d * (1.0f / comprimento);
+    for (float s = 0.0f; s < comprimento; s += 2.0f * traco) Linha(de + u * s, de + u * std::min(comprimento, s + traco), cor);
+}
+
+void Boss::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int lados) {
+    for (int k = 0; k < lados; ++k) {
+        const float a0 = Math::TwoPi * static_cast<float>(k) / static_cast<float>(lados);
+        const float a1 = Math::TwoPi * static_cast<float>(k + 1) / static_cast<float>(lados);
+        Linha(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * raio, centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * raio, cor);
+    }
+}
+
+void Boss::Disco(const Vector2 centro, const float raio, const SDL_Color cor) {
+    for (float dy = -raio; dy <= raio; dy += 1.0f) {
+        const float dx = std::sqrt(std::max(0.0f, raio * raio - dy * dy));
+        Linha(centro + Vector2(-dx, dy), centro + Vector2(dx, dy), cor);
+    }
+}
+
+void Boss::Retangulo(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
+    const Vector2 cantos[4] = {de, Vector2(ate.x, de.y), ate, Vector2(de.x, ate.y)};
+    for (int k = 0; k < 4; ++k) Linha(cantos[k], cantos[(k + 1) % 4], cor);
+}
+
+void Boss::Retangulo(const Vector2 centro, const float largura, const float altura, const SDL_Color cor) {
+    const Vector2 meia(largura / 2.0f, altura / 2.0f);
+    Retangulo(centro - meia, centro + meia, cor);
 }
 
 void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
-
+    (void)stateName;
+    // O disparo dirigido: nasce onde o chefe disse, no numero, no rumo e na velocidade que ele pediu.
+    if (!mDirigido) return;
+    params.firePosition = mDirigido->onde;
+    if (mDirigido->quantos > 0) params.numProjectiles = mDirigido->quantos;
+    if (mDirigido->centro) params.centralAngle = *mDirigido->centro;
+    if (mDirigido->abertura) params.angle = *mDirigido->abertura;
+    if (mDirigido->velocidade) params.projectileSpeed = *mDirigido->velocidade;
 }
 
 void Boss::RegistrarClone(const std::string& fase, const std::string& ataquesDoClone) {

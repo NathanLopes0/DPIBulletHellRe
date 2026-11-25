@@ -49,12 +49,10 @@ private:
     void AndarORelogio(float deltaTime);
     void ComecarEtapa(Tutorial::Etapa e);
 
-    // ---- O desenho ----
-    DrawLinhasComponent* mLinhas = nullptr;
+    // ---- O desenho (Boss::Linha e companhia) ----
     static constexpr int kOrdemDasLinhas = 120;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 20);
-    void Disco(Vector2 centro, float raio, SDL_Color cor);
+    /// O circulo do tutorial e mais redondo que o padrao.
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 20) { Boss::Circulo(centro, raio, cor, lados); }
     void Seta(Vector2 de, Vector2 ate, SDL_Color cor, float ponta = 9.0f);
     /// Um algarismo de sete segmentos (o 1, o 2 e o 4 dos botoes), de 'altura' pixels.
     void Algarismo(char d, Vector2 centro, float altura, SDL_Color cor);

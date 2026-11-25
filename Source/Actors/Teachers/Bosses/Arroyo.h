@@ -39,9 +39,6 @@ public:
     void AoTerminarABatalha() override;
 
 protected:
-    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
-    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
-                              const std::string& stateName) override;
 
 private:
     // ---- A luta sorteada ----
@@ -58,19 +55,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram. 'quantos', 'centro'
-    /// (graus), 'abertura' (graus) e 'velocidade' trocam o que fases.json diz, quando dados.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt,
-                                            std::optional<float> velocidade = std::nullopt);
-    bool mDisparandoEm = false;
-    Vector2 mOndeDisparar;
-    int mQuantos = 0;
-    std::optional<float> mCentroEm;
-    std::optional<float> mAberturaEm;
-    std::optional<float> mVelocidadeEm;
-    std::vector<BossProjectile*> mCriados;
 
     /// O primeiro que nasceu, ja com a cara e a escala; nullptr se nao nasceu nada. Com 'velocidade',
     /// nasce andando: o WaveAttack poe a velocidade do disparo no primeiro quadro do projetil
@@ -79,16 +63,14 @@ private:
                        std::optional<Vector2> velocidade = std::nullopt);
 
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
-    [[nodiscard]] static bool Vivo(const BossProjectile* p);
-    static void Matar(BossProjectile*& p);
 
     /// A fase em que o professor estava no quadro anterior: a troca desmonta a anterior.
     std::string mFase;
     void Desmontar();
 
-    DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 82;
-    void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
+    /// Os circulos dele sao mais redondos que o padrao (Boss::Circulo).
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 36) { Boss::Circulo(centro, raio, cor, lados); }
 
     /// O placar de uma etapa da fase, so quando muda.
     void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
@@ -195,7 +177,6 @@ private:
     static constexpr float kDuracaoDoSalto = 0.45f;
     std::string mAvisoDaTempera;
     float mAvisoDaTemperaAte = -1.0f;
-    void Circulo(Vector2 centro, float raio, SDL_Color cor, int segmentos = 36);
     void Termometro(float temperatura);
 
     static constexpr SDL_Color kAresta = {150, 220, 200, 120};
