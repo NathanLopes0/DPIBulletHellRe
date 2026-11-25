@@ -329,7 +329,12 @@ as sementes 101 a 106 no `esquiva` e 101 a 103 no `segue`:
 O `esquiva` não carrega a base que pareia (não pega as cápsulas), não se
 encaixa no sítio ativo e não lê o guia do CRISPR: a parede do genoma o acerta a
 cada fita. São três coisas que quem entende a fase faz, e o número dele é o de
-quem só desvia.
+quem só desvia. Por isso o encaixe mais fácil não aparece nele: quem entra no
+sítio é que ganha o encaixe induzido (`Dobramento::kEncaixeInduzido`: a boca
+gira e o sítio passeia a 45% da rapidez), a dessolvatação (`Dessolvata`: a água
+que entra no sítio ocupado evapora) e os inibidores mais fracos
+(`InibidoresNoOcupado`, `kInibidorNoOcupado`); fora dele, só a água ficou mais
+rala (uma gota a cada 0,055 s, e não 0,045).
 
 Na INF 425, do Daniel, o `esquiva` vai melhor que o `segue`. Sozinho, com as
 sementes 101 a 103:
@@ -369,6 +374,22 @@ então o número dele é o de quem só foge. Sem o recuo depois do acerto
 (`IaDoInimigo::kRecuo`), o gigante prendia o `esquiva` na parede e o acertava
 a cada fim de invencibilidade: quatro acertos seguidos, e o Difícil zerava na
 fase 2 nas três sementes.
+
+A câmera (`HudHostil::Camera`) era a parte mais folgada da prova: medindo só a
+fase 1 (`--estado StateOne --imortal`, sementes 101 a 103), o `esquiva` passava
+pelos 10 s dela sem apanhar e ainda subia 13 pontos — e o fantasma, outros 9
+a 11. Agora ela dura 22 s, em tomadas: a livre, a invertida (o professor pausa o
+jogo e liga *Inverter eixos*) e a suave (90% de suavização e o tremor), com as
+paredes do cenário, que só se passam levando o vão até o aluno, e com a câmera
+presa no mundo (`CameraNoMundo`) — sem isso, segurar o manche para baixo fazia
+o mundo subir mais rápido que as paredes, e elas nunca chegavam. O `esquiva`
+apanha 3 ou 4 vezes nela no Normal (a nota da etapa vai de +13 para −2 a −9) e
+6 no Difícil (−17). E ele é o teto: com os eixos invertidos, o piloto já pede o
+contrário (`InverterNaCamera`, em `PilotoDoAluno.cpp` — quem já se acostumou),
+e a suavização ele não compensa, como ninguém. O fantasma ganhou o hot reload
+(`IaDoInimigo::kRecargas`: a investida, depois a previsão); o `esquiva`, que vê
+os blocos meio segundo adiante, ainda escapa dele, e quem joga tem de ler a
+linha da mira.
 Na repescagem, a frota de bugs põe o professor em god mode enquanto houver bug
 (`Ferreira::AceitaDano`): o `esquiva`, que atira para cima atrás do professor,
 mata os bugs da coluna dele sem querer e às vezes zera a frota, mas não gasta o

@@ -17,6 +17,7 @@
 #include "../../Scenes/Battle/ProjectileManager.h"
 #include "../Teachers/Boss.h"
 #include "../Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../Teachers/Bosses/Ferreira.h"
 #include "../Teachers/Bosses/Hugo.h"
 
 namespace {
@@ -45,6 +46,14 @@ namespace {
             ameacas.push_back(a);
         }
         return ameacas;
+    }
+
+    /// Com a camera de eixos invertidos (a do Lucas Ferreira), o piloto pede o contrario: e quem ja
+    /// se acostumou. A suavizacao ele nao compensa - escorrega como todo mundo.
+    void InverterNaCamera(Player& aluno, RigidBodyComponent& corpo) {
+        const auto* b = dynamic_cast<const Battle*>(aluno.GetScene());
+        const auto* f = b ? dynamic_cast<const Ferreira*>(b->Chefe()) : nullptr;
+        if (f && aluno.NaCamera() && f->CameraInvertida()) corpo.SetVelocity(corpo.GetVelocity() * -1.0f);
     }
 }
 
@@ -86,10 +95,15 @@ bool PilotoDoAluno::Dirigir(Player& aluno, RigidBodyComponent& corpo, bool& anda
                 if (auto o = hugo->LugarDeIr()) { alvo = o->x; alvoY = o->y; }
             }
         }
-        if (piloto == Simulacao::Piloto::Esquiva) return Desviar(aluno, corpo, andando, alvo, alvoY);
+        if (piloto == Simulacao::Piloto::Esquiva) {
+            Desviar(aluno, corpo, andando, alvo, alvoY);
+            InverterNaCamera(aluno, corpo);
+            return true;
+        }
         const float v = static_cast<float>(Simulacao::Direcao(aluno.GetPosition().x, alvo)) * aluno.VelocidadeDeAndar();
         const float vy = static_cast<float>(Simulacao::Direcao(aluno.GetPosition().y, alvoY)) * aluno.VelocidadeDeAndar();
         corpo.SetVelocity(Vector2(v, vy));
+        InverterNaCamera(aluno, corpo);
         andando = v != 0.0f;
         return true;
     }

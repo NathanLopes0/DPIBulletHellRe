@@ -3,7 +3,7 @@
   // secreta). Elas nao ensinam materia: mexem nos sistemas do proprio jogo. O que cada uma faz mora
   // no C++ (Ferreira*.cpp, um por fase) e na camada pura (JogosDigitais.h); aqui ficam os tiros que ele puxa pelo
   // gatilho e os nomes que o placar mostra. Cada fase dura 40 s, o dobro das dos outros professores
-  // (a da interface, com a camera, 50; a das regras, 48; o lancamento, com os creditos, mais).
+  // (a da interface, com a camera e o inimigo, 64; a das regras, 48; o lancamento, com os creditos, mais).
 
   // ==========================================================================
 
@@ -14,18 +14,23 @@
   // aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio). Primeiro deitada, sobe e desce;
   // depois, de pe, vai de um lado ao outro, e volta para o rodape. Depois ele liga o manche na
   // camera: o aluno fica fixo, e o manche move o mundo - os tiros, as caixas e o proprio professor.
-  // Por fim o primeiro inimigo do jogo, gigante e sem textura, persegue o aluno - e a IA dele se ve: patrulha, alerta, persegue.
-  // O power-up faz ele fugir (e cada bloco dele vira nota), e um tiro no olho o atordoa.
+  // Entre as tomadas ele PAUSA o jogo e mexe nas opcoes (a pausa da batalha, com uma linha a mais):
+  // primeiro inverte os eixos; depois a camera escorrega (suavizacao) e a tela treme a cada pisao.
+  // Por fim o primeiro inimigo do jogo, gigante e sem textura, persegue o aluno - e a IA dele se ve:
+  // patrulha, alerta, persegue. No meio da etapa o professor reescreve a IA (o hot reload): ela ganha
+  // a investida (mira, avanca em linha reta e, se bate na parede, fica tonta) e depois a previsao (mira
+  // onde o aluno VAI estar). O power-up faz ele fugir (e cada bloco dele vira nota), e um tiro no olho
+  // o atordoa.
   "StateOne": {
-    "duracao": 50,
+    "duracao": 64,
     "proximo": "StateTwo",
     "anuncio": "A interface ataca: nada na tela esta a salvo",
     "etapas": [
       { "nome": "Abertura",  "duracao": 4.5,  "anuncio": "hud.nota: este número é meu" },
       { "nome": "BarraSobe", "duracao": 11.0, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
       { "nome": "BarraJoga", "duracao": 11.0, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
-      { "nome": "Camera",    "duracao": 10.0, "anuncio": "camera.ligar()" },
-      { "nome": "Inimigo",   "duracao": 13.5, "anuncio": "new Inimigo(): a IA dele é uma máquina de estados" }
+      { "nome": "Camera",    "duracao": 22.0, "anuncio": "camera.ligar()" },
+      { "nome": "Inimigo",   "duracao": 15.5, "anuncio": "new Inimigo(): a IA dele é uma máquina de estados" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [

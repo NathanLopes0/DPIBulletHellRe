@@ -102,6 +102,15 @@ void PainelDeMenu::Selecionar(const int indice) {
     mSelecao->SetPosition(Vector2(mMeio.x, YDaOpcao(indice)));
 }
 
+void PainelDeMenu::SetOpcao(const int indice, const std::string& texto) {
+    if (indice < 0 || indice >= static_cast<int>(mOpcoes.size())) return;
+    if (auto* t = mOpcoes[static_cast<size_t>(indice)]->GetComponent<DrawTextComponent>()) t->SetText(texto);
+}
+
+Vector2 PainelDeMenu::OndeDaOpcao(const int indice) const {
+    return Vector2(mMeio.x, YDaOpcao(indice));
+}
+
 void PainelDeMenu::SetTitulo(const std::string& texto, const Vector3& cor) {
     if (!mTitulo) return;
     auto* t = mTitulo->GetComponent<DrawTextComponent>();

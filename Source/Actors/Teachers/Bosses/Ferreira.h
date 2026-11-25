@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -20,6 +21,7 @@ class BossProjectile;
 class DrawLinhasComponent;
 class EtiquetaDeCodigo;
 class FaixaDaNota;
+class PainelDeMenu;
 class Player;
 
 /// O professor de jogos digitais (INF 216, a optativa secreta), o mais dificil de todos. Ele nao
@@ -27,9 +29,13 @@ class Player;
 ///   1. a interface - a abertura: ele tira o numero da sua nota da HUD, reescreve para 15 e o
 ///      devolve (a materia comeca com 15); a barra da nota, a da HUD de
 ///      verdade, arrancada do rodape para varrer o campo (cheia ate a nota do aluno: deitada sobe e
-///      desce, de pe vai de um lado ao outro, e volta para o lugar); e o primeiro inimigo, um
+///      desce, de pe vai de um lado ao outro, e volta para o lugar); a camera, no manche (o aluno
+///      fica fixo e o mundo anda), em tomadas: ele pausa o jogo - a pausa da batalha, com a linha
+///      dele - e mexe nas opcoes (inverte os eixos; depois a suavizacao e o tremor), e o cenario
+///      rola, com paredes que so se passam levando o vao ate o aluno; e o primeiro inimigo, um
 ///      fantasma de fliperama gigante e sem textura, com a IA a mostra - ele persegue, o power-up o
-///      faz fugir (e cada bloco dele vira nota), e um tiro no olho o atordoa;
+///      faz fugir (e cada bloco dele vira nota), um tiro no olho o atordoa, e no meio da etapa o
+///      professor reescreve a IA com o jogo rodando (a investida, depois a previsao);
 ///   2. a fisica - a prova inteira e jogo de plataforma, e ele escolhe para que lado a gravidade
 ///      puxa: o chao de sempre (pular as pilhas de caixas), a parede esquerda (as lancas em duas
 ///      alturas), o teto (a chuva de blocos e moedas) e a parede direita (a esteira ate o moedor);
@@ -45,7 +51,7 @@ class Player;
 class Ferreira : public Boss {
 public:
     explicit Ferreira(Scene* scene);
-    ~Ferreira() override = default;
+    ~Ferreira() override;
 
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
@@ -55,8 +61,12 @@ public:
     [[nodiscard]] float FatorDoGanho() const override {
         return JogosDigitais::kFatorDoGanho * (mJanelaAberta ? Lancamento::kFatorDaJanela : 1.0f);
     }
-    /// O god mode da frota: enquanto houver bug, o tiro nele nao conta.
-    [[nodiscard]] bool AceitaDano() const override { return !mGodMode; }
+    /// O god mode da frota: enquanto houver bug, o tiro nele nao conta. Com o menu da camera aberto
+    /// o jogo esta pausado, e ele tambem nao leva tiro.
+    [[nodiscard]] bool AceitaDano() const override { return !mGodMode && mMenuDaCamera < 0; }
+    /// Se o manche move a camera ao contrario agora: o piloto da simulacao (PilotoDoAluno) inverte o
+    /// que pede, como quem ja se acostumou - a medida do 'esquiva' e o teto de quem so desvia.
+    [[nodiscard]] bool CameraInvertida() const { return mCameraLigada && mMenuDaCamera < 0 && mOpcoesDaCamera.inverter; }
     void AoTerminarABatalha() override;
 
 protected:
@@ -66,6 +76,7 @@ private:
 
     void SortearALuta();
     bool mLutaSorteada = false;
+    bool mDificil = false;
     Variacao::Sorteio mSorteio{0u};
     /// O da fisica e outro: a ordem dos lados e os desafios de cada um nao mudam quando as outras
     /// provas mudam.
@@ -170,11 +181,43 @@ private:
     /// Os passos dela: o aluno desliza ate a ancora e fica preso; o manche move o mundo; o visor, a grade
     /// e o aviso; e os tiros e as caixas paradas.
     void PrenderNaCamera(float te);
-    void MoverOMundo(float deltaTime);
+    void MoverOMundo(float te, float deltaTime);
     void DesenharACamera(float te, HudHostil::Camera momento);
     void AtirarNaCamera(float te, HudHostil::Camera momento);
-    /// O quanto a camera andou desde o comeco da etapa: a grade do fundo anda com ela.
+    /// O menu do professor (HudHostil::MenuDaCamera): o jogo pausa - o campo congela -, a pausa da
+    /// batalha abre com a linha dele, e o cursor dele muda as opcoes da camera. Fecha e devolve o campo.
+    void AtualizarOMenuDaCamera(float te, float deltaTime);
+    void PausarOCampo();
+    void RetomarOCampo();
+    void FecharOMenuDaCamera();
+    /// O ponteiro do mouse dele, ao lado da linha em foco, por cima do menu.
+    void DesenharOPonteiro(Vector2 ponta, bool clicando);
+    /// As opcoes que valem agora, a velocidade da camera (com a suavizacao, ela escorrega) e o tremor.
+    HudHostil::OpcoesDaCamera mOpcoesDaCamera;
+    Vector2 mVelocidadeDaCamera = Vector2::Zero;
+    Vector2 mTremorAntes = Vector2::Zero;
+    float mTremorDesde = -1.0f;
+    float mUltimoTremor = -1.0f;
+    /// O menu aberto (-1: nenhum), os cliques que ja tocaram, e o ponteiro (que desliza ate o foco).
+    int mMenuDaCamera = -1;
+    int mCliquesOuvidos = 0;
+    Vector2 mPonteiro = Vector2::Zero;
+    float mClique = 0.0f;
+    std::unique_ptr<PainelDeMenu> mPausaDoProfessor;
+    std::unique_ptr<PainelDeMenu> mOpcoesDoProfessor;
+    /// O que o menu congelou: cada tiro com a velocidade que tinha.
+    struct Congelado {
+        BossProjectile* p = nullptr;
+        Vector2 v;
+    };
+    std::vector<Congelado> mCongelados;
+    /// As linhas por cima do menu (o ponteiro): a pausa e o resto da HUD ficam embaixo.
+    DrawLinhasComponent* mLinhasDoMenu = nullptr;
+    static constexpr int kOrdemDoMenu = 880;
+    /// O quanto a camera andou desde o comeco da etapa: a grade do fundo anda com ela. 'mCamera' e o
+    /// que se ve (com o tremor); 'mCameraNoMundo', sem ele - e e ele que fica nos limites do mundo.
     Vector2 mCamera = Vector2::Zero;
+    Vector2 mCameraNoMundo = Vector2::Zero;
     /// De onde cada aluno desliza ate a ancora, no fim do aviso.
     std::vector<Vector2> mDeslizaDe;
     /// As caixas paradas do mundo: so a camera as move.
@@ -184,6 +227,13 @@ private:
     };
     std::vector<CaixaDaCamera> mCaixasDaCamera;
     float mProximaCaixa = 0.0f;
+    /// As paredes do cenario (HudHostil::CaixasDaParede): presas no mundo, descem com um vao.
+    struct ParedeDaCamera {
+        std::vector<BossProjectile*> caixas;
+        float nasceu = 0.0f;
+    };
+    std::vector<ParedeDaCamera> mParedesDaCamera;
+    float mProximaParedeDaCamera = 0.0f;
     bool mCameraAvisada = false;
     bool mCameraLigada = false;
     std::vector<EtiquetaDeCodigo*> mEtiquetasDaCamera;
@@ -219,10 +269,17 @@ private:
     /// mostra e o placar da fase 1.
     bool PegarOPoderDoInimigo(float te, const ComoOInimigo& como);
     bool CorpoDoInimigoAcertou();
-    void AndarOInimigo(Vector2 ondeAluno, float deltaTime, const ComoOInimigo& como);
+    void AndarOInimigo(Vector2 alvoDaIa, float deltaTime, const ComoOInimigo& como);
     void PorOInimigoNoLugar(Vector2 ondeAluno);
-    void MostrarAIaDoInimigo(float te, const Player* alvo, Vector2 ondeAluno);
+    void MostrarAIaDoInimigo(float te, const Player* alvo, Vector2 ondeAluno, Vector2 alvoDaIa);
     void PlacarDoInimigo(float te, const ComoOInimigo& como);
+    /// O hot reload (IaDoInimigo::kRecargas): a IA muda com o jogo rodando, e o painel de codigo
+    /// escreve, letra por letra, o que mudou.
+    void AoRecarregarAIa(int versao);
+    void MostrarARecarga(float te);
+    std::vector<EtiquetaDeCodigo*> mEtiquetasDaRecarga;
+    /// A investida chegou na borda da arena (a IA percebe no quadro seguinte).
+    bool mInimigoBateu = false;
     /// Nas regras, o inimigo passa de uma etapa para a outra: a troca nao o desmonta.
     bool mInimigoFica = false;
     /// O corpo inteiro e os olhos, no ninho: ele nasce.

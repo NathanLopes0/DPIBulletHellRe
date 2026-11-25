@@ -18,7 +18,9 @@
 /// Digitais pega o jogo que o aluno ja conhece e mexe nele. Cada prova e um sistema:
 ///   1. a interface (HudHostil): o professor reescreve a sua nota para 15; depois a barra da nota -
 ///      a da HUD, de verdade - sai do rodape e varre o campo, cheia ate a nota do aluno; depois ele
-///      liga o manche na camera (o aluno fica fixo, e o mundo e que anda); e por fim o primeiro inimigo, um fantasma de fliperama gigante, com a IA dele a mostra (IaDoInimigo) -
+///      liga o manche na camera (o aluno fica fixo, e o mundo e que anda), pausa o jogo para mexer
+///      nas opcoes dela e faz o cenario rolar; e por fim o primeiro inimigo, um fantasma de fliperama
+///      gigante, com a IA dele a mostra (IaDoInimigo), que o professor reescreve com o jogo rodando -
 ///      ele volta na fase das regras;
 ///   2. a fisica (Gravidade): a prova inteira vira jogo de plataforma, e o professor escolhe para que
 ///      lado a gravidade puxa - cada lado com o seu desafio;
@@ -86,8 +88,8 @@ namespace HudHostil {
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
     constexpr const char* kFase = "StateOne";
     constexpr std::array<const char*, 5> kEtapas = {"Abertura", "BarraSobe", "BarraJoga", "Camera", "Inimigo"};
-    constexpr std::array<float, 5> kDuracoes = {4.5f, 11.0f, 11.0f, 10.0f, 13.5f};
-    constexpr float kDuracaoDaFase = 50.0f;
+    constexpr std::array<float, 5> kDuracoes = {4.5f, 11.0f, 11.0f, 22.0f, 15.5f};
+    constexpr float kDuracaoDaFase = 64.0f;
     constexpr int kEtapaDaAbertura = 0;
     constexpr int kEtapaDaBarraDeitada = 1;
     constexpr int kEtapaDaBarraDePe = 2;
@@ -153,17 +155,74 @@ namespace HudHostil {
     /// O professor tira o manche de voce e o liga na camera: o aluno fica fixo na tela (na ancora,
     /// embaixo e no meio), e o manche move a camera - o mundo inteiro (os tiros, as caixas e o proprio
     /// professor) anda ao contrario na tela. Para desviar, mova a camera; para por o professor na
-    /// mira, traga-o com ela. A camera nao sai da arena: o professor para na borda da tela.
+    /// mira, traga-o com ela. A camera nao sai da arena: o professor para na borda da tela. A etapa
+    /// vem em tomadas, e entre elas o professor PAUSA o jogo e mexe nas opcoes - no menu de pausa da
+    /// propria batalha, com uma opcao a mais, a dele:
     ///   - o aviso (kAvisoDaCamera), forte e sem uma palavra: o visor nas quinas do campo, o REC, um
     ///     icone de camera e a contagem 3-2-1; no fim dele, o aluno desliza ate a ancora. O que muda, o
     ///     aluno descobre;
-    ///   - a camera livre, ate kDevolveACamera;
+    ///   - a camera livre;
+    ///   - o primeiro menu: PAUSA, "Opcoes da camera", "Inverter eixos: SIM";
+    ///   - a camera invertida: o manche para a direita leva a camera para a esquerda;
+    ///   - o segundo menu: desinverte (no Dificil, nao), a suavizacao vai a 90% e o tremor liga;
+    ///   - a camera suave: ela escorrega - chega devagar a velocidade que o manche pede, e continua
+    ///     depois de solto -, e a tela treme, com um tranco a cada pisao do professor;
     ///   - a volta: o visor pisca, e o manche volta para o aluno no fim da etapa.
+    /// Com o menu aberto o jogo esta pausado: nada anda, nada machuca, e o professor nao leva tiro.
     constexpr float kAvisoDaCamera = 2.4f;
     constexpr float kDeslizaAteAAncora = 0.6f;
-    constexpr float kDevolveACamera = 9.0f;
-    enum class Camera { Aviso, Livre, Volta };
+    /// Quando cada menu abre, e quanto ele fica aberto.
+    constexpr std::array<float, 2> kMenusDaCamera = {7.0f, 14.0f};
+    constexpr std::array<float, 2> kDuracaoDosMenus = {2.2f, 2.2f};
+    constexpr float kDevolveACamera = 21.0f;
+    enum class Camera { Aviso, Livre, Menu, Invertida, Suave, Volta };
     Camera CameraEm(float te);
+    /// Se o manche move a camera neste momento (o menu pausa tudo, e o aviso ainda nao a ligou).
+    bool CameraAnda(Camera c);
+
+    /// As opcoes da camera, as que o menu mostra.
+    struct OpcoesDaCamera {
+        bool inverter = false;
+        int suavizacao = 0;   ///< em %: 0 segue o manche na hora; 90 escorrega
+        bool tremor = false;
+    };
+    /// As que valem em 'te': o menu so as aplica quando fecha. No Dificil, o segundo menu nao
+    /// desinverte - a camera suave e invertida tambem.
+    OpcoesDaCamera OpcoesDaCameraEm(float te, bool dificil);
+    /// O menu aberto em 'te' (0 ou 1; -1, nenhum).
+    int MenuDaCameraEm(float te);
+    /// O menu 's' segundos depois de abrir: a tela (a pausa da batalha, e depois as opcoes da camera),
+    /// a linha em foco (o cursor que o professor move), as opcoes como ele as mostra agora (cada
+    /// clique muda uma) e quantos cliques ja houve (quem desenha faz o som e a faisca quando muda).
+    enum class TelaDoMenu { Pausa, Opcoes, Fechado };
+    struct QuadroDoMenu {
+        TelaDoMenu tela = TelaDoMenu::Pausa;
+        int foco = 0;
+        OpcoesDaCamera mostradas;
+        int cliques = 0;
+    };
+    QuadroDoMenu MenuDaCamera(int menu, float s, bool dificil);
+    /// A pausa ganha uma linha, depois das de sempre (Pausa::kOpcoes): a dele.
+    constexpr const char* kOpcaoDoProfessor = "Opções da câmera";
+    constexpr int kLinhaDoProfessor = 3;
+    /// As linhas das opcoes da camera, de cima para baixo; a ultima volta ao jogo.
+    std::array<std::string, 4> LinhasDasOpcoes(const OpcoesDaCamera& o);
+    constexpr int kLinhaDeVoltar = 3;
+    /// A velocidade da camera num quadro: vai para a que o manche pede (ao contrario, com os eixos
+    /// invertidos). Sem suavizacao, chega na hora; com ela, o que falta cai pela metade a cada
+    /// kMeiaVidaDaSuavizacao (a 90%) - e ela continua andando depois de o manche soltar.
+    constexpr float kMeiaVidaDaSuavizacao = 0.42f;
+    Vector2 VelocidadeDaCamera(Vector2 atual, Vector2 intencao, const OpcoesDaCamera& o, float dt);
+    /// O tremor da tela 's' segundos depois de ligar: somas de senos (sem sorteio), de ate
+    /// 'amplitude' px. A forca vai de kTremorDeFundo, entre os pisoes, a 1 no pisao (um a cada
+    /// kEntrePisoes), e se apaga em kApagaOPisao.
+    constexpr float kEntrePisoes = 1.25f;
+    constexpr float kApagaOPisao = 0.35f;
+    constexpr float kTremorDeFundo = 0.25f;
+    float ForcaDoTremor(float s);
+    Vector2 Tremor(float s, float amplitude);
+    /// Se houve um pisao entre 'antes' e 'agora' (segundos desde que o tremor ligou).
+    bool Pisou(float antes, float agora);
     /// A contagem do aviso, nos tres ultimos quartos dele: 3, 2, 1 (zero antes e depois).
     int ContagemDaCamera(float te);
     /// A ancora do aluno 'aluno' de 'alunos': embaixo e no meio (na dupla, um de cada lado).
@@ -173,6 +232,11 @@ namespace HudHostil {
     /// O passo do mundo num quadro: a camera anda o que o manche pede ('intencao', a velocidade que
     /// o aluno teria, em px/s), e o mundo anda o contrario na tela.
     Vector2 PassoDoMundo(Vector2 intencao, float dt);
+    /// A camera nao sai do mundo: o quanto ela anda desde o comeco da etapa fica dentro destes limites.
+    /// Sem eles, quem segura o manche para baixo faria o mundo subir para sempre, e nada o alcancaria.
+    constexpr float kLimiteDaCameraX = 460.0f;
+    constexpr float kLimiteDaCameraY = 220.0f;
+    Vector2 CameraNoMundo(Vector2 camera);
     /// O professor, levado pela camera, fica dentro da tela: 'margem' das bordas, e nunca abaixo de
     /// 'fundo' (fracao da altura) - ele nao senta em cima do aluno.
     Vector2 ProfessorNaTela(Vector2 p, const JogosDigitais::Campo& c, float margem, float fundo);
@@ -180,6 +244,28 @@ namespace HudHostil {
     /// A caixa parada nasce longe do aluno, e so machuca depois de kCaixaAcende (antes, o contorno).
     constexpr float kLongeDaCaixa = 200.0f;
     constexpr float kCaixaAcende = 0.6f;
+    /// O cenario rola: uma parede de caixas, presa no mundo, desce do alto com um vao - e o aluno, que
+    /// nao sai da ancora, so passa movendo a camera ate o vao chegar nele. Invertida ou escorregando,
+    /// e ai que doi. A parede nasce no alto como contorno e acende em kParedeAcende.
+    constexpr float kParedeAcende = 0.6f;
+    constexpr float kLadoDaCaixaDaParede = 40.0f;
+    /// A parede passa kAlemDaBorda da borda do campo, dos dois lados: quem anda com a camera de lado
+    /// ate a ponta dela anda mais do que ate o vao.
+    constexpr float kAlemDaBorda = 600.0f;
+    /// Na dupla a parede tem dois vaos, um para cada aluno: a kEntreOsVaos caixas um do outro (240 px;
+    /// as ancoras ficam a 2 x kAfastamentoNaDupla, 220).
+    constexpr int kEntreOsVaos = 6;
+    /// Os centros das caixas de uma parede no campo 'c', na altura 'y', sem as 'vao' caixas do vao a
+    /// partir da caixa 'primeira' (e, na dupla, sem as do segundo vao).
+    std::vector<Vector2> CaixasDaParede(const JogosDigitais::Campo& c, float y, int primeira, int vao, bool dupla);
+    /// Quantas caixas a parede tem, de ponta a ponta, contando os vaos.
+    int CaixasNaParede(const JogosDigitais::Campo& c);
+    /// Onde comeca o vao: dentro do campo, a pelo menos quatro caixas das bordas dele, e com o meio
+    /// (o do par, na dupla) entre 'deX' e 'ateX' na tela - onde a camera, presa no mundo, ainda o leva
+    /// ate os alunos.
+    int ComecoDoVao(Variacao::Sorteio& s, const JogosDigitais::Campo& c, int vao, bool dupla, float deX, float ateX);
+    /// O meio do vao que comeca na caixa 'primeira' (na dupla, o meio entre os dois).
+    float MeioDoVao(const JogosDigitais::Campo& c, int primeira, int vao, bool dupla);
 
     struct Degrau {
         int passadasDeitada = 3;
@@ -189,11 +275,19 @@ namespace HudHostil {
         float velocidade = 230.0f;
         // A camera: o anel do professor, as caixas paradas do mundo, e quanto cada uma dura.
         float entreAneisDaCamera = 1.5f;
-        int tirosDoAnelDaCamera = 12;
-        float velocidadeDaCamera = 150.0f;
+        int tirosDoAnelDaCamera = 14;
+        float velocidadeDaCamera = 160.0f;
         float entreCaixas = 0.9f;
         float vidaDaCaixa = 4.5f;
         float entreLequesDaCamera = 1.7f;
+        /// O tremor da camera suave, em px no pisao.
+        float tremorDaCamera = 10.0f;
+        /// As paredes do cenario: de quanto em quanto tempo, a que velocidade descem e de quantas caixas
+        /// e o vao. A primeira so vem depois de 'primeiraParede' segundos de camera livre.
+        float entreParedes = 2.6f;
+        float velocidadeDaParede = 105.0f;
+        int vaoDaParede = 3;
+        float primeiraParede = 3.0f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
@@ -295,7 +389,15 @@ namespace IaDoInimigo {
     ///     cada bloco que o aluno encosta e nota; no fim do power-up ele pisca e volta a perseguir;
     ///   FUGINDO -> DERROTADO: o aluno pegou o ultimo bloco (sem bloco nenhum - o Ponto Extra tambem
     ///     os desfaz -, ele e derrotado em qualquer estado); DERROTADO -> NASCENDO: o respawn.
-    enum class Estado { Nascendo, Patrulha, Alerta, Persegue, Atordoado, Fugindo, Derrotado };
+    /// No meio da etapa da fase 1 o professor reescreve a IA com o jogo rodando (o hot reload, kRecargas):
+    ///   versao 1, a investida: PERSEGUE -> MIRA, com o aluno a raioDaInvestida - ele para, treme e
+    ///     traca a linha (que trava no fim); MIRA -> INVESTIDA: avanca em linha reta, muito rapido;
+    ///     INVESTIDA -> ATORDOADO, se bate na parede (o tempo que fica tonto e o da parede); senao,
+    ///     INVESTIDA -> PERSEGUE. Entre uma investida e outra, o folego;
+    ///   versao 2, a previsao: ele persegue (e mira) onde o aluno VAI estar - o aluno andando por
+    ///     'previsao' segundos.
+    /// Nas regras ele volta sem as recargas: versao 0.
+    enum class Estado { Nascendo, Patrulha, Alerta, Persegue, Atordoado, Fugindo, Derrotado, Mira, Investida };
     /// O nome que o placar e a etiqueta em cima dele mostram.
     const char* Nome(Estado e);
 
@@ -340,6 +442,22 @@ namespace IaDoInimigo {
     /// Onde o corpo pode andar: o campo sem a faixa de cima (a do professor e do placar).
     constexpr float kTopoDaArena = 170.0f;
 
+    /// O hot reload: em que segundo da etapa cada recarga entra, e quanto tempo o painel de codigo
+    /// fica na tela, escrevendo letra por letra (kLetrasPorSegundo).
+    constexpr std::array<float, 2> kRecargas = {3.6f, 8.8f};
+    constexpr float kMostraARecarga = 2.8f;
+    constexpr float kLetrasPorSegundo = 70.0f;
+    /// A versao da IA 'te' segundos depois de a etapa comecar: 0, 1 (a investida) ou 2 (a previsao).
+    int VersaoEm(float te);
+    /// O que o painel ja escreveu 's' segundos depois de abrir: as linhas cortadas na letra em que
+    /// ele esta (as linhas seguintes, vazias). Letra e letra: o acento conta um.
+    std::vector<std::string> CodigoEscrito(const std::vector<std::string>& linhas, float s);
+    /// A previsao: onde o aluno estara andando a 'velocidade' por 'segundos', sem sair do campo 'c'.
+    Vector2 Previsao(Vector2 aluno, Vector2 velocidade, float segundos, const JogosDigitais::Campo& c);
+    /// Na perseguicao, quanto ele corre antes de poder mirar; e na mira, o fim em que a linha trava.
+    constexpr float kPersegueAntesDaMira = 0.5f;
+    constexpr float kTravaDaMira = 0.2f;
+
     struct Degrau {
         float ronda = 100.0f;         ///< px/s na patrulha
         float persegue = 130.0f;      ///< px/s quando comeca a perseguir
@@ -352,8 +470,20 @@ namespace IaDoInimigo {
         float atordoado = 2.0f;
         float primeiroPoder = 3.2f;   ///< segundos de etapa ate o primeiro power-up
         float entrePoderes = 2.5f;    ///< do fim de um susto ao power-up seguinte
+        // A versao 1: a investida.
+        float raioDaInvestida = 360.0f;   ///< o aluno mais perto que isto, e ele mira
+        float mira = 0.7f;                ///< o tempo parado, tracando a linha
+        float investida = 620.0f;         ///< px/s em linha reta
+        float duracaoDaInvestida = 0.85f;
+        float entreInvestidas = 1.5f;     ///< o folego: de uma investida (ou de acordar) a outra mira
+        float tontoNaParede = 1.2f;       ///< quanto fica atordoado quando bate na parede
+        // A versao 2: a previsao.
+        float previsao = 0.6f;            ///< segundos adiante: onde o aluno vai estar
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
+    /// As linhas do codigo de cada recarga (0 ou 1), como o painel as mostra - uma diff: '+' entra,
+    /// '-' sai -, com os numeros do degrau.
+    std::vector<std::string> CodigoDaRecarga(int k, const Degrau& g);
 
     /// O que ele percebe num quadro.
     struct Percepcao {
@@ -361,6 +491,8 @@ namespace IaDoInimigo {
         bool pegouOPoder = false;
         bool olhoAtingido = false;
         bool acertouOAluno = false;   ///< o corpo dele acabou de acertar o aluno
+        bool bateuNaParede = false;   ///< a investida chegou na borda da arena
+        Vector2 rumo;             ///< de tamanho 1, dele ate o alvo (o aluno, ou a previsao)
         int blocos = 0;           ///< os que sobram no corpo
         /// Quanto o susto dura, se nao e o do power-up: a inversao das regras manda o dela.
         float susto = 0.0f;
@@ -372,6 +504,10 @@ namespace IaDoInimigo {
         float susto = 0.0f;       ///< o que falta do power-up
         float rapidez = 0.0f;     ///< a da perseguicao, que cresce
         float recuo = 0.0f;       ///< o que falta do recuo: a ronda ainda nao ve o aluno
+        int versao = 0;           ///< as recargas que ele ja recebeu (o hot reload)
+        float folego = 0.0f;      ///< o que falta para poder mirar de novo
+        float tontura = 0.0f;     ///< quanto este atordoado dura (o tiro no olho, ou a parede)
+        Vector2 rumoDaInvestida;  ///< a linha da mira, que trava no fim e e a da investida
     };
     /// Um passo de 'dt' segundos: as transicoes do diagrama acima. Devolve se o estado mudou.
     bool Passo(Ia& ia, const Percepcao& p, float dt, const Degrau& g);

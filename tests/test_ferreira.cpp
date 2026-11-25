@@ -13,6 +13,7 @@
 
 #include "../Source/Attacks/Fase.h"
 #include "../Source/Attacks/JogosDigitais.h"
+#include "../Source/Interface/Pausa.h"
 #include "../Source/Regras/Nota.h"
 #include "../Source/Regras/PontoExtra.h"
 #include "../Source/Regras/Plataforma.h"
@@ -1095,4 +1096,289 @@ TEST_CASE("HudHostil: com a camera, o mundo anda ao contrario do manche, e o pro
     CHECK(d.entreAneisDaCamera < n.entreAneisDaCamera);
     CHECK(d.entreCaixas < n.entreCaixas);
     CHECK(kLongeDaCaixa > 150.0f);
+}
+
+TEST_CASE("HudHostil: a camera vem em tomadas, e o menu do professor pausa entre elas") {
+    using namespace HudHostil;
+    CHECK(CameraEm(kAvisoDaCamera + 0.1f) == Camera::Livre);
+    CHECK(CameraEm(kMenusDaCamera[0] + 0.1f) == Camera::Menu);
+    CHECK(CameraEm(kMenusDaCamera[0] + kDuracaoDosMenus[0] + 0.1f) == Camera::Invertida);
+    CHECK(CameraEm(kMenusDaCamera[1] + 0.1f) == Camera::Menu);
+    CHECK(CameraEm(kMenusDaCamera[1] + kDuracaoDosMenus[1] + 0.1f) == Camera::Suave);
+    CHECK(CameraEm(kDevolveACamera + 0.1f) == Camera::Volta);
+    CHECK(kDevolveACamera < kDuracoes[kEtapaDaCamera]);
+    // Cada tomada dura pelo menos 4 s: tempo de entender o que mudou - e de apanhar por isso.
+    CHECK(kMenusDaCamera[0] - kAvisoDaCamera >= 4.0f);
+    CHECK(kMenusDaCamera[1] - (kMenusDaCamera[0] + kDuracaoDosMenus[0]) >= 4.0f);
+    CHECK(kDevolveACamera - (kMenusDaCamera[1] + kDuracaoDosMenus[1]) >= 4.0f);
+    // No menu (e no aviso) nada anda.
+    CHECK_FALSE(CameraAnda(Camera::Menu));
+    CHECK_FALSE(CameraAnda(Camera::Aviso));
+    CHECK(CameraAnda(Camera::Livre));
+    CHECK(CameraAnda(Camera::Invertida));
+    CHECK(CameraAnda(Camera::Suave));
+    CHECK(MenuDaCameraEm(kMenusDaCamera[0] + 0.5f) == 0);
+    CHECK(MenuDaCameraEm(kMenusDaCamera[1] + 0.5f) == 1);
+    CHECK(MenuDaCameraEm(kAvisoDaCamera + 1.0f) == -1);
+    CHECK(MenuDaCameraEm(kDevolveACamera + 0.5f) == -1);
+}
+
+TEST_CASE("HudHostil: o menu do professor - a pausa, a linha dele, e cada clique muda uma opcao") {
+    using namespace HudHostil;
+    for (const bool dificil : {false, true}) {
+        CAPTURE(dificil);
+        for (int menu = 0; menu < 2; ++menu) {
+            CAPTURE(menu);
+            // Todo menu comeca na pausa, na primeira linha, e passa pela linha dele.
+            const QuadroDoMenu abre = MenuDaCamera(menu, 0.0f, dificil);
+            CHECK(abre.tela == TelaDoMenu::Pausa);
+            CHECK(abre.foco == 0);
+            int cliques = 0;
+            bool linhaDele = false, opcoes = false;
+            const float dura = kDuracaoDosMenus[static_cast<size_t>(menu)];
+            for (float s = 0.0f; s <= dura; s += 0.005f) {
+                const QuadroDoMenu q = MenuDaCamera(menu, s, dificil);
+                CHECK(q.cliques >= cliques);
+                CHECK(q.cliques <= cliques + 1);   // um clique de cada vez
+                cliques = q.cliques;
+                CHECK(q.foco >= 0);
+                CHECK(q.foco <= kLinhaDeVoltar);
+                if (q.tela == TelaDoMenu::Pausa && q.foco == kLinhaDoProfessor) linhaDele = true;
+                if (q.tela == TelaDoMenu::Opcoes) opcoes = true;
+            }
+            CHECK(linhaDele);
+            CHECK(opcoes);
+            // Fecha antes do fim: um respiro antes de o jogo voltar.
+            CHECK(MenuDaCamera(menu, dura - 0.05f, dificil).tela == TelaDoMenu::Fechado);
+        }
+        // O primeiro so inverte os eixos.
+        const OpcoesDaCamera primeiro = MenuDaCamera(0, 1e9f, dificil).mostradas;
+        CHECK(primeiro.inverter);
+        CHECK(primeiro.suavizacao == 0);
+        CHECK_FALSE(primeiro.tremor);
+        // O segundo: a suavizacao a 90% e o tremor; no Normal desinverte, no Dificil nao.
+        const OpcoesDaCamera segundo = MenuDaCamera(1, 1e9f, dificil).mostradas;
+        CHECK(segundo.suavizacao == 90);
+        CHECK(segundo.tremor);
+        CHECK(segundo.inverter == dificil);
+        // O que vale e o que o menu deixou - so quando ele fecha.
+        CHECK_FALSE(OpcoesDaCameraEm(kMenusDaCamera[0] + 1.9f, dificil).inverter);
+        CHECK(OpcoesDaCameraEm(kMenusDaCamera[0] + kDuracaoDosMenus[0] + 0.01f, dificil).inverter);
+        CHECK(OpcoesDaCameraEm(kMenusDaCamera[1] + 1.0f, dificil).suavizacao == 0);
+        const OpcoesDaCamera suave = OpcoesDaCameraEm(kMenusDaCamera[1] + kDuracaoDosMenus[1] + 0.01f, dificil);
+        CHECK(suave.suavizacao == segundo.suavizacao);
+        CHECK(suave.tremor == segundo.tremor);
+        CHECK(suave.inverter == segundo.inverter);
+        CHECK_FALSE(OpcoesDaCameraEm(0.0f, dificil).inverter);
+    }
+    // As linhas: cada opcao diz o seu valor, e a ultima volta ao jogo.
+    const auto linhas = LinhasDasOpcoes(OpcoesDaCamera{true, 60, false});
+    CHECK(linhas[0] == "Inverter eixos: SIM");
+    CHECK(linhas[1] == "Suavização: 60%");
+    CHECK(linhas[2] == "Tremor de tela: NÃO");
+    CHECK(linhas[kLinhaDeVoltar] == "Voltar ao jogo");
+    // A linha dele vem depois das da pausa de verdade.
+    CHECK(kLinhaDoProfessor == Pausa::kQuantas);
+}
+
+TEST_CASE("HudHostil: invertida a camera vai ao contrario, suave ela escorrega, e o tremor e sempre o mesmo") {
+    using namespace HudHostil;
+    const Vector2 manche(300.0f, 0.0f);
+    // Sem opcao: a camera faz o que o manche manda, na hora.
+    CHECK(VelocidadeDaCamera(Vector2::Zero, manche, OpcoesDaCamera{}, 0.016f).x == doctest::Approx(300.0f));
+    // Invertida: ao contrario, nos dois eixos.
+    OpcoesDaCamera invertida;
+    invertida.inverter = true;
+    const Vector2 contrario = VelocidadeDaCamera(Vector2::Zero, Vector2(300.0f, -120.0f), invertida, 0.016f);
+    CHECK(contrario.x == doctest::Approx(-300.0f));
+    CHECK(contrario.y == doctest::Approx(120.0f));
+    // Suave: na meia-vida chega a metade, depois chega inteira, e continua andando quando o manche solta.
+    OpcoesDaCamera suave;
+    suave.suavizacao = 90;
+    Vector2 v = Vector2::Zero;
+    for (int k = 0; k < 210; ++k) v = VelocidadeDaCamera(v, manche, suave, kMeiaVidaDaSuavizacao / 210.0f);
+    CHECK(v.x == doctest::Approx(150.0f).epsilon(0.01));
+    for (int k = 0; k < 400; ++k) v = VelocidadeDaCamera(v, manche, suave, 0.016f);
+    CHECK(v.x == doctest::Approx(300.0f).epsilon(0.01));
+    CHECK(VelocidadeDaCamera(v, Vector2::Zero, suave, 0.1f).x > 100.0f);
+    // Menos suavizacao, menos escorrega.
+    OpcoesDaCamera pouca;
+    pouca.suavizacao = 30;
+    CHECK(VelocidadeDaCamera(Vector2::Zero, manche, pouca, 0.1f).x > VelocidadeDaCamera(Vector2::Zero, manche, suave, 0.1f).x);
+    // O tremor: sem sorteio, sem passar da amplitude, e o pisao e o mais forte.
+    CHECK(Tremor(0.37f, 10.0f).x == doctest::Approx(Tremor(0.37f, 10.0f).x));
+    float maior = 0.0f;
+    for (float s = 0.0f; s < 5.0f; s += 0.005f) maior = std::max(maior, Tremor(s, 10.0f).Length());
+    CHECK(maior <= 10.0f * 1.4143f);
+    CHECK(maior > 5.0f);
+    CHECK(ForcaDoTremor(0.0f) == doctest::Approx(1.0f));
+    CHECK(ForcaDoTremor(kEntrePisoes * 0.9f) < 0.4f);
+    CHECK(ForcaDoTremor(kEntrePisoes * 0.9f) >= kTremorDeFundo);
+    // Os pisoes: um a cada kEntrePisoes, cada um contado uma vez.
+    int pisoes = 0;
+    float antes = -1.0f;
+    for (float s = 0.0f; s < 4.0f * kEntrePisoes - 0.01f; s += 0.016f) {
+        if (Pisou(antes, s)) ++pisoes;
+        antes = s;
+    }
+    CHECK(pisoes == 4);
+    // O Dificil treme mais.
+    CHECK(DegrauDo(Dificuldade::Nivel::Dificil).tremorDaCamera > DegrauDo(Dificuldade::Nivel::Normal).tremorDaCamera);
+}
+
+TEST_CASE("IaDoInimigo: o hot reload ensina a investida - mira, avanca, bate na parede e fica tonto") {
+    using namespace IaDoInimigo;
+    const Degrau g = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(VersaoEm(0.0f) == 0);
+    CHECK(VersaoEm(kRecargas[0] + 0.01f) == 1);
+    CHECK(VersaoEm(kRecargas[1] + 0.01f) == 2);
+    CHECK(kRecargas[1] + kMostraARecarga < HudHostil::kDuracoes[HudHostil::kEtapaDoInimigo]);
+    Percepcao p;
+    p.distancia = 200.0f;
+    p.blocos = 40;
+    p.rumo = Vector2(1.0f, 0.0f);
+    // Sem a recarga, ele so persegue.
+    Ia ia;
+    ia.estado = Estado::Persegue;
+    for (int k = 0; k < 300; ++k) Passo(ia, p, 0.016f, g);
+    CHECK(ia.estado == Estado::Persegue);
+    // Com a versao 1: corre um pouco e mira - parado, e a mira machuca.
+    ia = Ia{};
+    ia.estado = Estado::Persegue;
+    ia.versao = 1;
+    float t = 0.0f;
+    while (ia.estado == Estado::Persegue && t < 5.0f) {
+        Passo(ia, p, 0.016f, g);
+        t += 0.016f;
+    }
+    REQUIRE(ia.estado == Estado::Mira);
+    CHECK(t >= kPersegueAntesDaMira - 0.02f);
+    CHECK(Rapidez(ia, g) == doctest::Approx(0.0f));
+    CHECK(Machuca(Estado::Mira));
+    CHECK(Machuca(Estado::Investida));
+    // A linha segue o aluno...
+    p.rumo = Vector2(0.0f, 1.0f);
+    Passo(ia, p, 0.016f, g);
+    CHECK(ia.rumoDaInvestida.y == doctest::Approx(1.0f));
+    // ...e trava no fim da mira.
+    while (ia.estado == Estado::Mira && ia.noEstado < g.mira - kTravaDaMira + 0.02f) Passo(ia, p, 0.016f, g);
+    p.rumo = Vector2(-1.0f, 0.0f);
+    Passo(ia, p, 0.016f, g);
+    CHECK(ia.rumoDaInvestida.y == doctest::Approx(1.0f));
+    while (ia.estado == Estado::Mira) Passo(ia, p, 0.016f, g);
+    // A investida: em linha reta, muito mais rapido que a perseguicao.
+    REQUIRE(ia.estado == Estado::Investida);
+    CHECK(Rapidez(ia, g) == doctest::Approx(g.investida));
+    CHECK(g.investida > 3.0f * g.maxima);
+    // Bateu na parede: tonto pelo tempo da parede, e volta a perseguir.
+    p.bateuNaParede = true;
+    Passo(ia, p, 0.016f, g);
+    REQUIRE(ia.estado == Estado::Atordoado);
+    p.bateuNaParede = false;
+    float tonto = 0.0f;
+    while (ia.estado == Estado::Atordoado && tonto < 5.0f) {
+        Passo(ia, p, 0.016f, g);
+        tonto += 0.016f;
+    }
+    CHECK(tonto == doctest::Approx(g.tontoNaParede).epsilon(0.05));
+    CHECK(ia.estado == Estado::Persegue);
+    // A investida que nao bate em nada acaba, e ele volta a perseguir com folego para recuperar.
+    ia = Ia{};
+    ia.estado = Estado::Investida;
+    ia.versao = 1;
+    for (float s = 0.0f; s < g.duracaoDaInvestida + 0.05f; s += 0.016f) Passo(ia, p, 0.016f, g);
+    CHECK(ia.estado == Estado::Persegue);
+    CHECK(ia.folego > 0.0f);
+    // O power-up e o olho tambem valem na mira e na investida.
+    for (const Estado e : {Estado::Mira, Estado::Investida}) {
+        Ia a;
+        a.estado = e;
+        a.versao = 1;
+        Percepcao q = p;
+        q.pegouOPoder = true;
+        Passo(a, q, 0.016f, g);
+        CHECK(a.estado == Estado::Fugindo);
+        Ia b;
+        b.estado = e;
+        b.versao = 1;
+        Percepcao r = p;
+        r.olhoAtingido = true;
+        Passo(b, r, 0.016f, g);
+        CHECK(b.estado == Estado::Atordoado);
+        CHECK(b.tontura == doctest::Approx(g.atordoado));
+    }
+    // O Dificil mira mais rapido e avanca mais forte.
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.mira < g.mira);
+    CHECK(d.investida > g.investida);
+    CHECK(d.entreInvestidas < g.entreInvestidas);
+}
+
+TEST_CASE("IaDoInimigo: o painel da recarga escreve letra por letra, e a previsao mira adiante do aluno") {
+    using namespace IaDoInimigo;
+    const Degrau g = DegrauDo(Dificuldade::Nivel::Normal);
+    // As linhas sao uma diff, com os numeros do degrau.
+    for (int k = 0; k < 2; ++k) {
+        const auto linhas = CodigoDaRecarga(k, g);
+        REQUIRE(linhas.size() >= 3u);
+        CHECK(linhas[0].rfind("//", 0) == 0);
+        for (size_t i = 1; i < linhas.size(); ++i) CHECK((linhas[i][0] == '+' || linhas[i][0] == '-'));
+    }
+    CHECK(CodigoDaRecarga(0, g)[1].find(std::to_string(static_cast<int>(g.raioDaInvestida))) != std::string::npos);
+    CHECK(CodigoDaRecarga(1, g).back().find("0,6") != std::string::npos);
+    // Letra, e nao byte: o acento conta uma.
+    const std::vector<std::string> linhas = {"ab", "ção"};
+    CHECK(CodigoEscrito(linhas, 0.0f) == std::vector<std::string>{"", ""});
+    CHECK(CodigoEscrito(linhas, 3.5f / kLetrasPorSegundo) == std::vector<std::string>{"ab", "ç"});
+    CHECK(CodigoEscrito(linhas, 100.0f) == linhas);
+    // A previsao: adiante, pela velocidade, sem sair do campo.
+    const JogosDigitais::Campo c{0.0f, 0.0f, 1200.0f, 720.0f};
+    const Vector2 adiante = Previsao(Vector2(100.0f, 100.0f), Vector2(300.0f, 0.0f), 0.5f, c);
+    CHECK(adiante.x == doctest::Approx(250.0f));
+    CHECK(adiante.y == doctest::Approx(100.0f));
+    CHECK(Previsao(Vector2(1190.0f, 100.0f), Vector2(300.0f, 0.0f), 1.0f, c).x <= c.w);
+}
+
+TEST_CASE("HudHostil: a parede do cenario tem um vao que a camera alcanca, e a camera nao sai do mundo") {
+    using namespace HudHostil;
+    const JogosDigitais::Campo c{0.0f, 0.0f, 1200.0f, 720.0f};
+    const int n = CaixasNaParede(c);
+    CHECK(static_cast<float>(n) * kLadoDaCaixaDaParede >= c.w + 2.0f * kAlemDaBorda);
+    Variacao::Sorteio s(7u);
+    const float ancora = AncoraDaCamera(c, 0, 1).x;
+    for (int k = 0; k < 200; ++k) {
+        const bool dupla = k % 2 == 1;
+        const float camera = s.Real(-kLimiteDaCameraX, kLimiteDaCameraX);
+        const float de = ancora - kLimiteDaCameraX - camera + 40.0f, ate = ancora + kLimiteDaCameraX - camera - 40.0f;
+        const int primeira = ComecoDoVao(s, c, 3, dupla, de, ate);
+        const float meio = MeioDoVao(c, primeira, 3, dupla);
+        // Dentro do campo, longe das bordas, e onde a camera presa no mundo ainda o leva ao aluno.
+        const float meiaLargura = dupla ? 0.5f * static_cast<float>(kEntreOsVaos) * kLadoDaCaixaDaParede : 0.0f;
+        CHECK(meio - meiaLargura >= c.x + 4.0f * kLadoDaCaixaDaParede);
+        CHECK(meio + meiaLargura <= c.x + c.w - 4.0f * kLadoDaCaixaDaParede);
+        CHECK(meio >= de - 1e-3f);
+        CHECK(meio <= ate + 1e-3f);
+        CHECK(std::fabs(CameraNoMundo(Vector2(camera + meio - ancora, 0.0f)).x - (camera + meio - ancora)) < 1e-3f);
+        // Cada vao e de tres caixas, e a parede passa da borda dos dois lados.
+        const auto caixas = CaixasDaParede(c, 150.0f, primeira, 3, dupla);
+        CHECK(static_cast<int>(caixas.size()) == n - (dupla ? 6 : 3));
+        CHECK(caixas.front().x < c.x - kAlemDaBorda + kLadoDaCaixaDaParede);
+        CHECK(caixas.back().x > c.x + c.w + kAlemDaBorda - kLadoDaCaixaDaParede);
+        // Com o meio alinhado no meio da camera, cada aluno tem o seu vao: nenhuma caixa a menos de
+        // meio vao (e meia caixa) dele - na dupla, com 20 px de folga a menos.
+        const std::vector<float> alunos = dupla ? std::vector<float>{meio - kAfastamentoNaDupla, meio + kAfastamentoNaDupla}
+                                                : std::vector<float>{meio};
+        for (const float x : alunos) {
+            for (const Vector2& p : caixas) CHECK(std::fabs(p.x - x) >= 2.0f * kLadoDaCaixaDaParede - (dupla ? 20.0f : 0.0f) - 1e-3f);
+        }
+    }
+    // A camera fica no mundo.
+    CHECK(CameraNoMundo(Vector2(9999.0f, -9999.0f)).x == doctest::Approx(kLimiteDaCameraX));
+    CHECK(CameraNoMundo(Vector2(9999.0f, -9999.0f)).y == doctest::Approx(-kLimiteDaCameraY));
+    CHECK(CameraNoMundo(Vector2(10.0f, 20.0f)).x == doctest::Approx(10.0f));
+    // O Dificil rola mais paredes, mais rapido.
+    const Degrau g = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreParedes < g.entreParedes);
+    CHECK(d.velocidadeDaParede > g.velocidadeDaParede);
+    CHECK(g.primeiraParede < kMenusDaCamera[0] - kAvisoDaCamera);
 }

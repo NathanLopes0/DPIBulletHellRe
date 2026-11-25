@@ -438,3 +438,22 @@ TEST_CASE("Sabrina: o Dificil aperta cada prova") {
     CHECK(Sequenciamento::DegrauDo(d).tamanhoDoGuia > Sequenciamento::DegrauDo(n).tamanhoDoGuia);
     CHECK(Sequenciamento::DegrauDo(d).giro > Sequenciamento::DegrauDo(n).giro);
 }
+
+TEST_CASE("Dobramento: o sitio ocupado se acomoda ao ligante, seca, e os inibidores perdem") {
+    using namespace Dobramento;
+    const Vector2 c = V(500.0f, 400.0f);
+    // A dessolvatacao: so no sitio ocupado, e so dentro da parede.
+    CHECK(Dessolvata(V(520.0f, 400.0f), c, 80.0f, true));
+    CHECK_FALSE(Dessolvata(V(520.0f, 400.0f), c, 80.0f, false));
+    CHECK_FALSE(Dessolvata(V(590.0f, 400.0f), c, 80.0f, true));
+    // O encaixe induzido desacelera, mas nao para: o sitio continua girando.
+    CHECK(kEncaixeInduzido > 0.0f);
+    CHECK(kEncaixeInduzido < 1.0f);
+    // Os inibidores: um a menos, nunca nenhum, e mais lentos.
+    CHECK(InibidoresNoOcupado(4) == 3);
+    CHECK(InibidoresNoOcupado(1) == 1);
+    CHECK(kInibidorNoOcupado < 1.0f);
+    // A agua e menos densa que antes (era uma gota a cada 0,045 s), e o Dificil continua mais denso.
+    CHECK(DegrauDo(Dificuldade::Nivel::Normal).entreGotas > 0.045f);
+    CHECK(DegrauDo(Dificuldade::Nivel::Dificil).entreGotas < DegrauDo(Dificuldade::Nivel::Normal).entreGotas);
+}

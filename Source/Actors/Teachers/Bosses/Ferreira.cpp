@@ -18,6 +18,7 @@
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/FaixaDaNota.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
+#include "../../../Scenes/PainelDeMenu.h"
 #include "../../Player/Player.h"
 #include "../../Player/PlayerProjectile.h"
 #include "BossesProjectiles/BossProjectile.h"
@@ -30,10 +31,13 @@ using namespace FerreiraComum;
 Ferreira::Ferreira(Scene* scene) : Boss(scene) {
 }
 
+Ferreira::~Ferreira() = default;
+
 void Ferreira::SortearALuta() {
     mLutaSorteada = true;
     mSorteio = SorteioDaFase(HudHostil::kFase);
     const Dificuldade::Nivel n = NivelDeDificuldade();
+    mDificil = n == Dificuldade::Nivel::Dificil;
     mDegrauDoHud = HudHostil::DegrauDo(n);
     mDegrauDoInimigo = IaDoInimigo::DegrauDo(n);
     mDegrauDaGravidade = Gravidade::DegrauDo(n);
@@ -207,11 +211,17 @@ void Ferreira::Sanear() {
     }
     mTravados.erase(std::remove_if(mTravados.begin(), mTravados.end(), [](const Travado& t) { return !Vivo(t.p); }),
                     mTravados.end());
+    mCongelados.erase(std::remove_if(mCongelados.begin(), mCongelados.end(), [](const Congelado& c) { return !Vivo(c.p); }),
+                      mCongelados.end());
     for (BossProjectile*& b : mBotoes) {
         if (!Vivo(b)) b = nullptr;
     }
     Sanear(mFrota, false);
     for (LinhaDeCredito& l : mCreditos) Sanear(l.blocos, false);
+    for (ParedeDaCamera& p : mParedesDaCamera) Sanear(p.caixas, true);
+    mParedesDaCamera.erase(std::remove_if(mParedesDaCamera.begin(), mParedesDaCamera.end(),
+                                          [](const ParedeDaCamera& p) { return p.caixas.empty(); }),
+                           mParedesDaCamera.end());
 }
 
 bool Ferreira::TrocouDeEtapa(const int etapa) {
@@ -307,16 +317,28 @@ void Ferreira::DesmontarEtapa() {
     mLinhasFeitas = 0;
     mProximaLinha = 0.0f;
     Esconder(mEtiquetasDoInimigo);
+    Esconder(mEtiquetasDaRecarga);
+    mInimigoBateu = false;
     Esconder(mEtiquetasDoSave);
     Esconder(mEtiquetasDoDialogo);
     Esconder(mEtiquetasDosCreditos);
     for (CaixaDaCamera& cx : mCaixasDaCamera) Matar(cx.p);
     mCaixasDaCamera.clear();
     mProximaCaixa = 0.0f;
+    for (ParedeDaCamera& p : mParedesDaCamera) MatarTodos(p.caixas);
+    mParedesDaCamera.clear();
+    mProximaParedeDaCamera = 0.0f;
     mCamera = Vector2::Zero;
+    mCameraNoMundo = Vector2::Zero;
     mDeslizaDe.clear();
     mCameraAvisada = false;
     mCameraLigada = false;
+    FecharOMenuDaCamera();
+    mOpcoesDaCamera = HudHostil::OpcoesDaCamera{};
+    mVelocidadeDaCamera = Vector2::Zero;
+    mTremorAntes = Vector2::Zero;
+    mTremorDesde = -1.0f;
+    mUltimoTremor = -1.0f;
     Esconder(mEtiquetasDaCamera);
     mProximoAnel = 0.0f;
     mProximoLeque = 0.0f;
@@ -332,6 +354,7 @@ void Ferreira::Desmontar() {
     if (mLinhas) mLinhas->Limpar();
     if (mLinhasDoChao) mLinhasDoChao->Limpar();
     if (mLinhasDoContador) mLinhasDoContador->Limpar();
+    if (mLinhasDoMenu) mLinhasDoMenu->Limpar();
     mAlvo.reset();
     mAvisoAte = -1.0f;
     mEtapaAnterior = -1;
@@ -442,11 +465,13 @@ void Ferreira::OnUpdate(const float deltaTime) {
         mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
         mLinhasDoChao = ator->AddComponent<DrawLinhasComponent>(kOrdemDoChao);
         mLinhasDoContador = ator->AddComponent<DrawLinhasComponent>(kOrdemDoContador);
+        mLinhasDoMenu = ator->AddComponent<DrawLinhasComponent>(kOrdemDoMenu + 5);
         mScene->AddActor(std::move(ator));
     }
     if (mLinhas) mLinhas->Limpar();
     if (mLinhasDoChao) mLinhasDoChao->Limpar();
     if (mLinhasDoContador) mLinhasDoContador->Limpar();
+    if (mLinhasDoMenu) mLinhasDoMenu->Limpar();
 
     if (mBarraAcertada && mQuebrada < 0.0f) QuebrarABarra();
     if (mQuebrada >= 0.0f) AtualizarQuebra(deltaTime);

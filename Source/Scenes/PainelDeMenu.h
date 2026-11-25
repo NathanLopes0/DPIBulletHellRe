@@ -33,6 +33,15 @@ public:
     /// Poe a moldura de foco na opcao 'indice'.
     void Selecionar(int indice);
 
+    /// Troca o texto da opcao 'indice' (o menu que muda com o que se escolhe).
+    void SetOpcao(int indice, const std::string& texto);
+
+    /// O centro da opcao 'indice': o que aponta para ela desenha ali.
+    [[nodiscard]] Vector2 OndeDaOpcao(int indice) const;
+
+    /// A metade da largura da moldura de foco.
+    [[nodiscard]] static float MeiaLarguraDaSelecao() { return static_cast<float>(kLarguraDaSelecao) / 2.0f; }
+
     void SetTitulo(const std::string& texto, const Vector3& cor);
 
     /// Escreve as linhas de cima para baixo; as que sobram ficam escondidas. 'destaque' e a linha

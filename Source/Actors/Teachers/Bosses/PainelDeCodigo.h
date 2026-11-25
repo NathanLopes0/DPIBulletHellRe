@@ -35,6 +35,8 @@ public:
     void Pintar(SDL_Color moldura, SDL_Color fundo, SDL_Color tinta);
     void Escrever(const std::string& texto);
     void Mostrar(bool mostrar);
+    /// O texto encostado na esquerda da caixa, e nao no meio: as linhas de um codigo.
+    void AEsquerda(bool aEsquerda);
     /// A caixa de outro tamanho: a etiqueta reaproveitada para um texto mais curto ou mais longo.
     void Redimensionar(int largura, int altura);
 

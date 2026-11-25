@@ -58,6 +58,6 @@ q03420 nota=7.0335 sofridos=15
 q03480 nota=7.0335 sofridos=15
 q03540 nota=8.9375 sofridos=15
 q03600 nota=8.9375 sofridos=15
-q03660 nota=9.0962 sofridos=15
-q03720 nota=9.2548 sofridos=15
-FIM nota=9.7308 acertos_sofridos=15 acertos_dados=110 aprovado=0
+q03660 nota=8.9375 sofridos=15
+q03720 nota=3.0962 sofridos=16
+FIM nota=4.0482 acertos_sofridos=16 acertos_dados=111 aprovado=0

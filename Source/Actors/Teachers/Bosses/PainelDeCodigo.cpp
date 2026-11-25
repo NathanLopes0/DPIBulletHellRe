@@ -58,6 +58,10 @@ void EtiquetaDeCodigo::Redimensionar(const int largura, const int altura) {
     if (mTexto) mTexto->SetTamanho(largura - 10, altura - 4);
 }
 
+void EtiquetaDeCodigo::AEsquerda(const bool aEsquerda) {
+    if (mTexto) mTexto->SetAEsquerda(aEsquerda);
+}
+
 void EtiquetaDeCodigo::Mostrar(const bool mostrar) {
     mCaixa->SetIsVisible(mostrar);
     if (mTexto) mTexto->SetIsVisible(mostrar);

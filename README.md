@@ -931,6 +931,11 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   **encaixe**, o **sítio ativo** abre: um anel com uma boca que gira. Dentro
   dele você é o ligante — a água em movimento browniano e os inibidores morrem
   na parede, e o ΔG cai —, mas o seu tiro também morre nela: só sai pela boca.
+  E o sítio ocupado se ajeita a você: é o **encaixe induzido** — a boca gira e
+  o sítio passeia mais devagar, e ele fica dourado —, a **dessolvatação** — a
+  água que entra pela boca evapora, porque o ligante a expulsou — e a
+  **competição**: os inibidores que miram o sítio ocupado vêm em menor número
+  e mais lentos.
   O exame é o **sequenciamento**: na **PCR**, cada ciclo de temperatura (95,
   55 e 72 °C) dobra as cópias, e derrubar o primer impede a fita de se copiar;
   no **shotgun**, os reads em leque se montam no contig, que gira no meio do
@@ -971,9 +976,20 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   mover a **câmera**: o mundo inteiro — os tiros, as caixas e o próprio
   professor — anda ao contrário na tela, e a grade do fundo anda junto. Para
   desviar, mova a câmera; para pôr o professor na mira do seu tiro, traga-o com
-  ela — ele não sai da tela, e a borda o segura. Ele atira anéis e leques, e
-  caixas paradas aparecem pelo mundo (o contorno pisca antes de elas machucarem):
-  só a câmera as move. No fim, o visor pisca em âmbar, e o manche volta para você.
+  ela — ele não sai da tela, e a borda o segura. A câmera também não sai do
+  mundo: na borda dela ela para, e a borda acende. Ele atira anéis e leques,
+  caixas paradas aparecem pelo mundo (o contorno pisca antes de elas machucarem),
+  e o **cenário rola**: paredes de caixas, presas no mundo, descem com um vão — e
+  como você não sai do lugar, só passa levando o vão até você com a câmera (na
+  dupla, cada parede tem dois vãos, um para cada um). E no meio disso ele
+  **pausa o jogo**: abre a pausa da batalha — a de verdade, com uma linha a mais,
+  *Opções da câmera* —, e o ponteiro dele entra nas opções e liga *Inverter
+  eixos*. A câmera passa a ir ao contrário do manche. Na segunda pausa ele
+  desinverte (no Difícil, não), põe a *Suavização* em 90% e liga o *Tremor de
+  tela*: a câmera escorrega — demora a pegar velocidade e continua depois que
+  você solta — e a tela treme, com um tranco a cada pisão dele, que solta um
+  anel. O visor muda de cor a cada tomada (branco, magenta, ciano), e no fim
+  pisca em âmbar, e o manche volta para você.
   Por fim vem o **primeiro inimigo do jogo**: um **fantasma de
   fliperama** grande (o dobro de você), feito de blocos de **textura que faltou** — o xadrez
   magenta e preto que o motor põe no lugar da arte que não carregou —: a cúpula,
@@ -991,7 +1007,15 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   invertem, os blocos viram **moedas** e é **ele que foge**; cada bloco que
   você encosta é nota, e pegar todos o derrota (com bônus) até o respawn, no
   canto dele. No fim do power-up os blocos piscam: é a hora de se afastar. E
-  ele não fica só aí: o fantasma **volta nas regras**.
+  no meio da etapa o professor **reescreve a IA com o jogo rodando** — o *hot
+  reload*: um painel de código escreve, letra por letra, a diff do que mudou.
+  Na primeira, o fantasma ganha a **investida**: quando você está perto, ele
+  para, treme e **mira** — uma linha vermelha que segue você e trava no fim —, e
+  então **avança em linha reta**, muito rápido; se bate na parede, fica
+  **atordoado** ("PAREDE!"), e é a hora de atirar no olho. Na segunda, ganha a
+  **previsão**: ele persegue (e mira) onde você **vai** estar, e a mira
+  magenta mostra esse lugar, à sua frente — mudar de rumo é o que o engana. E
+  ele não fica só aí: o fantasma **volta nas regras** (sem as recargas).
   A **física** é a prova inteira: o jogo vira **de plataforma**, e é ele quem
   escolhe para que lado a gravidade puxa. Uma seta avisa, e a virada arremessa
   você no chão novo — o desenho gira com os pés nele, o seu tiro sai para o

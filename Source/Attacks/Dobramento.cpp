@@ -100,6 +100,15 @@ namespace Dobramento {
         return (p - centro).Length() < raio - folga;
     }
 
+    bool Dessolvata(const Vector2 gota, const Vector2 centro, const float raio, const bool ocupado) {
+        // A gota que passou da parede (o raio, sem folga) num sitio que tem ligante.
+        return ocupado && Encaixado(gota, centro, raio, 0.0f);
+    }
+
+    int InibidoresNoOcupado(const int tiros) {
+        return std::max(1, tiros - 1);
+    }
+
     float DeltaG(const float segundos) {
         return -std::min(15.0f, 2.0f + 1.6f * std::max(0.0f, segundos));
     }
@@ -134,7 +143,7 @@ namespace Dobramento {
         d.tirosDoBorrifo = 3;
         d.abertura = 1.25f;
         d.giroDaBoca = 0.95f;
-        d.entreGotas = 0.034f;
+        d.entreGotas = 0.042f;
         d.velocidadeDaGota = 170.0f;
         d.chute = 1000.0f;
         d.entreInibidores = 0.55f;

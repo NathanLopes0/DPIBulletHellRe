@@ -166,6 +166,8 @@ public:
     /// A fonte do placar (Carlito), para quem escreve codigo no campo (EtiquetaDeCodigo). E da
     /// batalha, que vive mais que os atores dela.
     [[nodiscard]] Font* FonteDoPlacar() const { return mFonteDoPlacar.get(); }
+    /// A fonte da pausa (e da nota): quem imita a pausa (o menu do Lucas Ferreira) usa a mesma.
+    [[nodiscard]] Font* FonteDaNota() const { return mFonteDaNota.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
     /// Um aluno gastou um Ponto Extra. Recebe quem gastou porque em dupla o efeito e no outro: a

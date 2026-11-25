@@ -215,6 +215,12 @@ private:
     float mProximoInibidor = 0.0f;
     float mEncaixado = 0.0f;
     float mComecoDoEncaixe = -1.0f;
+    /// O giro da boca e o passeio do sitio, somados quadro a quadro: com o ligante dentro, o sitio se
+    /// acomoda (Dobramento::kEncaixeInduzido) e anda mais devagar. E se havia alguem encaixado no
+    /// quadro anterior (o sitio ocupado: a dessolvatacao, e os inibidores perdem).
+    float mGiroDoSitio = 0.0f;
+    float mPasseioDoSitio = 0.0f;
+    bool mSitioOcupado = false;
 
     // ---- A repescagem: o sequenciamento ----
 

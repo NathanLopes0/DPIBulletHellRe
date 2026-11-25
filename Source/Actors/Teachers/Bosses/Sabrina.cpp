@@ -1123,18 +1123,26 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
         mEncaixado = 0.0f;
         mProximaGota = mRelogio;
         mProximoInibidor = mRelogio + 1.0f;
+        mGiroDoSitio = 0.0f;
+        mPasseioDoSitio = 0.0f;
+        mSitioOcupado = false;
     }
-    const float te = mRelogio - mComecoDoEncaixe;
-    const Vector2 centro(c.x + c.w * (0.5f + g.passeioDoSitio * Math::Sin(Math::TwoPi * te / 8.0f)), c.y + 0.6f * c.h);
+    // O encaixe induzido: com o ligante dentro, o sitio se acomoda a ele - gira e passeia mais devagar.
+    const float acomoda = mSitioOcupado ? kEncaixeInduzido : 1.0f;
+    mGiroDoSitio += g.giroDaBoca * deltaTime * acomoda;
+    mPasseioDoSitio += deltaTime * acomoda;
+    const Vector2 centro(c.x + c.w * (0.5f + g.passeioDoSitio * Math::Sin(Math::TwoPi * mPasseioDoSitio / 8.0f)), c.y + 0.6f * c.h);
     // A boca comeca para baixo (o lado de onde nada vem) e gira.
-    const float boca = 0.5f * Math::Pi + g.giroDaBoca * te;
+    const float boca = 0.5f * Math::Pi + mGiroDoSitio;
     const auto contas = Sitio(centro, g.raioDoSitio, g.contasDoSitio, boca, g.abertura);
     mParede.resize(contas.size(), nullptr);
     for (size_t k = 0; k < contas.size(); ++k) {
         if (!Vivo(mParede[k])) mParede[k] = Um(kGatilhoDoSitio, contas[k], "Sitio");
         Mover(mParede[k], contas[k], Vector2::Zero);
     }
-    Circulo(centro, g.raioDoSitio - 16.0f, SDL_Color{kSitio.r, kSitio.g, kSitio.b, 70}, 24);
+    // Ocupado, o sitio fica seco: o dourado do ligante no lugar da agua.
+    Circulo(centro, g.raioDoSitio - 16.0f, mSitioOcupado ? SDL_Color{kOuro.r, kOuro.g, kOuro.b, 110}
+                                                         : SDL_Color{kSitio.r, kSitio.g, kSitio.b, 70}, 24);
     const Vector2 dirDaBoca(Math::Cos(boca), Math::Sin(boca));
     Tracejada(centro + dirDaBoca * (g.raioDoSitio - 16.0f), centro + dirDaBoca * (g.raioDoSitio + 26.0f), kSitio, 4.0f);
 
@@ -1147,6 +1155,13 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
     }
     for (Gota& gota : mGotas) {
         if (!Vivo(gota.p)) {
+            gota.p = nullptr;
+            continue;
+        }
+        // A dessolvatacao: o ligante desloca a agua do sitio, e a gota que entra evapora.
+        if (Dessolvata(gota.p->GetPosition(), centro, g.raioDoSitio, mSitioOcupado)) {
+            if (Battle* b = Batalha()) b->Faiscar(gota.p->GetPosition(), Hud::Faisca::Dissolvido);
+            gota.p->Kill();
             gota.p = nullptr;
             continue;
         }
@@ -1169,7 +1184,10 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
         mProximoInibidor = mRelogio + g.entreInibidores;
         const Vector2 de = GetPosition() + Vector2(0.0f, 34.0f);
         const float mira = algum ? AnguloAte(de, centro) : AnguloAteOAluno(de);
-        for (BossProjectile* p : DispararEm(kGatilhoDoInibidor, de, g.tirosDoInibidor, mira, 14.0f, g.velocidadeDoInibidor)) {
+        // No sitio ocupado o inibidor perde a competicao: um a menos, e mais lento.
+        const int tiros = algum ? InibidoresNoOcupado(g.tirosDoInibidor) : g.tirosDoInibidor;
+        const float velocidade = algum ? g.velocidadeDoInibidor * kInibidorNoOcupado : g.velocidadeDoInibidor;
+        for (BossProjectile* p : DispararEm(kGatilhoDoInibidor, de, tiros, mira, 14.0f, velocidade)) {
             Cara(p, "Inibidor");
         }
         SomDoDisparo();
@@ -1182,6 +1200,7 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
             mPremioGuardado = 0.0f;
         }
     }
+    mSitioOcupado = algum;
     Placar(kFase, 2, algum ? "Encaixe: ΔG = −" + Decimal(-DeltaG(mEncaixado), 1) + " kcal/mol  ·  o tiro só sai pela boca"
                            : std::string("Encaixe: entre no sítio ativo pela boca"));
 }

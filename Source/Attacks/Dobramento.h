@@ -68,6 +68,14 @@ namespace Dobramento {
     /// O Delta G (kcal/mol, negativo) de quem ficou 'segundos' encaixado: quanto mais tempo, mais
     /// forte a ligacao.
     float DeltaG(float segundos);
+    /// O encaixe induzido: com um aluno encaixado, o sitio se acomoda ao ligante - a boca gira, e o
+    /// sitio passeia, a esta fracao da rapidez de sempre.
+    constexpr float kEncaixeInduzido = 0.45f;
+    /// A dessolvatacao: o ligante desloca a agua do sitio - a gota que entra num sitio ocupado evapora.
+    bool Dessolvata(Vector2 gota, Vector2 centro, float raio, bool ocupado);
+    /// Os inibidores perdem a competicao pelo sitio ocupado: um a menos por rajada, e mais lentos.
+    int InibidoresNoOcupado(int tiros);
+    constexpr float kInibidorNoOcupado = 0.85f;
 
     /// O movimento browniano da agua: a velocidade ganha o 'chute' e volta aos poucos para a 'media'.
     Vector2 Browniano(Vector2 velocidade, Vector2 media, Vector2 chute, float dt, float retorno);
@@ -107,7 +115,7 @@ namespace Dobramento {
         float abertura = 1.05f;
         float giroDaBoca = 0.75f;
         float passeioDoSitio = 0.24f;   ///< a fracao da largura
-        float entreGotas = 0.045f;
+        float entreGotas = 0.055f;
         float velocidadeDaGota = 150.0f;
         float chute = 900.0f;           ///< o empurrao aleatorio, px/s por segundo
         float entreInibidores = 0.7f;

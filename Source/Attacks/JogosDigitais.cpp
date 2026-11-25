@@ -138,18 +138,187 @@ namespace HudHostil {
         d.tirosDoLeque = 5;
         d.velocidade = 270.0f;
         d.entreAneisDaCamera = 1.15f;
-        d.tirosDoAnelDaCamera = 16;
-        d.velocidadeDaCamera = 175.0f;
+        d.tirosDoAnelDaCamera = 18;
+        d.velocidadeDaCamera = 185.0f;
         d.entreCaixas = 0.65f;
         d.vidaDaCaixa = 5.0f;
         d.entreLequesDaCamera = 1.3f;
+        d.tremorDaCamera = 14.0f;
+        d.entreParedes = 2.0f;
+        d.velocidadeDaParede = 130.0f;
         return d;
     }
 
     Camera CameraEm(const float te) {
         if (te < kAvisoDaCamera) return Camera::Aviso;
-        if (te < kDevolveACamera) return Camera::Livre;
+        if (te < kMenusDaCamera[0]) return Camera::Livre;
+        if (te < kMenusDaCamera[0] + kDuracaoDosMenus[0]) return Camera::Menu;
+        if (te < kMenusDaCamera[1]) return Camera::Invertida;
+        if (te < kMenusDaCamera[1] + kDuracaoDosMenus[1]) return Camera::Menu;
+        if (te < kDevolveACamera) return Camera::Suave;
         return Camera::Volta;
+    }
+
+    int CaixasNaParede(const JogosDigitais::Campo& c) {
+        return static_cast<int>(std::ceil((c.w + 2.0f * kAlemDaBorda) / kLadoDaCaixaDaParede));
+    }
+
+    std::vector<Vector2> CaixasDaParede(const JogosDigitais::Campo& c, const float y, const int primeira, const int vao,
+                                        const bool dupla) {
+        std::vector<Vector2> v;
+        const int n = CaixasNaParede(c);
+        const int segunda = dupla ? primeira + kEntreOsVaos : -1000;
+        for (int k = 0; k < n; ++k) {
+            if (k >= primeira && k < primeira + vao) continue;
+            if (k >= segunda && k < segunda + vao) continue;
+            v.emplace_back(c.x - kAlemDaBorda + (static_cast<float>(k) + 0.5f) * kLadoDaCaixaDaParede, y);
+        }
+        return v;
+    }
+
+    float MeioDoVao(const JogosDigitais::Campo& c, const int primeira, const int vao, const bool dupla) {
+        const float meio = c.x - kAlemDaBorda + (static_cast<float>(primeira) + 0.5f * static_cast<float>(vao)) * kLadoDaCaixaDaParede;
+        return dupla ? meio + 0.5f * static_cast<float>(kEntreOsVaos) * kLadoDaCaixaDaParede : meio;
+    }
+
+    int ComecoDoVao(Variacao::Sorteio& s, const JogosDigitais::Campo& c, const int vao, const bool dupla, const float deX,
+                    const float ateX) {
+        // A caixa k esta em c.x - kAlemDaBorda + (k + 0.5) lado: os vaos ficam dentro do campo, a quatro
+        // caixas das bordas - e, entre essas, so onde a camera alcanca.
+        const int borda = static_cast<int>(kAlemDaBorda / kLadoDaCaixaDaParede);
+        const int dentro = static_cast<int>(c.w / kLadoDaCaixaDaParede);
+        const int largura = vao + (dupla ? kEntreOsVaos : 0);
+        const int de = borda + 4, ate = std::max(de, borda + dentro - 4 - largura);
+        std::vector<int> podem;
+        for (int k = de; k <= ate; ++k) {
+            const float meio = MeioDoVao(c, k, vao, dupla);
+            if (meio >= deX && meio <= ateX) podem.push_back(k);
+        }
+        if (podem.empty()) {
+            // Nenhum alcancavel (nao deveria acontecer): o mais perto do meio do intervalo.
+            const float alvo = (deX + ateX) / 2.0f;
+            int melhor = de;
+            for (int k = de; k <= ate; ++k) {
+                if (std::fabs(MeioDoVao(c, k, vao, dupla) - alvo) < std::fabs(MeioDoVao(c, melhor, vao, dupla) - alvo)) melhor = k;
+            }
+            return melhor;
+        }
+        return podem[static_cast<size_t>(s.Inteiro(0, static_cast<int>(podem.size()) - 1))];
+    }
+
+    bool CameraAnda(const Camera c) {
+        return c != Camera::Aviso && c != Camera::Menu;
+    }
+
+    namespace {
+        /// O que um clique do professor faz no menu.
+        enum class Clique { Nenhum, AbrirAsOpcoes, Inverter, Desinverter, Suavizar, Tremer, Voltar };
+        /// Um passo do roteiro de um menu: a partir de 's', o foco esta em 'foco'; e, se houver, o clique.
+        struct PassoDoMenu {
+            float s;
+            int foco;
+            Clique clique;
+        };
+        /// O primeiro: a pausa da batalha, o cursor desce ate a opcao dele, e nas opcoes da camera so
+        /// inverte os eixos.
+        constexpr std::array<PassoDoMenu, 10> kPrimeiroMenu = {{
+            {0.00f, 0, Clique::Nenhum}, {0.25f, 1, Clique::Nenhum}, {0.40f, 2, Clique::Nenhum},
+            {0.55f, kLinhaDoProfessor, Clique::Nenhum}, {0.80f, 0, Clique::AbrirAsOpcoes},
+            {1.15f, 0, Clique::Inverter}, {1.45f, 1, Clique::Nenhum}, {1.60f, 2, Clique::Nenhum},
+            {1.75f, kLinhaDeVoltar, Clique::Nenhum}, {2.00f, kLinhaDeVoltar, Clique::Voltar},
+        }};
+        /// O segundo: ele ja sabe o caminho; desinverte, poe a suavizacao em 90% (tres cliques de 30)
+        /// e liga o tremor.
+        constexpr std::array<PassoDoMenu, 12> kSegundoMenu = {{
+            {0.00f, 0, Clique::Nenhum}, {0.15f, kLinhaDoProfessor, Clique::Nenhum},
+            {0.30f, 0, Clique::AbrirAsOpcoes}, {0.55f, 0, Clique::Desinverter},
+            {0.70f, 1, Clique::Nenhum}, {0.85f, 1, Clique::Suavizar}, {1.05f, 1, Clique::Suavizar},
+            {1.25f, 1, Clique::Suavizar}, {1.45f, 2, Clique::Nenhum}, {1.65f, 2, Clique::Tremer},
+            {1.80f, kLinhaDeVoltar, Clique::Nenhum}, {2.00f, kLinhaDeVoltar, Clique::Voltar},
+        }};
+
+        OpcoesDaCamera AntesDoMenu(const int menu, const bool dificil) {
+            return menu <= 0 ? OpcoesDaCamera{} : MenuDaCamera(menu - 1, 1e9f, dificil).mostradas;
+        }
+    }
+
+    QuadroDoMenu MenuDaCamera(const int menu, const float s, const bool dificil) {
+        QuadroDoMenu q;
+        q.mostradas = AntesDoMenu(menu, dificil);
+        const auto aplicar = [&](const PassoDoMenu& p) {
+            q.foco = p.foco;
+            switch (p.clique) {
+                case Clique::Nenhum: return;
+                case Clique::AbrirAsOpcoes: q.tela = TelaDoMenu::Opcoes; break;
+                case Clique::Inverter: q.mostradas.inverter = true; break;
+                // No Dificil o cursor passa pela linha e nao clica: a camera suave fica invertida.
+                case Clique::Desinverter:
+                    if (dificil) return;
+                    q.mostradas.inverter = false;
+                    break;
+                case Clique::Suavizar: q.mostradas.suavizacao = std::min(90, q.mostradas.suavizacao + 30); break;
+                case Clique::Tremer: q.mostradas.tremor = true; break;
+                case Clique::Voltar: q.tela = TelaDoMenu::Fechado; break;
+            }
+            ++q.cliques;
+        };
+        if (menu == 0) {
+            for (const PassoDoMenu& p : kPrimeiroMenu) if (p.s <= s) aplicar(p);
+        } else {
+            for (const PassoDoMenu& p : kSegundoMenu) if (p.s <= s) aplicar(p);
+        }
+        return q;
+    }
+
+    int MenuDaCameraEm(const float te) {
+        for (size_t k = 0; k < kMenusDaCamera.size(); ++k) {
+            if (te >= kMenusDaCamera[k] && te < kMenusDaCamera[k] + kDuracaoDosMenus[k]) return static_cast<int>(k);
+        }
+        return -1;
+    }
+
+    OpcoesDaCamera OpcoesDaCameraEm(const float te, const bool dificil) {
+        // O menu so aplica quando fecha: ate la, vale o que havia antes dele.
+        int fechados = 0;
+        for (size_t k = 0; k < kMenusDaCamera.size(); ++k) {
+            if (te >= kMenusDaCamera[k] + kDuracaoDosMenus[k]) fechados = static_cast<int>(k) + 1;
+        }
+        return AntesDoMenu(fechados, dificil);
+    }
+
+    std::array<std::string, 4> LinhasDasOpcoes(const OpcoesDaCamera& o) {
+        return {std::string("Inverter eixos: ") + (o.inverter ? "SIM" : "NÃO"),
+                "Suavização: " + std::to_string(o.suavizacao) + "%",
+                std::string("Tremor de tela: ") + (o.tremor ? "SIM" : "NÃO"), "Voltar ao jogo"};
+    }
+
+    Vector2 VelocidadeDaCamera(const Vector2 atual, const Vector2 intencao, const OpcoesDaCamera& o, const float dt) {
+        const Vector2 alvo = o.inverter ? intencao * -1.0f : intencao;
+        if (o.suavizacao <= 0) return alvo;
+        // A meia-vida cresce com a suavizacao: em 90%, a kMeiaVidaDaSuavizacao.
+        const float meiaVida = kMeiaVidaDaSuavizacao * static_cast<float>(o.suavizacao) / 90.0f;
+        const float fica = std::pow(0.5f, dt / std::max(meiaVida, 1e-3f));
+        return alvo + (atual - alvo) * fica;
+    }
+
+    float ForcaDoTremor(const float s) {
+        if (s < 0.0f) return 0.0f;
+        const float desde = std::fmod(s, kEntrePisoes);
+        return kTremorDeFundo + (1.0f - kTremorDeFundo) * std::exp(-desde / kApagaOPisao);
+    }
+
+    Vector2 Tremor(const float s, const float amplitude) {
+        // Duas frequencias por eixo, que nao se repetem juntas: parece ruido, e e sempre o mesmo.
+        const float a = amplitude * ForcaDoTremor(s);
+        return Vector2(a * (0.6f * std::sin(s * 31.0f) + 0.4f * std::sin(s * 47.0f + 1.3f)),
+                       a * (0.6f * std::sin(s * 37.0f + 0.7f) + 0.4f * std::sin(s * 53.0f)));
+    }
+
+    bool Pisou(const float antes, const float agora) {
+        if (agora < 0.0f || agora <= antes) return false;
+        // Os pisoes sao em 0, kEntrePisoes, 2 kEntrePisoes...: houve um se algum cai em (antes, agora].
+        const float de = antes < 0.0f ? -1.0f : std::floor(antes / kEntrePisoes);
+        return std::floor(agora / kEntrePisoes) > de;
     }
 
     int ContagemDaCamera(const float te) {
@@ -167,6 +336,10 @@ namespace HudHostil {
     Vector2 PassoDoMundo(const Vector2 intencao, const float dt) {
         // A camera vai para onde o manche aponta; na tela, o mundo vai para o outro lado.
         return intencao * (-dt);
+    }
+
+    Vector2 CameraNoMundo(const Vector2 camera) {
+        return Vector2(std::clamp(camera.x, -kLimiteDaCameraX, kLimiteDaCameraX), std::clamp(camera.y, -kLimiteDaCameraY, kLimiteDaCameraY));
     }
 
     Vector2 ProfessorNaTela(const Vector2 p, const JogosDigitais::Campo& c, const float margem, const float fundo) {
@@ -351,6 +524,8 @@ namespace IaDoInimigo {
             case Estado::Atordoado: return "ATORDOADO";
             case Estado::Fugindo:   return "FUGINDO";
             case Estado::Derrotado: return "DERROTADO";
+            case Estado::Mira:      return "MIRA";
+            case Estado::Investida: return "INVESTIDA";
         }
         return "";
     }
@@ -414,7 +589,56 @@ namespace IaDoInimigo {
         d.atordoado = 1.5f;
         d.primeiroPoder = 3.6f;
         d.entrePoderes = 3.0f;
+        d.raioDaInvestida = 400.0f;
+        d.mira = 0.55f;
+        d.investida = 700.0f;
+        d.entreInvestidas = 1.1f;
+        d.tontoNaParede = 0.9f;
+        d.previsao = 0.75f;
         return d;
+    }
+
+    int VersaoEm(const float te) {
+        int v = 0;
+        for (const float k : kRecargas) v += te >= k ? 1 : 0;
+        return v;
+    }
+
+    std::vector<std::string> CodigoDaRecarga(const int k, const Degrau& g) {
+        const auto decimal = [](const float x) {
+            const int d = static_cast<int>(std::lround(x * 10.0f));
+            return std::to_string(d / 10) + "," + std::to_string(d % 10);
+        };
+        if (k == 0) {
+            return {"// inimigo.ia  ·  hot reload", "+ PERSEGUE -> MIRA: aluno a " + std::to_string(static_cast<int>(g.raioDaInvestida)) + " px",
+                    "+ MIRA -> INVESTIDA: " + decimal(g.mira) + " s", "+ INVESTIDA: linha reta, a " + std::to_string(static_cast<int>(g.investida)) + " px/s",
+                    "+ bateu(parede) -> ATORDOADO"};
+        }
+        return {"// inimigo.ia  ·  hot reload", "- alvo = aluno.posicao", "+ alvo = aluno.posicao",
+                "+      + aluno.velocidade * " + decimal(g.previsao) + " s"};
+    }
+
+    std::vector<std::string> CodigoEscrito(const std::vector<std::string>& linhas, const float s) {
+        // A letra, e nao o byte: no UTF-8, o que comeca com 10xxxxxx continua a letra anterior.
+        long resta = static_cast<long>(std::floor(std::max(0.0f, s) * kLetrasPorSegundo));
+        std::vector<std::string> escritas;
+        for (const std::string& l : linhas) {
+            std::string feita;
+            for (const char ch : l) {
+                const bool continua = (static_cast<unsigned char>(ch) & 0xC0u) == 0x80u;
+                if (!continua) {
+                    if (resta <= 0) break;
+                    --resta;
+                }
+                feita += ch;
+            }
+            escritas.push_back(feita);
+        }
+        return escritas;
+    }
+
+    Vector2 Previsao(const Vector2 aluno, const Vector2 velocidade, const float segundos, const JogosDigitais::Campo& c) {
+        return JogosDigitais::Prender(aluno + velocidade * segundos, c, 16.0f, 16.0f);
     }
 
     bool Passo(Ia& ia, const Percepcao& p, const float dt, const Degrau& g) {
@@ -437,16 +661,28 @@ namespace IaDoInimigo {
             ia.susto = p.susto > 0.0f ? p.susto : g.susto;
             return ia.estado != antes;
         }
-        if (p.olhoAtingido && (ia.estado == Estado::Patrulha || ia.estado == Estado::Alerta || ia.estado == Estado::Persegue)) {
+        const bool atras = ia.estado == Estado::Alerta || ia.estado == Estado::Persegue || ia.estado == Estado::Mira ||
+                           ia.estado == Estado::Investida;
+        if (p.olhoAtingido && (atras || ia.estado == Estado::Patrulha)) {
             ir(Estado::Atordoado);
+            ia.tontura = g.atordoado;
             return true;
         }
-        if (p.acertouOAluno && (ia.estado == Estado::Alerta || ia.estado == Estado::Persegue)) {
+        if (p.acertouOAluno && atras) {
             ir(Estado::Patrulha);
             ia.recuo = kRecuo;
+            ia.folego = g.entreInvestidas;
+            return true;
+        }
+        // A investida que bate na parede o deixa tonto: a hora de mirar no olho.
+        if (p.bateuNaParede && ia.estado == Estado::Investida) {
+            ir(Estado::Atordoado);
+            ia.tontura = g.tontoNaParede;
+            ia.folego = g.entreInvestidas;
             return true;
         }
         ia.noEstado += dt;
+        ia.folego = std::max(0.0f, ia.folego - dt);
         switch (ia.estado) {
             case Estado::Nascendo:
                 if (ia.noEstado >= kNascendo) ir(Estado::Patrulha);
@@ -464,12 +700,30 @@ namespace IaDoInimigo {
             case Estado::Persegue:
                 ia.rapidez = std::min(g.maxima, std::max(ia.rapidez, g.persegue) + g.aceleracao * dt);
                 ia.longe = p.distancia > g.raioDePerder ? ia.longe + dt : 0.0f;
-                if (ia.longe >= kParaPerder) ir(Estado::Patrulha);
+                if (ia.longe >= kParaPerder) {
+                    ir(Estado::Patrulha);
+                } else if (ia.versao >= 1 && ia.folego <= 0.0f && ia.noEstado >= kPersegueAntesDaMira &&
+                           p.distancia <= g.raioDaInvestida) {
+                    ir(Estado::Mira);
+                    ia.rumoDaInvestida = p.rumo;
+                }
                 break;
             case Estado::Atordoado:
-                if (ia.noEstado >= g.atordoado) {
+                if (ia.noEstado >= (ia.tontura > 0.0f ? ia.tontura : g.atordoado)) {
                     ir(Estado::Persegue);
                     ia.rapidez = g.persegue;
+                }
+                break;
+            case Estado::Mira:
+                // Ele segue o aluno com a linha, e no fim ela trava: dali sai a investida.
+                if (ia.noEstado < g.mira - kTravaDaMira && p.rumo.Length() > 0.0f) ia.rumoDaInvestida = p.rumo;
+                if (ia.noEstado >= g.mira) ir(Estado::Investida);
+                break;
+            case Estado::Investida:
+                if (ia.noEstado >= g.duracaoDaInvestida) {
+                    ir(Estado::Persegue);
+                    ia.rapidez = g.persegue;
+                    ia.folego = g.entreInvestidas;
                 }
                 break;
             case Estado::Fugindo:
@@ -487,7 +741,8 @@ namespace IaDoInimigo {
     }
 
     bool Machuca(const Estado e) {
-        return e == Estado::Patrulha || e == Estado::Alerta || e == Estado::Persegue || e == Estado::Atordoado;
+        return e == Estado::Patrulha || e == Estado::Alerta || e == Estado::Persegue || e == Estado::Atordoado ||
+               e == Estado::Mira || e == Estado::Investida;
     }
 
     float Rapidez(const Ia& ia, const Degrau& g) {
@@ -495,6 +750,7 @@ namespace IaDoInimigo {
             case Estado::Patrulha: return g.ronda;
             case Estado::Persegue: return std::max(ia.rapidez, g.persegue);
             case Estado::Fugindo:  return g.foge;
+            case Estado::Investida: return g.investida;
             default:               return 0.0f;
         }
     }
