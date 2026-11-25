@@ -25,244 +25,303 @@ namespace Tcc {
         }
     }
 
-    Golpe::Rodada Padrao(const Materia m, const int k, Variacao::Sorteio& s, const Dificuldade::Nivel n) {
-        const auto N = [n](const auto normal, const auto dificil) { return Dificuldade::Escolher(n, normal, dificil); };
-        Golpe::Rodada r;
-        auto& tiros = r.tiros;
-        switch (m) {
-            case Materia::Andre: {
-                // For (i = 0; i < n; i++): um tiro por volta, e o laco varre o arco.
-                const int q = N(10, 14);
-                const float arco = N(45.0f, 65.0f);
-                for (int i = 0; i < q; ++i) {
-                    Golpe::Tiro t = Tiro(static_cast<float>(i) * N(0.06f, 0.05f), N(260.0f, 290.0f));
-                    t.desvio = Passo(i, q, -arco, arco) * ((k % 2 == 0) ? 1.0f : -1.0f);
+    namespace {
+        // O padrao de cada materia (Padrao).
+
+        /// N(normal, dificil): o numero do nivel 'n'.
+        auto Nivelado(const Dificuldade::Nivel n) {
+            return [n](const auto normal, const auto dificil) { return Dificuldade::Escolher(n, normal, dificil); };
+        }
+
+        void DoAndre(Golpe::Rodada& r, const int k, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // For (i = 0; i < n; i++): um tiro por volta, e o laco varre o arco.
+            const int q = N(10, 14);
+            const float arco = N(45.0f, 65.0f);
+            for (int i = 0; i < q; ++i) {
+                Golpe::Tiro t = Tiro(static_cast<float>(i) * N(0.06f, 0.05f), N(260.0f, 290.0f));
+                t.desvio = Passo(i, q, -arco, arco) * ((k % 2 == 0) ? 1.0f : -1.0f);
+                tiros.push_back(t);
+            }
+        }
+
+        void DoSalles(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // Push, push, push... e o pop comeca pelo ultimo.
+            const int niveis = N(6, 7);
+            const float pop = static_cast<float>(niveis - 1) * 0.08f + 0.25f;
+            for (int i = 0; i < niveis; ++i) {
+                for (const float d : {-14.0f, 0.0f, 14.0f}) {
+                    Golpe::Tiro t = Tiro(static_cast<float>(i) * 0.08f, N(250.0f, 280.0f));
+                    t.dy = 34.0f + 26.0f * static_cast<float>(i);
+                    t.desvio = d;
+                    t.espera = pop + static_cast<float>(niveis - 1 - i) * 0.12f - t.quando;
                     tiros.push_back(t);
                 }
-                break;
             }
-            case Materia::Salles: {
-                // Push, push, push... e o pop comeca pelo ultimo.
-                const int niveis = N(6, 7);
-                const float pop = static_cast<float>(niveis - 1) * 0.08f + 0.25f;
-                for (int i = 0; i < niveis; ++i) {
-                    for (const float d : {-14.0f, 0.0f, 14.0f}) {
-                        Golpe::Tiro t = Tiro(static_cast<float>(i) * 0.08f, N(250.0f, 280.0f));
-                        t.dy = 34.0f + 26.0f * static_cast<float>(i);
-                        t.desvio = d;
-                        t.espera = pop + static_cast<float>(niveis - 1 - i) * 0.12f - t.quando;
-                        tiros.push_back(t);
-                    }
-                }
-                break;
-            }
-            case Materia::Ricardo: {
-                // O barramento: paredes de oito fios, e so os bits 0 deixam passar.
-                const int bytes = 3;
-                for (int b = 0; b < bytes; ++b) {
-                    const auto bits = Golpe::Byte(s, 4);
-                    for (int f = 0; f < 8; ++f) {
-                        if (!bits[static_cast<size_t>(f)]) continue;
-                        Golpe::Tiro t = Tiro(static_cast<float>(b) * N(0.4f, 0.36f), N(240.0f, 255.0f));
-                        t.dx = (static_cast<float>(f) - 3.5f) * 44.0f;
-                        t.paralelo = true;
-                        tiros.push_back(t);
-                    }
-                }
-                break;
-            }
-            case Materia::Thiago: {
-                // Cada escrita espera na linha, e o commit manda a linha inteira em voce, junta.
-                const int escritas = N(9, 10);
-                const float intervalo = N(0.09f, 0.08f);
-                const float commit = static_cast<float>(escritas - 1) * intervalo + 0.35f;
-                std::vector<int> desfeitas;
-                for (int i = 0; i < escritas; ++i) desfeitas.push_back(i);
-                s.Embaralhar(desfeitas);
-                desfeitas.resize(static_cast<size_t>(N(3, 3)));
-                for (int i = 0; i < escritas; ++i) {
-                    if (std::find(desfeitas.begin(), desfeitas.end(), i) != desfeitas.end()) continue;
-                    Golpe::Tiro t = Tiro(static_cast<float>(i) * intervalo, N(250.0f, 270.0f));
-                    t.dx = Passo(i, escritas, -200.0f, 200.0f);
-                    t.dy = 50.0f;
-                    t.espera = commit - t.quando;
+        }
+
+        void DoRicardo(Golpe::Rodada& r, Variacao::Sorteio& s, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O barramento: paredes de oito fios, e so os bits 0 deixam passar.
+            const int bytes = 3;
+            for (int b = 0; b < bytes; ++b) {
+                const auto bits = Golpe::Byte(s, 4);
+                for (int f = 0; f < 8; ++f) {
+                    if (!bits[static_cast<size_t>(f)]) continue;
+                    Golpe::Tiro t = Tiro(static_cast<float>(b) * N(0.4f, 0.36f), N(240.0f, 255.0f));
+                    t.dx = (static_cast<float>(f) - 3.5f) * 44.0f;
                     t.paralelo = true;
                     tiros.push_back(t);
                 }
-                break;
             }
-            case Materia::Luizinho: {
-                // Os ponteiros saem de lado e apontam para voce: uma pinca.
-                std::vector<float> lados = {40.0f, 70.0f, 100.0f};
-                if (n == Dificuldade::Nivel::Dificil) lados.push_back(130.0f);
-                for (const float l : lados) {
-                    for (const float sinal : {-1.0f, 1.0f}) {
-                        Golpe::Tiro t = Tiro(0.0f, N(260.0f, 275.0f));
-                        t.desvio = sinal * l;
-                        t.curva = N(105.0f, 115.0f);
-                        t.curvaAte = 2.0f;
-                        tiros.push_back(t);
-                    }
-                }
-                break;
+        }
+
+        void DoThiago(Golpe::Rodada& r, Variacao::Sorteio& s, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // Cada escrita espera na linha, e o commit manda a linha inteira em voce, junta.
+            const int escritas = N(9, 10);
+            const float intervalo = N(0.09f, 0.08f);
+            const float commit = static_cast<float>(escritas - 1) * intervalo + 0.35f;
+            std::vector<int> desfeitas;
+            for (int i = 0; i < escritas; ++i) desfeitas.push_back(i);
+            s.Embaralhar(desfeitas);
+            desfeitas.resize(static_cast<size_t>(N(3, 3)));
+            for (int i = 0; i < escritas; ++i) {
+                if (std::find(desfeitas.begin(), desfeitas.end(), i) != desfeitas.end()) continue;
+                Golpe::Tiro t = Tiro(static_cast<float>(i) * intervalo, N(250.0f, 270.0f));
+                t.dx = Passo(i, escritas, -200.0f, 200.0f);
+                t.dy = 50.0f;
+                t.espera = commit - t.quando;
+                t.paralelo = true;
+                tiros.push_back(t);
             }
-            case Materia::Vladimir: {
-                // S -> S S, duas vezes: cada semente vira uma arvore de oito.
-                const int sementes = 2;
-                for (int i = 0; i < sementes; ++i) {
-                    Golpe::Tiro t = Tiro(0.0f, N(230.0f, 260.0f));
-                    t.desvio = Passo(i, sementes, -22.0f, 22.0f);
-                    t.divide = 0.3f;
-                    t.geracoes = 2;
-                    t.abertura = N(22.0f, 20.0f);
-                    t.herdaRumo = true;
+        }
+
+        void DoLuizinho(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // Os ponteiros saem de lado e apontam para voce: uma pinca.
+            std::vector<float> lados = {40.0f, 70.0f, 100.0f};
+            if (n == Dificuldade::Nivel::Dificil) lados.push_back(130.0f);
+            for (const float l : lados) {
+                for (const float sinal : {-1.0f, 1.0f}) {
+                    Golpe::Tiro t = Tiro(0.0f, N(260.0f, 275.0f));
+                    t.desvio = sinal * l;
+                    t.curva = N(105.0f, 115.0f);
+                    t.curvaAte = 2.0f;
                     tiros.push_back(t);
                 }
-                break;
             }
-            case Materia::Julio: {
-                // O gradiente: cada passo erra para um lado, e erra menos.
-                const int q = N(6, 7);
-                for (int i = 0; i < q; ++i) {
-                    Golpe::Tiro t = Tiro(static_cast<float>(i) * 0.1f, N(260.0f, 275.0f));
-                    t.onda = (i % 2 == 0) ? 90.0f : -90.0f;
-                    t.desvio = Passo(i, q, -6.0f, 6.0f);
+        }
+
+        void DoVladimir(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // S -> S S, duas vezes: cada semente vira uma arvore de oito.
+            const int sementes = 2;
+            for (int i = 0; i < sementes; ++i) {
+                Golpe::Tiro t = Tiro(0.0f, N(230.0f, 260.0f));
+                t.desvio = Passo(i, sementes, -22.0f, 22.0f);
+                t.divide = 0.3f;
+                t.geracoes = 2;
+                t.abertura = N(22.0f, 20.0f);
+                t.herdaRumo = true;
+                tiros.push_back(t);
+            }
+        }
+
+        void DoJulio(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O gradiente: cada passo erra para um lado, e erra menos.
+            const int q = N(6, 7);
+            for (int i = 0; i < q; ++i) {
+                Golpe::Tiro t = Tiro(static_cast<float>(i) * 0.1f, N(260.0f, 275.0f));
+                t.onda = (i % 2 == 0) ? 90.0f : -90.0f;
+                t.desvio = Passo(i, q, -6.0f, 6.0f);
+                tiros.push_back(t);
+            }
+        }
+
+        void DaMariaLucia(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // NotifyAll(): os observadores aparecem juntos e cada um, na vez dele, atira um leque.
+            const int olhos = N(4, 5);
+            for (int i = 0; i < olhos; ++i) {
+                for (const float d : {-10.0f, 0.0f, 10.0f}) {
+                    Golpe::Tiro t = Tiro(0.0f, N(250.0f, 265.0f));
+                    t.dx = Passo(i, olhos, -220.0f, 220.0f);
+                    t.dy = 40.0f;
+                    t.desvio = d;
+                    t.espera = 0.6f + 0.12f * static_cast<float>(i);
                     tiros.push_back(t);
                 }
-                break;
             }
-            case Materia::MariaLucia: {
-                // NotifyAll(): os observadores aparecem juntos e cada um, na vez dele, atira um leque.
-                const int olhos = N(4, 5);
-                for (int i = 0; i < olhos; ++i) {
-                    for (const float d : {-10.0f, 0.0f, 10.0f}) {
-                        Golpe::Tiro t = Tiro(0.0f, N(250.0f, 265.0f));
-                        t.dx = Passo(i, olhos, -220.0f, 220.0f);
-                        t.dy = 40.0f;
-                        t.desvio = d;
-                        t.espera = 0.6f + 0.12f * static_cast<float>(i);
-                        tiros.push_back(t);
-                    }
+        }
+
+        void DoLucas(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O fetch vai ao servidor, de lado, e a resposta volta em voce.
+            std::vector<float> lados = {40.0f, 60.0f, 80.0f};
+            if (n == Dificuldade::Nivel::Dificil) lados.push_back(100.0f);
+            for (size_t i = 0; i < lados.size(); ++i) {
+                for (const float sinal : {-1.0f, 1.0f}) {
+                    Golpe::Tiro t = Tiro(0.0f, N(300.0f, 315.0f));
+                    t.desvio = sinal * lados[i];
+                    t.reMira = N(0.3f, 0.28f) + 0.14f * static_cast<float>(i) + (sinal > 0.0f ? 0.07f : 0.0f);
+                    t.curva = 70.0f;      // e a resposta ainda procura quem pediu
+                    t.curvaAte = 1.6f;
+                    tiros.push_back(t);
                 }
-                break;
             }
-            case Materia::Lucas: {
-                // O fetch vai ao servidor, de lado, e a resposta volta em voce.
-                std::vector<float> lados = {40.0f, 60.0f, 80.0f};
-                if (n == Dificuldade::Nivel::Dificil) lados.push_back(100.0f);
-                for (size_t i = 0; i < lados.size(); ++i) {
-                    for (const float sinal : {-1.0f, 1.0f}) {
-                        Golpe::Tiro t = Tiro(0.0f, N(300.0f, 315.0f));
-                        t.desvio = sinal * lados[i];
-                        t.reMira = N(0.3f, 0.28f) + 0.14f * static_cast<float>(i) + (sinal > 0.0f ? 0.07f : 0.0f);
-                        t.curva = 70.0f;      // e a resposta ainda procura quem pediu
-                        t.curvaAte = 1.6f;
-                        tiros.push_back(t);
-                    }
+        }
+
+        void DoVitor(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // A janela do TCP: rajadas de 1, 2, 4 e 8, cada uma mirada.
+            const std::vector<int> janelas = {1, 2, 4, 8};
+            for (size_t j = 0; j < janelas.size(); ++j) {
+                for (int i = 0; i < janelas[j]; ++i) {
+                    tiros.push_back(Tiro(0.3f * static_cast<float>(j) + 0.04f * static_cast<float>(i),
+                                         N(280.0f, 290.0f)));
                 }
-                break;
             }
-            case Materia::Vitor: {
-                // A janela do TCP: rajadas de 1, 2, 4 e 8, cada uma mirada.
-                const std::vector<int> janelas = {1, 2, 4, 8};
-                for (size_t j = 0; j < janelas.size(); ++j) {
-                    for (int i = 0; i < janelas[j]; ++i) {
-                        tiros.push_back(Tiro(0.3f * static_cast<float>(j) + 0.04f * static_cast<float>(i),
-                                             N(280.0f, 290.0f)));
-                    }
-                }
-                break;
-            }
-            case Materia::Arroyo: {
-                // T(n) = T(n/2) + n: leques de 8, 4, 2 e 1 tiros, cada um com a metade do anterior.
-                for (int nivel = 0; nivel < 4; ++nivel) {
-                    const int q = 8 >> nivel;
-                    const float abertura = N(36.0f, 42.0f) / static_cast<float>(1 << nivel);
-                    for (int i = 0; i < q; ++i) {
-                        Golpe::Tiro t = Tiro(0.28f * static_cast<float>(nivel), N(255.0f, 275.0f));
-                        t.desvio = q > 1 ? Passo(i, q, -abertura, abertura) : 0.0f;
-                        tiros.push_back(t);
-                    }
-                }
-                break;
-            }
-            case Materia::Goulart: {
-                // O Round Robin: tres processos revezando a CPU - uma rajada curta de cada um, e o
-                // seguinte vem de outro lado.
-                for (int q = 0; q < 6; ++q) {
-                    const float lado = static_cast<float>(q % 3 - 1) * N(18.0f, 24.0f);
-                    for (int i = 0; i < 3; ++i) {
-                        Golpe::Tiro t = Tiro(0.22f * static_cast<float>(q) + 0.05f * static_cast<float>(i), N(260.0f, 280.0f));
-                        t.desvio = lado;
-                        tiros.push_back(t);
-                    }
-                }
-                break;
-            }
-            case Materia::Daniel: {
-                // As k-medias: tres grupos de tiros, cada um num rumo - o centroide -, com o
-                // espalhamento do grupo em volta dele.
-                for (int g = 0; g < 3; ++g) {
-                    const float centro = static_cast<float>(g - 1) * N(22.0f, 28.0f);
-                    for (int i = 0; i < 5; ++i) {
-                        Golpe::Tiro t = Tiro(0.12f * static_cast<float>(g) + 0.03f * static_cast<float>(i), N(250.0f, 270.0f));
-                        t.desvio = centro + Passo(i, 5, -6.0f, 6.0f);
-                        tiros.push_back(t);
-                    }
-                }
-                break;
-            }
-            case Materia::Michel: {
-                // O filtro 3x3: tres linhas de tres tiros, uma depois da outra - a janela que desce.
-                for (int linha = 0; linha < 3; ++linha) {
-                    for (int coluna = 0; coluna < 3; ++coluna) {
-                        Golpe::Tiro t = Tiro(0.14f * static_cast<float>(linha), N(245.0f, 265.0f));
-                        t.desvio = static_cast<float>(coluna - 1) * N(10.0f, 14.0f);
-                        tiros.push_back(t);
-                    }
-                }
-                break;
-            }
-            case Materia::Sabrina: {
-                // A dupla helice: duas fitas de tiros, cada uma para um lado da outra, que se cruzam
-                // a cada meia volta - e os degraus, de tanto em tanto.
-                const int q = N(5, 6);
+        }
+
+        void DoArroyo(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // T(n) = T(n/2) + n: leques de 8, 4, 2 e 1 tiros, cada um com a metade do anterior.
+            for (int nivel = 0; nivel < 4; ++nivel) {
+                const int q = 8 >> nivel;
+                const float abertura = N(36.0f, 42.0f) / static_cast<float>(1 << nivel);
                 for (int i = 0; i < q; ++i) {
-                    const float lado = N(16.0f, 20.0f) * std::sin(0.9f * static_cast<float>(i));
-                    for (const float fita : {1.0f, -1.0f}) {
-                        Golpe::Tiro t = Tiro(0.07f * static_cast<float>(i), N(250.0f, 270.0f));
-                        t.desvio = fita * lado;
-                        tiros.push_back(t);
-                    }
+                    Golpe::Tiro t = Tiro(0.28f * static_cast<float>(nivel), N(255.0f, 275.0f));
+                    t.desvio = q > 1 ? Passo(i, q, -abertura, abertura) : 0.0f;
+                    tiros.push_back(t);
                 }
-                break;
             }
-            case Materia::Ferreira: {
-                // O coracao de pixel: uma vida do jogo, tiro por tiro, linha por linha - a figura
-                // inteira desce junta.
-                constexpr const char* kCoracao[] = {".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."};
-                const float passo = N(6.0f, 7.0f);
-                for (int linha = 0; linha < 6; ++linha) {
-                    for (int coluna = 0; coluna < 7; ++coluna) {
-                        if (kCoracao[linha][coluna] != '#') continue;
-                        Golpe::Tiro t = Tiro(0.05f * static_cast<float>(linha), N(240.0f, 262.0f));
-                        t.desvio = static_cast<float>(coluna - 3) * passo;
-                        tiros.push_back(t);
-                    }
+        }
+
+        void DoGoulart(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O Round Robin: tres processos revezando a CPU - uma rajada curta de cada um, e o
+            // seguinte vem de outro lado.
+            for (int q = 0; q < 6; ++q) {
+                const float lado = static_cast<float>(q % 3 - 1) * N(18.0f, 24.0f);
+                for (int i = 0; i < 3; ++i) {
+                    Golpe::Tiro t = Tiro(0.22f * static_cast<float>(q) + 0.05f * static_cast<float>(i), N(260.0f, 280.0f));
+                    t.desvio = lado;
+                    tiros.push_back(t);
                 }
-                break;
             }
+        }
+
+        void DoDaniel(Golpe::Rodada& r, const int k, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // As k-medias: tres grupos de tiros, cada um num rumo - o centroide -, com o
+            // espalhamento do grupo em volta dele.
+            for (int g = 0; g < 3; ++g) {
+                const float centro = static_cast<float>(g - 1) * N(22.0f, 28.0f);
+                for (int i = 0; i < 5; ++i) {
+                    Golpe::Tiro t = Tiro(0.12f * static_cast<float>(g) + 0.03f * static_cast<float>(i), N(250.0f, 270.0f));
+                    t.desvio = centro + Passo(i, 5, -6.0f, 6.0f);
+                    tiros.push_back(t);
+                }
+            }
+        }
+
+        void DoMichel(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O filtro 3x3: tres linhas de tres tiros, uma depois da outra - a janela que desce.
+            for (int linha = 0; linha < 3; ++linha) {
+                for (int coluna = 0; coluna < 3; ++coluna) {
+                    Golpe::Tiro t = Tiro(0.14f * static_cast<float>(linha), N(245.0f, 265.0f));
+                    t.desvio = static_cast<float>(coluna - 1) * N(10.0f, 14.0f);
+                    tiros.push_back(t);
+                }
+            }
+        }
+
+        void DaSabrina(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // A dupla helice: duas fitas de tiros, cada uma para um lado da outra, que se cruzam
+            // a cada meia volta - e os degraus, de tanto em tanto.
+            const int q = N(5, 6);
+            for (int i = 0; i < q; ++i) {
+                const float lado = N(16.0f, 20.0f) * std::sin(0.9f * static_cast<float>(i));
+                for (const float fita : {1.0f, -1.0f}) {
+                    Golpe::Tiro t = Tiro(0.07f * static_cast<float>(i), N(250.0f, 270.0f));
+                    t.desvio = fita * lado;
+                    tiros.push_back(t);
+                }
+            }
+        }
+
+        void DoFerreira(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O coracao de pixel: uma vida do jogo, tiro por tiro, linha por linha - a figura
+            // inteira desce junta.
+            constexpr const char* kCoracao[] = {".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."};
+            const float passo = N(6.0f, 7.0f);
+            for (int linha = 0; linha < 6; ++linha) {
+                for (int coluna = 0; coluna < 7; ++coluna) {
+                    if (kCoracao[linha][coluna] != '#') continue;
+                    Golpe::Tiro t = Tiro(0.05f * static_cast<float>(linha), N(240.0f, 262.0f));
+                    t.desvio = static_cast<float>(coluna - 3) * passo;
+                    tiros.push_back(t);
+                }
+            }
+        }
+
+        void DoGenerico(Golpe::Rodada& r, const Dificuldade::Nivel n) {
+            auto& tiros = r.tiros;
+            const auto N = Nivelado(n);
+            // O Hugo sem orientador: um leque de paginas.
+            const int q = N(7, 9);
+            for (int i = 0; i < q; ++i) {
+                Golpe::Tiro t = Tiro(0.0f, N(240.0f, 270.0f));
+                t.desvio = Passo(i, q, -35.0f, 35.0f);
+                tiros.push_back(t);
+            }
+        }
+    }
+
+    Golpe::Rodada Padrao(const Materia m, const int k, Variacao::Sorteio& s, const Dificuldade::Nivel n) {
+        Golpe::Rodada r;
+        auto& tiros = r.tiros;
+        switch (m) {
+            case Materia::Andre: DoAndre(r, k, n); break;
+            case Materia::Salles: DoSalles(r, n); break;
+            case Materia::Ricardo: DoRicardo(r, s, n); break;
+            case Materia::Thiago: DoThiago(r, s, n); break;
+            case Materia::Luizinho: DoLuizinho(r, n); break;
+            case Materia::Vladimir: DoVladimir(r, n); break;
+            case Materia::Julio: DoJulio(r, n); break;
+            case Materia::MariaLucia: DaMariaLucia(r, n); break;
+            case Materia::Lucas: DoLucas(r, n); break;
+            case Materia::Vitor: DoVitor(r, n); break;
+            case Materia::Arroyo: DoArroyo(r, n); break;
+            case Materia::Goulart: DoGoulart(r, n); break;
+            case Materia::Daniel: DoDaniel(r, k, n); break;
+            case Materia::Michel: DoMichel(r, n); break;
+            case Materia::Sabrina: DaSabrina(r, n); break;
+            case Materia::Ferreira: DoFerreira(r, n); break;
             case Materia::Generico:
-            default: {
-                // O Hugo sem orientador: um leque de paginas.
-                const int q = N(7, 9);
-                for (int i = 0; i < q; ++i) {
-                    Golpe::Tiro t = Tiro(0.0f, N(240.0f, 270.0f));
-                    t.desvio = Passo(i, q, -35.0f, 35.0f);
-                    tiros.push_back(t);
-                }
-                break;
-            }
+            default: DoGenerico(r, n); break;
         }
         // A rodada dura o que o ultimo tiro leva para partir.
         r.duracao = 0.1f;

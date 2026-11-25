@@ -90,6 +90,142 @@ void Generico::AndarORelogio(const float deltaTime) {
     }
 }
 
+void Generico::LinhaAteOProfessor(const Vector2 sobre, const float te) {
+    // A linha do aluno ao professor, tracejada e andando para cima: e para la que se atira.
+    const Vector2 de = sobre + Vector2(0.0f, -kRaioDoBotao - 6.0f);
+    const Vector2 ate = GetPosition() + Vector2(0.0f, 60.0f);
+    const Vector2 d = ate - de;
+    const float comprimento = d.Length();
+    if (comprimento > 40.0f) {
+        const Vector2 u = d * (1.0f / comprimento);
+        constexpr float kTraco = 14.0f, kPasso = 30.0f;
+        const float desloca = std::fmod(te * 90.0f, kPasso);
+        for (float s = desloca; s + kTraco < comprimento - 20.0f; s += kPasso) {
+            Linha(de + u * s, de + u * (s + kTraco), kAmarelo);
+        }
+        Seta(ate - u * 40.0f, ate - u * 8.0f, kAmarelo);
+    }
+}
+
+void Generico::SetaAteOPontoExtra(const Player* a, const size_t i, const float te) {
+    // Sem ele: a seta tracejada do aluno ate o Ponto Extra, que espera no campo.
+    const Vector2 de = a->GetPosition() + Vector2(0.0f, -26.0f);
+    const Vector2 ate = mOndeDoPontoExtra[i];
+    const Vector2 d = ate - de;
+    const float comprimento = d.Length();
+    if (comprimento > 50.0f) {
+        const Vector2 u = d * (1.0f / comprimento);
+        constexpr float kTraco = 12.0f, kPasso = 26.0f;
+        const float desloca = std::fmod(te * 80.0f, kPasso);
+        for (float s = desloca; s + kTraco < comprimento - 30.0f; s += kPasso) {
+            Linha(de + u * s, de + u * (s + kTraco), kVerde);
+        }
+        Seta(ate - u * 52.0f, ate - u * 24.0f, kVerde);
+    }
+    Circulo(ate, 22.0f + 3.0f * std::sin(te * 6.0f), kVerde, 26);
+}
+
+void Generico::MostrarOsControles(const Tutorial::Etapa etapa, const float te, const bool noComputador, const std::vector<Player*>& alunos) {
+    size_t tecla = 0;
+    for (size_t i = 0; i < alunos.size(); ++i) {
+        const Player* a = alunos[i];
+        if (!a) continue;
+        const Painel::Jogador quem = Painel::kJogadores[std::min<size_t>(i, 1)];
+        const Vector2 sobre = a->GetPosition() + kAcimaDoAluno;
+        switch (etapa) {
+            case Tutorial::Etapa::Desviar:
+                Manche(sobre, Tutorial::LadoDoManche(te));
+                if (noComputador) EscreverTecla(tecla, Painel::NomeDoManche(quem), sobre + Vector2(0.0f, kTeclaAbaixo));
+                break;
+            case Tutorial::Etapa::Atirar: {
+                Botao(sobre, '1', Tutorial::BotaoApertado(te));
+                if (noComputador) EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Um), sobre + Vector2(0.0f, kTeclaAbaixo));
+                LinhaAteOProfessor(sobre, te);
+                break;
+            }
+            case Tutorial::Etapa::SobeEDesce:
+                // Os dois juntos: desviar e atirar.
+                Manche(sobre + Vector2(-kLadoALado, 0.0f), Tutorial::LadoDoManche(te));
+                Botao(sobre + Vector2(kLadoALado, 0.0f), '1', Tutorial::BotaoApertado(te));
+                if (noComputador) {
+                    EscreverTecla(tecla, Painel::NomeDoManche(quem), sobre + Vector2(-kLadoALado, kTeclaAbaixo));
+                    EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Um), sobre + Vector2(kLadoALado, kTeclaAbaixo));
+                }
+                break;
+            case Tutorial::Etapa::Foco: {
+                // O Botao 4 segurado: sempre aceso, com o anel de quem segura.
+                Botao(sobre, '4', true);
+                Circulo(sobre, kRaioDoBotao + 7.0f + 3.0f * std::sin(te * 6.0f), kAmarelo, 28);
+                Circulo(sobre, kRaioDoBotao + 8.0f + 3.0f * std::sin(te * 6.0f), kAmarelo, 28);
+                if (noComputador) EscreverTecla(tecla, Painel::NomeDaTeclaDoFoco(quem), sobre + Vector2(0.0f, kTeclaAbaixo));
+                break;
+            }
+            case Tutorial::Etapa::PontoExtra: {
+                if (a->PontosExtras() > 0) {
+                    // Com ele na mao: o Botao 2, que limpa a chuva.
+                    Botao(sobre, '2', Tutorial::BotaoApertado(te));
+                    if (noComputador) EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Dois), sobre + Vector2(0.0f, kTeclaAbaixo));
+                } else if (i < mOndeDoPontoExtra.size()) {
+                    SetaAteOPontoExtra(a, i, te);
+                }
+                break;
+            }
+            case Tutorial::Etapa::Chegada:
+            case Tutorial::Etapa::Fim:
+                break;
+        }
+    }
+}
+
+void Generico::MostrarOsSinaisDaNota() {
+    Battle* b = Batalha();
+    // A nota que sobe e desce: cada sinal voa ate a ponta da barra, e a seta fica ao lado dela.
+    if (const FaixaDaNota* faixa = b->Faixa()) {
+        const Vector2 ponta = faixa->Ponta(b->NotaAtual());
+        for (const Voo& v : mVoos) Sinal(Tutorial::NoVoo(v.de, ponta, v.idade), v.mais, 10.0f);
+        if (mSetaNaBarra > 0.0f) {
+            const Vector2 base = ponta + Vector2(0.0f, -34.0f);
+            if (mUltimoMais) Seta(base + Vector2(0.0f, 14.0f), base + Vector2(0.0f, -14.0f), kVerde, 10.0f);
+            else Seta(base + Vector2(0.0f, -14.0f), base + Vector2(0.0f, 14.0f), kVermelho, 10.0f);
+        }
+    }
+}
+
+void Generico::MostrarOFim(const Tutorial::Etapa etapa, const float te) {
+    Battle* b = Batalha();
+    // O fim: o visto verde no meio do campo, e a prova se encerra sozinha.
+    if (etapa == Tutorial::Etapa::Fim) {
+        // O que ainda voava some: a festa e so festa.
+        if (!mLimpouNoFim) {
+            mLimpouNoFim = true;
+            if (ProjectileManager* tiros = b->GerenteDeProjeteis()) tiros->ClearBossProjectiles();
+        }
+        const SDL_FRect c = Campo();
+        const float u = std::clamp(te / 0.5f, 0.0f, 1.0f);
+        Visto(Vector2(c.x + c.w / 2.0f, c.y + c.h / 2.0f), 30.0f + 50.0f * u);
+        for (int k = 0; k < 3; ++k) Circulo(GetPosition(), 30.0f + std::fmod(te * 120.0f + k * 40.0f, 120.0f), kAmarelo, 28);
+    }
+    // O letreiro: na chegada, que isto e o tutorial; no fim, que ele acabou - com um som de vitoria.
+    {
+        const SDL_FRect c = Campo();
+        if (etapa == Tutorial::Etapa::Chegada) {
+            Letreiro(true, "TUTORIAL", "INF 191 · aprenda a jogar em um minuto", SDL_Color{255, 255, 255, 255},
+                     c.y + c.h * 0.42f);
+        } else if (etapa == Tutorial::Etapa::Fim) {
+            if (!mTocouNoFim) {
+                mTocouNoFim = true;
+                if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
+                    mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
+                }
+            }
+            Letreiro(true, "TUTORIAL CONCLUÍDO!", "agora é com você: as matérias te esperam",
+                     SDL_Color{255, 215, 80, 255}, c.y + c.h * 0.5f + 115.0f);   // embaixo do visto, longe do professor
+        } else {
+            Letreiro(false);
+        }
+    }
+}
+
 void Generico::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     if (EhClone()) return;
@@ -136,126 +272,9 @@ void Generico::OnUpdate(const float deltaTime) {
     }
     if (etapa != Tutorial::Etapa::Chegada) AcompanharANota(deltaTime);
 
-    size_t tecla = 0;
-    const std::vector<Player*>& alunos = b->Jogadores();
-    for (size_t i = 0; i < alunos.size(); ++i) {
-        const Player* a = alunos[i];
-        if (!a) continue;
-        const Painel::Jogador quem = Painel::kJogadores[std::min<size_t>(i, 1)];
-        const Vector2 sobre = a->GetPosition() + kAcimaDoAluno;
-        switch (etapa) {
-            case Tutorial::Etapa::Desviar:
-                Manche(sobre, Tutorial::LadoDoManche(te));
-                if (noComputador) EscreverTecla(tecla, Painel::NomeDoManche(quem), sobre + Vector2(0.0f, kTeclaAbaixo));
-                break;
-            case Tutorial::Etapa::Atirar: {
-                Botao(sobre, '1', Tutorial::BotaoApertado(te));
-                if (noComputador) EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Um), sobre + Vector2(0.0f, kTeclaAbaixo));
-                // A linha do aluno ao professor, tracejada e andando para cima: e para la que se atira.
-                const Vector2 de = sobre + Vector2(0.0f, -kRaioDoBotao - 6.0f);
-                const Vector2 ate = GetPosition() + Vector2(0.0f, 60.0f);
-                const Vector2 d = ate - de;
-                const float comprimento = d.Length();
-                if (comprimento > 40.0f) {
-                    const Vector2 u = d * (1.0f / comprimento);
-                    constexpr float kTraco = 14.0f, kPasso = 30.0f;
-                    const float desloca = std::fmod(te * 90.0f, kPasso);
-                    for (float s = desloca; s + kTraco < comprimento - 20.0f; s += kPasso) {
-                        Linha(de + u * s, de + u * (s + kTraco), kAmarelo);
-                    }
-                    Seta(ate - u * 40.0f, ate - u * 8.0f, kAmarelo);
-                }
-                break;
-            }
-            case Tutorial::Etapa::SobeEDesce:
-                // Os dois juntos: desviar e atirar.
-                Manche(sobre + Vector2(-kLadoALado, 0.0f), Tutorial::LadoDoManche(te));
-                Botao(sobre + Vector2(kLadoALado, 0.0f), '1', Tutorial::BotaoApertado(te));
-                if (noComputador) {
-                    EscreverTecla(tecla, Painel::NomeDoManche(quem), sobre + Vector2(-kLadoALado, kTeclaAbaixo));
-                    EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Um), sobre + Vector2(kLadoALado, kTeclaAbaixo));
-                }
-                break;
-            case Tutorial::Etapa::Foco: {
-                // O Botao 4 segurado: sempre aceso, com o anel de quem segura.
-                Botao(sobre, '4', true);
-                Circulo(sobre, kRaioDoBotao + 7.0f + 3.0f * std::sin(te * 6.0f), kAmarelo, 28);
-                Circulo(sobre, kRaioDoBotao + 8.0f + 3.0f * std::sin(te * 6.0f), kAmarelo, 28);
-                if (noComputador) EscreverTecla(tecla, Painel::NomeDaTeclaDoFoco(quem), sobre + Vector2(0.0f, kTeclaAbaixo));
-                break;
-            }
-            case Tutorial::Etapa::PontoExtra: {
-                if (a->PontosExtras() > 0) {
-                    // Com ele na mao: o Botao 2, que limpa a chuva.
-                    Botao(sobre, '2', Tutorial::BotaoApertado(te));
-                    if (noComputador) EscreverTecla(tecla, Painel::NomeDaTecla(quem, Painel::Botao::Dois), sobre + Vector2(0.0f, kTeclaAbaixo));
-                } else if (i < mOndeDoPontoExtra.size()) {
-                    // Sem ele: a seta tracejada do aluno ate o Ponto Extra, que espera no campo.
-                    const Vector2 de = a->GetPosition() + Vector2(0.0f, -26.0f);
-                    const Vector2 ate = mOndeDoPontoExtra[i];
-                    const Vector2 d = ate - de;
-                    const float comprimento = d.Length();
-                    if (comprimento > 50.0f) {
-                        const Vector2 u = d * (1.0f / comprimento);
-                        constexpr float kTraco = 12.0f, kPasso = 26.0f;
-                        const float desloca = std::fmod(te * 80.0f, kPasso);
-                        for (float s = desloca; s + kTraco < comprimento - 30.0f; s += kPasso) {
-                            Linha(de + u * s, de + u * (s + kTraco), kVerde);
-                        }
-                        Seta(ate - u * 52.0f, ate - u * 24.0f, kVerde);
-                    }
-                    Circulo(ate, 22.0f + 3.0f * std::sin(te * 6.0f), kVerde, 26);
-                }
-                break;
-            }
-            case Tutorial::Etapa::Chegada:
-            case Tutorial::Etapa::Fim:
-                break;
-        }
-    }
-
-    // A nota que sobe e desce: cada sinal voa ate a ponta da barra, e a seta fica ao lado dela.
-    if (const FaixaDaNota* faixa = b->Faixa()) {
-        const Vector2 ponta = faixa->Ponta(b->NotaAtual());
-        for (const Voo& v : mVoos) Sinal(Tutorial::NoVoo(v.de, ponta, v.idade), v.mais, 10.0f);
-        if (mSetaNaBarra > 0.0f) {
-            const Vector2 base = ponta + Vector2(0.0f, -34.0f);
-            if (mUltimoMais) Seta(base + Vector2(0.0f, 14.0f), base + Vector2(0.0f, -14.0f), kVerde, 10.0f);
-            else Seta(base + Vector2(0.0f, -14.0f), base + Vector2(0.0f, 14.0f), kVermelho, 10.0f);
-        }
-    }
-
-    // O fim: o visto verde no meio do campo, e a prova se encerra sozinha.
-    if (etapa == Tutorial::Etapa::Fim) {
-        // O que ainda voava some: a festa e so festa.
-        if (!mLimpouNoFim) {
-            mLimpouNoFim = true;
-            if (ProjectileManager* tiros = b->GerenteDeProjeteis()) tiros->ClearBossProjectiles();
-        }
-        const SDL_FRect c = Campo();
-        const float u = std::clamp(te / 0.5f, 0.0f, 1.0f);
-        Visto(Vector2(c.x + c.w / 2.0f, c.y + c.h / 2.0f), 30.0f + 50.0f * u);
-        for (int k = 0; k < 3; ++k) Circulo(GetPosition(), 30.0f + std::fmod(te * 120.0f + k * 40.0f, 120.0f), kAmarelo, 28);
-    }
-    // O letreiro: na chegada, que isto e o tutorial; no fim, que ele acabou - com um som de vitoria.
-    {
-        const SDL_FRect c = Campo();
-        if (etapa == Tutorial::Etapa::Chegada) {
-            Letreiro(true, "TUTORIAL", "INF 191 · aprenda a jogar em um minuto", SDL_Color{255, 255, 255, 255},
-                     c.y + c.h * 0.42f);
-        } else if (etapa == Tutorial::Etapa::Fim) {
-            if (!mTocouNoFim) {
-                mTocouNoFim = true;
-                if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
-                    mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
-                }
-            }
-            Letreiro(true, "TUTORIAL CONCLUÍDO!", "agora é com você: as matérias te esperam",
-                     SDL_Color{255, 215, 80, 255}, c.y + c.h * 0.5f + 115.0f);   // embaixo do visto, longe do professor
-        } else {
-            Letreiro(false);
-        }
-    }
+    MostrarOsControles(etapa, te, noComputador, b->Jogadores());
+    MostrarOsSinaisDaNota();
+    MostrarOFim(etapa, te);
     if (Tutorial::Acabou(t) && !mEncerrou) {
         mEncerrou = true;
         b->EncerrarBatalha(true);

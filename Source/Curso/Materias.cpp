@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <optional>
 #include <set>
 
 #include "../Aluno/Horas.h"
@@ -510,6 +511,176 @@ namespace {
     }
 }
 
+namespace {
+
+    /// Um campo true/false opcional: outro tipo e dito em 'problemas', e fica o padrao.
+    void LerBooleano(const nlohmann::json& j, const char* campo, bool& destino, const std::string& onde,
+                     const char* senao, std::vector<std::string>& problemas) {
+        if (!j.contains(campo)) return;
+        if (j[campo].is_boolean()) {
+            destino = j[campo].get<bool>();
+        } else {
+            problemas.emplace_back(onde + "\"" + campo + "\" e true ou false; " + senao);
+        }
+    }
+
+    /// Uma materia do arquivo. Vazio se ela foi descartada - o motivo vai para 'problemas'.
+    std::optional<Materia> LerUmaMateria(const nlohmann::json& j, std::set<std::string>& codigosVistos,
+                                         std::vector<std::string>& problemas) {
+        if (!j.is_object()) {
+            problemas.emplace_back("ha uma materia que nao e um objeto; descartada");
+            return std::nullopt;
+        }
+
+        Materia m;
+        m.codigo = Texto(j, "codigo");
+
+        if (!CodigoServe(m.codigo)) {
+            problemas.emplace_back("materia com codigo invalido \"" + m.codigo +
+                                   "\" (so letras e numeros, sem espaco); descartada");
+            return std::nullopt;
+        }
+
+        const std::string onde = "materia " + m.codigo + ": ";
+
+        if (!codigosVistos.insert(m.codigo).second) {
+            // Duas materias com o mesmo codigo dividiriam a mesma nota no save.
+            problemas.emplace_back(onde + "codigo repetido; a segunda foi descartada");
+            return std::nullopt;
+        }
+
+        m.nome = Texto(j, "nome", m.codigo);
+
+        // Os dois campos de apresentacao.
+        m.nomeCompleto = Texto(j, "nomeCompleto");
+        m.professor = Texto(j, "professor");
+
+        m.chefe = Texto(j, "chefe");
+
+        // "orientacao": a batalha pede um orientador antes de comecar.
+        LerBooleano(j, "orientacao", m.orientacao, onde, "ficou sem orientador", problemas);
+        // "secreta": nao aparece ate a regra dela estar cumprida.
+        LerBooleano(j, "secreta", m.secreta, onde, "ficou a vista", problemas);
+        // "tutorial": a fase da primeira entrada, fora do curso.
+        LerBooleano(j, "tutorial", m.tutorial, onde, "ficou no curso", problemas);
+
+        // "atalho": a materia que abre a secreta para quem digitou o codigo secreto.
+        if (j.contains("atalho")) {
+            if (j["atalho"].is_string() && m.secreta) {
+                m.atalho = j["atalho"].get<std::string>();
+            } else {
+                problemas.emplace_back(onde + "\"atalho\" e o codigo de uma materia, e so na secreta; ficou sem atalho");
+            }
+        }
+
+        // "musica": a musica de fundo da batalha, no lugar da de sempre.
+        if (j.contains("musica")) {
+            if (j["musica"].is_string()) {
+                m.musica = j["musica"].get<std::string>();
+            } else {
+                problemas.emplace_back(onde + "\"musica\" e o nome de um arquivo de Assets/Sounds; ficou a de sempre");
+            }
+        }
+
+        // "optativa": vai para a ala das optativas, depois das obrigatorias.
+        LerBooleano(j, "optativa", m.optativa, onde, "ficou obrigatoria", problemas);
+
+        m.coluna = Inteiro(j, "coluna", -1);
+        if (m.coluna < 0) {
+            problemas.emplace_back(onde + "falta \"coluna\" (0 e a primeira); descartada");
+            return std::nullopt;
+        }
+
+        if (!j.contains("desbloqueio")) {
+            problemas.emplace_back(onde + "falta \"desbloqueio\"; descartada");
+            return std::nullopt;
+        }
+        if (!LerDesbloqueio(j["desbloqueio"], onde, problemas, m.desbloqueio)) {
+            return std::nullopt;
+        }
+        // So optativa se compra: uma obrigatoria que custasse horas trancaria o curso de quem nao as tem.
+        if (m.desbloqueio.preco > 0 && !m.optativa) {
+            problemas.emplace_back(onde + "so optativa tem \"preco\"; esta abre so com a regra");
+            m.desbloqueio.preco = 0;
+        }
+        return m;
+    }
+
+    // ---- Conferencias que so dao para fazer com a lista inteira em maos ----
+
+    /// 0. A fracao de um requisito vira "quantas": a parte das materias com batalha (as secretas nao
+    /// entram na conta, e com "de": "obrigatorias" as optativas tambem nao).
+    void ResolverAsFracoes(Lista& lista) {
+        for (auto& m : lista.materias) {
+            for (Requisito& r : m.desbloqueio.requisitos) {
+                if (r.fracao <= 0.0f) continue;
+                int universo = 0;
+                for (const auto& outra : lista.materias) {
+                    if (outra.chefe.empty() || outra.secreta || outra.tutorial) continue;
+                    if (r.soObrigatorias && outra.optativa) continue;
+                    ++universo;
+                }
+                r.quantas = std::max(1, static_cast<int>(std::ceil(r.fracao * static_cast<float>(universo) - 1e-4f)));
+            }
+        }
+    }
+
+    /// 1. O que o desbloqueio exige, e o atalho, existem.
+    void ConferirAsExigencias(Lista& lista) {
+        for (const auto& m : lista.materias) {
+            for (const auto& exigida : m.desbloqueio.materias) {
+                if (lista.IndiceDe(exigida) < 0) {
+                    lista.problemas.emplace_back("materia " + m.codigo + ": o desbloqueio exige \"" +
+                                                 exigida + "\", que nao existe - ela nunca vai abrir");
+                }
+            }
+            if (!m.atalho.empty() && lista.IndiceDe(m.atalho) < 0) {
+                lista.problemas.emplace_back("materia " + m.codigo + ": o atalho e \"" + m.atalho +
+                                             "\", que nao existe - o codigo secreto nao a abre");
+            }
+        }
+    }
+
+    /// 2. A coluna pedida tem materias bastantes.
+    void ConferirAsColunas(Lista& lista) {
+        for (const auto& m : lista.materias) {
+            if (m.desbloqueio.tipo != TipoDeDesbloqueio::AprovadasNaColuna) continue;
+            const int disponiveis = static_cast<int>(lista.DaColuna(m.desbloqueio.coluna).size());
+            if (m.desbloqueio.quantas > disponiveis) {
+                lista.problemas.emplace_back(
+                    "materia " + m.codigo + ": o desbloqueio pede " +
+                    std::to_string(m.desbloqueio.quantas) + " aprovacao(oes) na coluna " +
+                    std::to_string(m.desbloqueio.coluna) + ", que so tem " +
+                    std::to_string(disponiveis) + " materia(s) - ela nunca vai abrir");
+            }
+        }
+    }
+
+    /// 3. As optativas vem depois das obrigatorias: uma no meio delas quebraria a grade.
+    void ConferirAsOptativas(Lista& lista) {
+        const int primeiraDasOptativas = lista.QuantasColunasObrigatorias();
+        for (const auto& m : lista.materias) {
+            if (m.optativa && m.coluna < primeiraDasOptativas) {
+                lista.problemas.emplace_back("materia " + m.codigo + ": optativa na coluna " + std::to_string(m.coluna) +
+                                             ", mas as optativas vem depois das obrigatorias (coluna " +
+                                             std::to_string(primeiraDasOptativas) + " em diante)");
+            }
+        }
+    }
+
+    /// 4. Alguma abre sem nada: senao o jogo comecaria com tudo trancado.
+    void ConferirQueAlgumaAbre(Lista& lista) {
+        bool algumaAbre = false;
+        for (const auto& m : lista.materias) {
+            if (m.desbloqueio.tipo == TipoDeDesbloqueio::Sempre) { algumaAbre = true; break; }
+        }
+        if (!algumaAbre) {
+            lista.problemas.emplace_back("nenhuma materia tem desbloqueio \"sempre\": o jogo comecaria"
+                                         " com todas trancadas e sem como abrir a primeira");
+        }
+    }
+}
+
 Lista LerMaterias(const std::string& textoJson) {
 
     Lista lista;
@@ -529,113 +700,8 @@ Lista LerMaterias(const std::string& textoJson) {
     }
 
     std::set<std::string> codigosVistos;
-
     for (const auto& j : raiz["materias"]) {
-
-        if (!j.is_object()) {
-            lista.problemas.emplace_back("ha uma materia que nao e um objeto; descartada");
-            continue;
-        }
-
-        Materia m;
-        m.codigo = Texto(j, "codigo");
-
-        if (!CodigoServe(m.codigo)) {
-            lista.problemas.emplace_back("materia com codigo invalido \"" + m.codigo +
-                                         "\" (so letras e numeros, sem espaco); descartada");
-            continue;
-        }
-
-        const std::string onde = "materia " + m.codigo + ": ";
-
-        if (!codigosVistos.insert(m.codigo).second) {
-            // Duas materias com o mesmo codigo dividiriam a mesma nota no save.
-            lista.problemas.emplace_back(onde + "codigo repetido; a segunda foi descartada");
-            continue;
-        }
-
-        m.nome = Texto(j, "nome", m.codigo);
-
-        // Os dois campos de apresentacao.
-        m.nomeCompleto = Texto(j, "nomeCompleto");
-        m.professor = Texto(j, "professor");
-
-        m.chefe = Texto(j, "chefe");
-
-        // "orientacao": a batalha pede um orientador antes de comecar.
-        if (j.contains("orientacao")) {
-            if (j["orientacao"].is_boolean()) {
-                m.orientacao = j["orientacao"].get<bool>();
-            } else {
-                lista.problemas.emplace_back(onde + "\"orientacao\" e true ou false; ficou sem orientador");
-            }
-        }
-
-        // "secreta": nao aparece ate a regra dela estar cumprida.
-        if (j.contains("secreta")) {
-            if (j["secreta"].is_boolean()) {
-                m.secreta = j["secreta"].get<bool>();
-            } else {
-                lista.problemas.emplace_back(onde + "\"secreta\" e true ou false; ficou a vista");
-            }
-        }
-
-        // "tutorial": a fase da primeira entrada, fora do curso.
-        if (j.contains("tutorial")) {
-            if (j["tutorial"].is_boolean()) {
-                m.tutorial = j["tutorial"].get<bool>();
-            } else {
-                lista.problemas.emplace_back(onde + "\"tutorial\" e true ou false; ficou no curso");
-            }
-        }
-
-        // "atalho": a materia que abre a secreta para quem digitou o codigo secreto.
-        if (j.contains("atalho")) {
-            if (j["atalho"].is_string() && m.secreta) {
-                m.atalho = j["atalho"].get<std::string>();
-            } else {
-                lista.problemas.emplace_back(onde + "\"atalho\" e o codigo de uma materia, e so na secreta; ficou sem atalho");
-            }
-        }
-
-        // "musica": a musica de fundo da batalha, no lugar da de sempre.
-        if (j.contains("musica")) {
-            if (j["musica"].is_string()) {
-                m.musica = j["musica"].get<std::string>();
-            } else {
-                lista.problemas.emplace_back(onde + "\"musica\" e o nome de um arquivo de Assets/Sounds; ficou a de sempre");
-            }
-        }
-
-        // "optativa": vai para a ala das optativas, depois das obrigatorias.
-        if (j.contains("optativa")) {
-            if (j["optativa"].is_boolean()) {
-                m.optativa = j["optativa"].get<bool>();
-            } else {
-                lista.problemas.emplace_back(onde + "\"optativa\" e true ou false; ficou obrigatoria");
-            }
-        }
-
-        m.coluna = Inteiro(j, "coluna", -1);
-        if (m.coluna < 0) {
-            lista.problemas.emplace_back(onde + "falta \"coluna\" (0 e a primeira); descartada");
-            continue;
-        }
-
-        if (!j.contains("desbloqueio")) {
-            lista.problemas.emplace_back(onde + "falta \"desbloqueio\"; descartada");
-            continue;
-        }
-        if (!LerDesbloqueio(j["desbloqueio"], onde, lista.problemas, m.desbloqueio)) {
-            continue;
-        }
-        // So optativa se compra: uma obrigatoria que custasse horas trancaria o curso de quem nao as tem.
-        if (m.desbloqueio.preco > 0 && !m.optativa) {
-            lista.problemas.emplace_back(onde + "so optativa tem \"preco\"; esta abre so com a regra");
-            m.desbloqueio.preco = 0;
-        }
-
-        lista.materias.push_back(std::move(m));
+        if (auto m = LerUmaMateria(j, codigosVistos, lista.problemas)) lista.materias.push_back(std::move(*m));
     }
 
     if (lista.materias.empty()) {
@@ -643,70 +709,11 @@ Lista LerMaterias(const std::string& textoJson) {
         return lista;
     }
 
-    // ---- Conferencias que so dao para fazer com a lista inteira em maos ----
-
-    // 0. A fracao de um requisito vira "quantas": a parte das materias com batalha (as secretas nao
-    // entram na conta, e com "de": "obrigatorias" as optativas tambem nao).
-    for (auto& m : lista.materias) {
-        for (Requisito& r : m.desbloqueio.requisitos) {
-            if (r.fracao <= 0.0f) continue;
-            int universo = 0;
-            for (const auto& outra : lista.materias) {
-                if (outra.chefe.empty() || outra.secreta || outra.tutorial) continue;
-                if (r.soObrigatorias && outra.optativa) continue;
-                ++universo;
-            }
-            r.quantas = std::max(1, static_cast<int>(std::ceil(r.fracao * static_cast<float>(universo) - 1e-4f)));
-        }
-    }
-
-    // 1.
-    for (const auto& m : lista.materias) {
-        for (const auto& exigida : m.desbloqueio.materias) {
-            if (lista.IndiceDe(exigida) < 0) {
-                lista.problemas.emplace_back("materia " + m.codigo + ": o desbloqueio exige \"" +
-                                             exigida + "\", que nao existe - ela nunca vai abrir");
-            }
-        }
-        if (!m.atalho.empty() && lista.IndiceDe(m.atalho) < 0) {
-            lista.problemas.emplace_back("materia " + m.codigo + ": o atalho e \"" + m.atalho +
-                                         "\", que nao existe - o codigo secreto nao a abre");
-        }
-    }
-
-    // 2.
-    for (const auto& m : lista.materias) {
-        if (m.desbloqueio.tipo != TipoDeDesbloqueio::AprovadasNaColuna) continue;
-        const int disponiveis = static_cast<int>(lista.DaColuna(m.desbloqueio.coluna).size());
-        if (m.desbloqueio.quantas > disponiveis) {
-            lista.problemas.emplace_back(
-                "materia " + m.codigo + ": o desbloqueio pede " +
-                std::to_string(m.desbloqueio.quantas) + " aprovacao(oes) na coluna " +
-                std::to_string(m.desbloqueio.coluna) + ", que so tem " +
-                std::to_string(disponiveis) + " materia(s) - ela nunca vai abrir");
-        }
-    }
-
-    // 3. As optativas vem depois das obrigatorias: uma no meio delas quebraria a grade.
-    const int primeiraDasOptativas = lista.QuantasColunasObrigatorias();
-    for (const auto& m : lista.materias) {
-        if (m.optativa && m.coluna < primeiraDasOptativas) {
-            lista.problemas.emplace_back("materia " + m.codigo + ": optativa na coluna " + std::to_string(m.coluna) +
-                                         ", mas as optativas vem depois das obrigatorias (coluna " +
-                                         std::to_string(primeiraDasOptativas) + " em diante)");
-        }
-    }
-
-    // 4.
-    bool algumaAbre = false;
-    for (const auto& m : lista.materias) {
-        if (m.desbloqueio.tipo == TipoDeDesbloqueio::Sempre) { algumaAbre = true; break; }
-    }
-    if (!algumaAbre) {
-        lista.problemas.emplace_back("nenhuma materia tem desbloqueio \"sempre\": o jogo comecaria"
-                                     " com todas trancadas e sem como abrir a primeira");
-    }
-
+    ResolverAsFracoes(lista);
+    ConferirAsExigencias(lista);
+    ConferirAsColunas(lista);
+    ConferirAsOptativas(lista);
+    ConferirQueAlgumaAbre(lista);
     return lista;
 }
 

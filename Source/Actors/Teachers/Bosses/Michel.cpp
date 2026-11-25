@@ -20,21 +20,6 @@
 #include "BossesProjectiles/BossProjectile.h"
 
 namespace {
-    /// Um numero com virgula: 1,32.
-    std::string Decimal(const float x, const int casas) {
-        char b[32];
-        std::snprintf(b, sizeof b, "%.*f", casas, static_cast<double>(x));
-        std::string s(b);
-        for (char& ch : s) {
-            if (ch == '.') ch = ',';
-        }
-        return s;
-    }
-
-    std::string Porcento(const float x) {
-        return std::to_string(static_cast<int>(std::lround(std::clamp(x, 0.0f, 1.0f) * 100.0f))) + "%";
-    }
-
     /// Os objetos da cena da fase 1, e a imagem de cada um (a mesma figura, de cabeca para baixo).
     constexpr std::array<const char*, 4> kObjetos = {"Casa", "Arvore", "Pessoa", "Carro"};
     constexpr std::array<const char*, 4> kImagens = {"CasaInvertida", "ArvoreInvertida", "PessoaInvertida",
@@ -357,6 +342,13 @@ std::pair<int, int> Michel::CelulaEm(const Vector2 p) const {
     return {static_cast<int>(std::floor((p.x - c.x) / t.x)), static_cast<int>(std::floor((p.y - c.y) / t.y))};
 }
 
+std::pair<Vector2, Vector2> Michel::CantosDaCelula(const int col, const int lin) const {
+    const SDL_FRect c = Campo();
+    const Vector2 tam = TamanhoDaCelula();
+    return std::make_pair(Vector2(c.x + static_cast<float>(col) * tam.x, c.y + static_cast<float>(lin) * tam.y),
+                          Vector2(c.x + static_cast<float>(col + 1) * tam.x, c.y + static_cast<float>(lin + 1) * tam.y));
+}
+
 void Michel::DesmontarConvolucao() {
     for (Fluxo& f : mFluxos) Matar(f.p);
     mFluxos.clear();
@@ -381,78 +373,54 @@ void Michel::DesmontarConvolucao() {
     mPendentes.clear();
 }
 
-void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
+void Michel::AtualizarGradiente(const float t, const Vector2 aluno) {
     using namespace Convolucao;
-    const Degrau& g = mDegrauDaConvolucao;
-    const int etapa = EtapaNoTempo(t);
-    const float t1 = kDuracoes[0], t2 = kDuracoes[0] + kDuracoes[1];
-    const SDL_FRect c = Campo();
+    const Convolucao::Degrau& g = mDegrauDaConvolucao;
     const Vector2 tam = TamanhoDaCelula();
-    if (mBrilho.v.empty()) {
-        mBrilho = Vazia(kColunas, kLinhas);
-        mAtivacao = Vazia(kColunas, kLinhas);
-        mBins.assign(static_cast<size_t>(kColunas * kLinhas), 0);
-    }
-    Varrer(t, 0.33f, 6.2f);
-    const Vector2 aluno = PosicaoDoAluno();
-    const auto celula = [&](const int col, const int lin) {
-        return std::make_pair(Vector2(c.x + static_cast<float>(col) * tam.x, c.y + static_cast<float>(lin) * tam.y),
-                              Vector2(c.x + static_cast<float>(col + 1) * tam.x, c.y + static_cast<float>(lin + 1) * tam.y));
-    };
-
-    // A grade da imagem.
-    for (int k = 1; k < kColunas; ++k) {
-        const float x = c.x + static_cast<float>(k) * tam.x;
-        Linha(Vector2(x, c.y), Vector2(x, c.y + c.h), kGrade);
-    }
-    for (int k = 1; k < kLinhas; ++k) {
-        const float y = c.y + static_cast<float>(k) * tam.y;
-        Linha(Vector2(c.x, y), Vector2(c.x + c.w, y), kGrade);
-    }
-
-    // ---- O gradiente: as setas levam os tiros ----
-    if (etapa == 0) {
-        if (t >= mProximaAtualizacao) {
-            mProximaAtualizacao = t + g.atualizacaoDoDescritor;
-            const int giro = t >= 0.5f * kDuracoes[0] ? kGiroDaImagem : 0;
-            if (giro != mGiro) {
-                mGiro = giro;
-            }
-            for (int l = 0; l < kLinhas; ++l) {
-                for (int col = 0; col < kColunas; ++col) {
-                    mBins[static_cast<size_t>(l * kColunas + col)] = BinDaCelula(CentroDaCelula(col, l), aluno, mGiro);
-                }
-            }
+    if (t >= mProximaAtualizacao) {
+        mProximaAtualizacao = t + g.atualizacaoDoDescritor;
+        const int giro = t >= 0.5f * kDuracoes[0] ? kGiroDaImagem : 0;
+        if (giro != mGiro) {
+            mGiro = giro;
         }
         for (int l = 0; l < kLinhas; ++l) {
             for (int col = 0; col < kColunas; ++col) {
-                const Vector2 m = CentroDaCelula(col, l);
-                const Vector2 d = DirecaoDoBin(mBins[static_cast<size_t>(l * kColunas + col)]);
-                const Vector2 ponta = m + d * 18.0f;
-                Linha(m - d * 18.0f, ponta, kSeta);
-                const Vector2 lado(-d.y, d.x);
-                Linha(ponta, ponta - d * 7.0f + lado * 5.0f, kSeta);
-                Linha(ponta, ponta - d * 7.0f - lado * 5.0f, kSeta);
-            }
-        }
-        if (t >= mProximoFluxo) {
-            mProximoFluxo = t + g.entreFluxos;
-            const auto [ca, la] = CelulaEm(aluno);
-            for (int tentativa = 0; tentativa < 10; ++tentativa) {
-                const int col = mSorteio.Inteiro(0, kColunas - 1), l = mSorteio.Inteiro(0, kLinhas - 1);
-                if (std::abs(col - ca) + std::abs(l - la) < 3) continue;
-                const Vector2 onde = CentroDaCelula(col, l) +
-                                     Vector2(mSorteio.Real(-0.3f, 0.3f) * tam.x, mSorteio.Real(-0.3f, 0.3f) * tam.y);
-                const Vector2 v = DirecaoDoBin(mBins[static_cast<size_t>(l * kColunas + col)]) * g.velocidadeDoFluxo;
-                if (BossProjectile* p = Um(kGatilhoDoFluxo, onde, "Seta", v)) {
-                    p->DefinirRotacaoPelaVelocidade(true);
-                    mFluxos.push_back({p, t + g.vidaDoFluxo});
-                }
-                break;
+                mBins[static_cast<size_t>(l * kColunas + col)] = BinDaCelula(CentroDaCelula(col, l), aluno, mGiro);
             }
         }
     }
-    // Os tiros do gradiente seguem a seta da celula em que estao (e morrem com o tempo).
+    for (int l = 0; l < kLinhas; ++l) {
+        for (int col = 0; col < kColunas; ++col) {
+            const Vector2 m = CentroDaCelula(col, l);
+            const Vector2 d = DirecaoDoBin(mBins[static_cast<size_t>(l * kColunas + col)]);
+            const Vector2 ponta = m + d * 18.0f;
+            Linha(m - d * 18.0f, ponta, kSeta);
+            const Vector2 lado(-d.y, d.x);
+            Linha(ponta, ponta - d * 7.0f + lado * 5.0f, kSeta);
+            Linha(ponta, ponta - d * 7.0f - lado * 5.0f, kSeta);
+        }
+    }
+    if (t >= mProximoFluxo) {
+        mProximoFluxo = t + g.entreFluxos;
+        const auto [ca, la] = CelulaEm(aluno);
+        for (int tentativa = 0; tentativa < 10; ++tentativa) {
+            const int col = mSorteio.Inteiro(0, kColunas - 1), l = mSorteio.Inteiro(0, kLinhas - 1);
+            if (std::abs(col - ca) + std::abs(l - la) < 3) continue;
+            const Vector2 onde = CentroDaCelula(col, l) +
+                                 Vector2(mSorteio.Real(-0.3f, 0.3f) * tam.x, mSorteio.Real(-0.3f, 0.3f) * tam.y);
+            const Vector2 v = DirecaoDoBin(mBins[static_cast<size_t>(l * kColunas + col)]) * g.velocidadeDoFluxo;
+            if (BossProjectile* p = Um(kGatilhoDoFluxo, onde, "Seta", v)) {
+                p->DefinirRotacaoPelaVelocidade(true);
+                mFluxos.push_back({p, t + g.vidaDoFluxo});
+            }
+            break;
+        }
+    }
+}
+
+void Michel::GuiarOsFluxos(const float t, const float deltaTime) {
+    using namespace Convolucao;
+    const Convolucao::Degrau& g = mDegrauDaConvolucao;
     for (Fluxo& f : mFluxos) {
         if (!Vivo(f.p)) {
             f.p = nullptr;
@@ -471,9 +439,11 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
     }
     mFluxos.erase(std::remove_if(mFluxos.begin(), mFluxos.end(), [](const Fluxo& f) { return f.p == nullptr; }),
                   mFluxos.end());
-    if (etapa == 0) return;
+}
 
-    // ---- A imagem que o aluno pinta ----
+void Michel::PintarAImagem(const float deltaTime) {
+    using namespace Convolucao;
+    const Convolucao::Degrau& g = mDegrauDaConvolucao;
     if (const Battle* b = Batalha(); b && b->GerenteDeProjeteis()) {
         for (const auto& tiro : b->GerenteDeProjeteis()->GetPlayerProjectiles()) {
             if (!tiro || tiro->GetState() != ActorState::Active) continue;
@@ -485,7 +455,7 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
     Esmaecer(mAtivacao, deltaTime, 0.3f);
     for (int l = 0; l < kLinhas; ++l) {
         for (int col = 0; col < kColunas; ++col) {
-            const auto [de, ate] = celula(col, l);
+            const auto [de, ate] = CantosDaCelula(col, l);
             const float brilho = mBrilho.Em(col, l);
             if (brilho > 0.03f) {
                 Preencher(de + Vector2(2.0f, 2.0f), ate - Vector2(2.0f, 2.0f),
@@ -499,14 +469,13 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
             }
         }
     }
-    if (t >= mProximoLeque) {
-        mProximoLeque = t + g.entreLeques;
-        DispararEm(kGatilhoDoLeque, GetPosition(), g.tirosDoLeque, AnguloAteOAluno(GetPosition()));
-    }
-    // As ativacoes que passaram do limiar piscam, e disparam.
+}
+
+void Michel::DispararAsAtivacoes(const float t) {
+    using namespace Convolucao;
     for (Ativacao& at : mPendentes) {
-        const auto [de, a0] = celula(at.coluna, at.linha);
-        const auto [d1, ate] = celula(std::min(kColunas - 1, at.coluna + at.lado - 1), std::min(kLinhas - 1, at.linha + at.lado - 1));
+        const auto [de, a0] = CantosDaCelula(at.coluna, at.linha);
+        const auto [d1, ate] = CantosDaCelula(std::min(kColunas - 1, at.coluna + at.lado - 1), std::min(kLinhas - 1, at.linha + at.lado - 1));
         (void)a0;
         (void)d1;
         if (t < at.quando) {
@@ -525,70 +494,75 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
     }
     mPendentes.erase(std::remove_if(mPendentes.begin(), mPendentes.end(), [](const Ativacao& at) { return at.tiros == 0; }),
                      mPendentes.end());
+}
 
-    // ---- A convolucao: a janela 3x3 varre a imagem ----
-    if (etapa == 1) {
-        if (mPassoDaJanela < 0) mProximoPasso = t1 + 0.4f;
-        if (t >= mProximoPasso) {
-            mProximoPasso = t + 1.0f / g.passosPorSegundo;
-            ++mPassoDaJanela;
-            const auto [jc, jl] = Janela(mPassoDaJanela, kColunas, kLinhas);
-            mUltimaResposta = Resposta(mBrilho, jc, jl, kGaussiano);
-            const float a = Relu(mUltimaResposta, g.limiar);
-            const int n = TirosDaAtivacao(a, g.tirosMinimos, g.tirosMaximos, 0.4f);
-            if (n > 0) {
-                // A ativacao se espalha em anel, a partir da celula - o vazio do anel aponta para longe do
-                // aluno, e o mais denso, para ele. Antes, a celula pisca.
-                mPendentes.push_back(Ativacao{CentroDaCelula(jc, jl), n, 300.0f * static_cast<float>(n - 1) / static_cast<float>(n),
-                                              g.velocidadeDaAtivacao, t + g.avisoDaAtivacao, jc, jl, 1, a});
-            }
+void Michel::PassoDaJanela(const float t, const float t1) {
+    using namespace Convolucao;
+    const Convolucao::Degrau& g = mDegrauDaConvolucao;
+    if (mPassoDaJanela < 0) mProximoPasso = t1 + 0.4f;
+    if (t >= mProximoPasso) {
+        mProximoPasso = t + 1.0f / g.passosPorSegundo;
+        ++mPassoDaJanela;
+        const auto [jc, jl] = Janela(mPassoDaJanela, kColunas, kLinhas);
+        mUltimaResposta = Resposta(mBrilho, jc, jl, kGaussiano);
+        const float a = Relu(mUltimaResposta, g.limiar);
+        const int n = TirosDaAtivacao(a, g.tirosMinimos, g.tirosMaximos, 0.4f);
+        if (n > 0) {
+            // A ativacao se espalha em anel, a partir da celula - o vazio do anel aponta para longe do
+            // aluno, e o mais denso, para ele. Antes, a celula pisca.
+            mPendentes.push_back(Ativacao{CentroDaCelula(jc, jl), n, 300.0f * static_cast<float>(n - 1) / static_cast<float>(n),
+                                          g.velocidadeDaAtivacao, t + g.avisoDaAtivacao, jc, jl, 1, a});
         }
-        const auto [jc, jl] = Janela(std::max(0, mPassoDaJanela), kColunas, kLinhas);
-        const auto [de, ate0] = celula(std::max(0, jc - 1), std::max(0, jl - 1));
-        const auto [de1, ate] = celula(std::min(kColunas - 1, jc + 1), std::min(kLinhas - 1, jl + 1));
-        (void)ate0;
-        (void)de1;
-        Retangulo(de, ate, kJanela);
-        const auto [cd, ca] = celula(jc, jl);
-        Retangulo(cd + Vector2(3.0f, 3.0f), ca - Vector2(3.0f, 3.0f), kJanela);
-        if (g.filtros < 2) {
-            return;
-        }
-        // O segundo filtro, o de borda: vem de tras para a frente, e responde ao lado do que se
-        // acendeu. A janela dele e tracejada, na cor dele.
-        if (mPassoDaBorda < 0) mProximaBorda = t1 + 0.4f + 0.5f / g.passosPorSegundo;
-        if (t >= mProximaBorda) {
-            mProximaBorda = t + 1.0f / g.passosPorSegundo;
-            ++mPassoDaBorda;
-            const auto [bc, bl] = JanelaDeVolta(mPassoDaBorda, kColunas, kLinhas);
-            mUltimaBorda = Convolucao::Borda(mBrilho, bc, bl);
-            const float a = Relu(mUltimaBorda, g.limiarDaBorda);
-            const int n = TirosDaAtivacao(a, g.tirosMinimos, g.tirosMaximos, 0.4f);
-            if (n > 0) {
-                Ativacao at{CentroDaCelula(bc, bl), n, 300.0f * static_cast<float>(n - 1) / static_cast<float>(n),
-                            g.velocidadeDaAtivacao, t + g.avisoDaAtivacao, bc, bl, 1, a};
-                at.borda = true;
-                mPendentes.push_back(at);
-            }
-        }
-        const auto [bc, bl] = JanelaDeVolta(std::max(0, mPassoDaBorda), kColunas, kLinhas);
-        const auto [bde, bate0] = celula(std::max(0, bc - 1), std::max(0, bl - 1));
-        const auto [bde1, bate] = celula(std::min(kColunas - 1, bc + 1), std::min(kLinhas - 1, bl + 1));
-        (void)bate0;
-        (void)bde1;
-        Retangulo(bde, bate, kBorda, true);
-        const auto [bcd, bca] = celula(bc, bl);
-        Retangulo(bcd + Vector2(3.0f, 3.0f), bca - Vector2(3.0f, 3.0f), kBorda);
-        return;
     }
+    const auto [jc, jl] = Janela(std::max(0, mPassoDaJanela), kColunas, kLinhas);
+    const auto [de, ate0] = CantosDaCelula(std::max(0, jc - 1), std::max(0, jl - 1));
+    const auto [de1, ate] = CantosDaCelula(std::min(kColunas - 1, jc + 1), std::min(kLinhas - 1, jl + 1));
+    (void)ate0;
+    (void)de1;
+    Retangulo(de, ate, kJanela);
+    const auto [cd, ca] = CantosDaCelula(jc, jl);
+    Retangulo(cd + Vector2(3.0f, 3.0f), ca - Vector2(3.0f, 3.0f), kJanela);
+}
 
-    // ---- O pooling: o maximo de cada bloco, e no fim o vetor ----
+void Michel::PassoDaBorda(const float t, const float t1) {
+    using namespace Convolucao;
+    const Convolucao::Degrau& g = mDegrauDaConvolucao;
+    // O segundo filtro, o de borda: vem de tras para a frente, e responde ao lado do que se
+    // acendeu. A janela dele e tracejada, na cor dele.
+    if (mPassoDaBorda < 0) mProximaBorda = t1 + 0.4f + 0.5f / g.passosPorSegundo;
+    if (t >= mProximaBorda) {
+        mProximaBorda = t + 1.0f / g.passosPorSegundo;
+        ++mPassoDaBorda;
+        const auto [bc, bl] = JanelaDeVolta(mPassoDaBorda, kColunas, kLinhas);
+        mUltimaBorda = Convolucao::Borda(mBrilho, bc, bl);
+        const float a = Relu(mUltimaBorda, g.limiarDaBorda);
+        const int n = TirosDaAtivacao(a, g.tirosMinimos, g.tirosMaximos, 0.4f);
+        if (n > 0) {
+            Ativacao at{CentroDaCelula(bc, bl), n, 300.0f * static_cast<float>(n - 1) / static_cast<float>(n),
+                        g.velocidadeDaAtivacao, t + g.avisoDaAtivacao, bc, bl, 1, a};
+            at.borda = true;
+            mPendentes.push_back(at);
+        }
+    }
+    const auto [bc, bl] = JanelaDeVolta(std::max(0, mPassoDaBorda), kColunas, kLinhas);
+    const auto [bde, bate0] = CantosDaCelula(std::max(0, bc - 1), std::max(0, bl - 1));
+    const auto [bde1, bate] = CantosDaCelula(std::min(kColunas - 1, bc + 1), std::min(kLinhas - 1, bl + 1));
+    (void)bate0;
+    (void)bde1;
+    Retangulo(bde, bate, kBorda, true);
+    const auto [bcd, bca] = CantosDaCelula(bc, bl);
+    Retangulo(bcd + Vector2(3.0f, 3.0f), bca - Vector2(3.0f, 3.0f), kBorda);
+}
+
+void Michel::AtualizarPooling(const float t, const float t2) {
+    using namespace Convolucao;
+    const Convolucao::Degrau& g = mDegrauDaConvolucao;
     const Grade pool = MaxPool(mBrilho);
     const float tPooling = t - t2;
     for (int l = 0; l < pool.linhas; ++l) {
         for (int col = 0; col < pool.colunas; ++col) {
-            const auto [de, a0] = celula(2 * col, 2 * l);
-            const auto [d1, ate] = celula(std::min(kColunas - 1, 2 * col + 1), std::min(kLinhas - 1, 2 * l + 1));
+            const auto [de, a0] = CantosDaCelula(2 * col, 2 * l);
+            const auto [d1, ate] = CantosDaCelula(std::min(kColunas - 1, 2 * col + 1), std::min(kLinhas - 1, 2 * l + 1));
             (void)a0;
             (void)d1;
             Retangulo(de + Vector2(1.0f, 1.0f), ate - Vector2(1.0f, 1.0f), SDL_Color{kJanela.r, kJanela.g, kJanela.b, 60});
@@ -609,8 +583,8 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
             }
         }
         const auto [pc, pl] = Janela(std::max(0, mPassoDoPooling), pool.colunas, pool.linhas);
-        const auto [de, a0] = celula(2 * pc, 2 * pl);
-        const auto [d1, ate] = celula(std::min(kColunas - 1, 2 * pc + 1), std::min(kLinhas - 1, 2 * pl + 1));
+        const auto [de, a0] = CantosDaCelula(2 * pc, 2 * pl);
+        const auto [d1, ate] = CantosDaCelula(std::min(kColunas - 1, 2 * pc + 1), std::min(kLinhas - 1, 2 * pl + 1));
         (void)a0;
         (void)d1;
         Retangulo(de, ate, kJanela);
@@ -637,6 +611,58 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
             SomDoDisparo();
         }
     }
+}
+
+void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
+    using namespace Convolucao;
+    const Degrau& g = mDegrauDaConvolucao;
+    const int etapa = EtapaNoTempo(t);
+    const float t1 = kDuracoes[0], t2 = kDuracoes[0] + kDuracoes[1];
+    const SDL_FRect c = Campo();
+    const Vector2 tam = TamanhoDaCelula();
+    if (mBrilho.v.empty()) {
+        mBrilho = Vazia(kColunas, kLinhas);
+        mAtivacao = Vazia(kColunas, kLinhas);
+        mBins.assign(static_cast<size_t>(kColunas * kLinhas), 0);
+    }
+    Varrer(t, 0.33f, 6.2f);
+    const Vector2 aluno = PosicaoDoAluno();
+
+    // A grade da imagem.
+    for (int k = 1; k < kColunas; ++k) {
+        const float x = c.x + static_cast<float>(k) * tam.x;
+        Linha(Vector2(x, c.y), Vector2(x, c.y + c.h), kGrade);
+    }
+    for (int k = 1; k < kLinhas; ++k) {
+        const float y = c.y + static_cast<float>(k) * tam.y;
+        Linha(Vector2(c.x, y), Vector2(c.x + c.w, y), kGrade);
+    }
+
+    // ---- O gradiente: as setas levam os tiros ----
+    if (etapa == 0) AtualizarGradiente(t, aluno);
+    GuiarOsFluxos(t, deltaTime);
+    if (etapa == 0) return;
+
+    // ---- A imagem que o aluno pinta ----
+    PintarAImagem(deltaTime);
+    if (t >= mProximoLeque) {
+        mProximoLeque = t + g.entreLeques;
+        DispararEm(kGatilhoDoLeque, GetPosition(), g.tirosDoLeque, AnguloAteOAluno(GetPosition()));
+    }
+    DispararAsAtivacoes(t);
+
+    // ---- A convolucao: a janela 3x3 varre a imagem ----
+    if (etapa == 1) {
+        PassoDaJanela(t, t1);
+        if (g.filtros < 2) {
+            return;
+        }
+        PassoDaBorda(t, t1);
+        return;
+    }
+
+    // ---- O pooling: o maximo de cada bloco, e no fim o vetor ----
+    AtualizarPooling(t, t2);
 }
 
 // ---- Fase 3: a rede ----
@@ -773,18 +799,10 @@ void Michel::Cortar(const int k, const int i) {
                   mPorVir.end());
 }
 
-void Michel::AtualizarRede(const float t, const float deltaTime) {
+void Michel::DesenharAsLigacoes(const int etapa) {
     using namespace RedeNeural;
-    (void)deltaTime;
-    const Degrau& g = mDegrauDaRede;
-    const int etapa = EtapaNoTempo(t);
-    const int forma = etapa >= 2 ? 2 : 0;
-    if (mEtapaDaRede != forma) {
-        MontarARede(forma);
-    }
-    Varrer(t, 0.3f, 6.8f);
+    const RedeNeural::Degrau& g = mDegrauDaRede;
     const int camadas = static_cast<int>(mRede.camadas.size());
-
     // As ligacoes: as fortes levam pulso; as fracas mal se veem; as de um neuronio fora da rede se
     // apagam. Na retropropagacao, as que chegam na saida que aprende o aluno engrossam, vermelhas.
     const int alvo = etapa >= 1 ? mAlvoDoTreino : -1;
@@ -824,7 +842,10 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
             antes = agora;
         }
     }
+}
 
+void Michel::SoltarOsPulsos() {
+    using namespace RedeNeural;
     // O aviso dos pulsos: a ligacao que vai levar um acende, cada vez mais rapido ate ele sair.
     for (const PorVir& v : mPorVir) {
         if (!v.leva || v.sai <= mRelogio) continue;
@@ -854,7 +875,12 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
     }
     mPorVir.erase(std::remove_if(mPorVir.begin(), mPorVir.end(), [&](const PorVir& v) { return v.sai <= mRelogio; }),
                   mPorVir.end());
+}
 
+void Michel::AtualizarOsNeuronios() {
+    using namespace RedeNeural;
+    const RedeNeural::Degrau& g = mDegrauDaRede;
+    const int camadas = static_cast<int>(mRede.camadas.size());
     // Os neuronios: no lugar, acesos quando disparam; o derrubado volta depois do dropout.
     for (int k = 0; k < camadas; ++k) {
         for (int i = 0; i < mRede.camadas[static_cast<size_t>(k)]; ++i) {
@@ -887,31 +913,12 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
             }
         }
     }
+}
 
-    // O aluno anda pela rede: o neuronio tem a classe dele (nao machuca), e encostar o derruba.
-    if (const Battle* b = Batalha()) {
-        for (Player* aluno : b->Jogadores()) {
-            if (!aluno) continue;
-            aluno->DefinirClasse(kClasseDaRede);
-            const auto* colisor = aluno->GetComponent<CircleColliderComponent>();
-            const float alcance = (colisor ? colisor->GetRadius() : 6.0f) + 18.0f;
-            for (auto& camada : mNeuronios) {
-                for (Neuronio& n : camada) {
-                    if (!Vivo(n.p) || (n.p->GetPosition() - aluno->GetPosition()).Length() > alcance) continue;
-                    BossProjectile* qual = n.p;
-                    qual->Kill();
-                    OnDerrubou(qual);
-                }
-            }
-        }
-    }
-
-    // A entrada: o professor manda um sinal a um neuronio da primeira camada.
-    if (t >= mProximaEntrada) {
-        mProximaEntrada = t + g.entreEntradas;
-        MandarSinal(GetPosition() + Vector2(0.0f, 20.0f), 0, mSorteio.Inteiro(0, mRede.camadas.front() - 1), 1.0f, false);
-    }
-
+void Michel::AndarOsSinais() {
+    using namespace RedeNeural;
+    const RedeNeural::Degrau& g = mDegrauDaRede;
+    const int camadas = static_cast<int>(mRede.camadas.size());
     // Os sinais andam; quem chega soma no neuronio, e o que passou do limiar dispara.
     std::vector<std::pair<int, int>> disparam;
     for (Sinal& s : mSinais) {
@@ -935,8 +942,12 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
     mSinais.erase(std::remove_if(mSinais.begin(), mSinais.end(), [](const Sinal& s) { return s.p == nullptr; }),
                   mSinais.end());
     for (const auto& [k, i] : disparam) Disparou(k, i);
+}
 
-    // A retropropagacao: a saida em cima do aluno devia disparar, e as outras nao.
+void Michel::TreinarARede(const float t, const int etapa) {
+    using namespace RedeNeural;
+    const RedeNeural::Degrau& g = mDegrauDaRede;
+    const int camadas = static_cast<int>(mRede.camadas.size());
     if (etapa >= 1) {
         std::vector<float> xs;
         for (int i = 0; i < mRede.camadas.back(); ++i) xs.push_back(LugarDoNeuronio(camadas - 1, i).x);
@@ -964,6 +975,48 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
             }
         }
     }
+}
+
+void Michel::AtualizarRede(const float t, const float deltaTime) {
+    using namespace RedeNeural;
+    (void)deltaTime;
+    const Degrau& g = mDegrauDaRede;
+    const int etapa = EtapaNoTempo(t);
+    const int forma = etapa >= 2 ? 2 : 0;
+    if (mEtapaDaRede != forma) {
+        MontarARede(forma);
+    }
+    Varrer(t, 0.3f, 6.8f);
+    DesenharAsLigacoes(etapa);
+    SoltarOsPulsos();
+    AtualizarOsNeuronios();
+
+    // O aluno anda pela rede: o neuronio tem a classe dele (nao machuca), e encostar o derruba.
+    if (const Battle* b = Batalha()) {
+        for (Player* aluno : b->Jogadores()) {
+            if (!aluno) continue;
+            aluno->DefinirClasse(kClasseDaRede);
+            const auto* colisor = aluno->GetComponent<CircleColliderComponent>();
+            const float alcance = (colisor ? colisor->GetRadius() : 6.0f) + 18.0f;
+            for (auto& camada : mNeuronios) {
+                for (Neuronio& n : camada) {
+                    if (!Vivo(n.p) || (n.p->GetPosition() - aluno->GetPosition()).Length() > alcance) continue;
+                    BossProjectile* qual = n.p;
+                    qual->Kill();
+                    OnDerrubou(qual);
+                }
+            }
+        }
+    }
+
+    // A entrada: o professor manda um sinal a um neuronio da primeira camada.
+    if (t >= mProximaEntrada) {
+        mProximaEntrada = t + g.entreEntradas;
+        MandarSinal(GetPosition() + Vector2(0.0f, 20.0f), 0, mSorteio.Inteiro(0, mRede.camadas.front() - 1), 1.0f, false);
+    }
+
+    AndarOsSinais();
+    TreinarARede(t, etapa);
 }
 
 // ---- A repescagem: o MaVIlab ----
@@ -1001,17 +1054,9 @@ void Michel::DesmontarLaboratorio() {
     mProximoRastreio = 0.0f;
 }
 
-void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
+void Michel::SegmentarComODecoder(const float t, const int etapa, const SDL_FRect& c, const std::vector<Vector2>& alunos) {
     using namespace Laboratorio;
-    const Degrau& g = mDegrauDoLaboratorio;
-    const SDL_FRect c = Campo();
-    const int etapa = EtapaNoTempo(t);
-    const float t1 = kDuracoes[0], t2 = kDuracoes[0] + kDuracoes[1];
-    const std::vector<Vector2> alunos = Alunos();
-    const Battle* batalha = Batalha();
-    Varrer(t, 0.28f, 7.0f);
-
-    // ---- A segmentacao: a mascara do decoder, da grade grossa a fina ----
+    const Laboratorio::Degrau& g = mDegrauDoLaboratorio;
     if (etapa == 0 && mPassoDoDecoder < kDecoder.size() && t >= kDecoder[mPassoDoDecoder].quando) {
         const PassoDoDecoder& d = kDecoder[mPassoDoDecoder++];
         std::vector<Vector2> agora;
@@ -1031,6 +1076,10 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
         mMascaras.push_back(std::move(m));
         mAtalhos = agora;
     }
+}
+
+void Michel::AtualizarMascaras(const float t, const SDL_FRect& c) {
+    using namespace Laboratorio;
     for (MascaraEmCampo& m : mMascaras) {
         const float w = c.w / static_cast<float>(m.m.n), h = c.h / static_cast<float>(m.m.n);
         if (!m.disparou) {
@@ -1072,98 +1121,82 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
     }
     mMascaras.erase(std::remove_if(mMascaras.begin(), mMascaras.end(), [](const MascaraEmCampo& m) { return m.m.n == 0; }),
                     mMascaras.end());
-    if (etapa == 0 && t < mElosAte) {
-        for (const auto& [antes, agora] : mElos) {
-            Tracejada(antes, agora, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 200}, 10.0f);
-            Circulo(antes, 10.0f, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 200}, 10);
-        }
-    }
-    if (etapa == 0) {
-        if (t >= mProximoRuido) {
-            mProximoRuido = t + 2.0f * g.entreRuidos;
-            Um(kGatilhoDoRuido, Vector2(mSorteio.Real(c.x + 20.0f, c.x + c.w - 20.0f), c.y + 96.0f), "Ruido",
-               Vector2(0.0f, 150.0f));
-        }
-        return;
-    }
+}
 
-    // ---- A recorrente: a memoria do caminho, e a previsao ----
-    if (mMemorias.size() != alunos.size()) mMemorias.assign(alunos.size(), Memoria{});
-    for (size_t i = 0; i < alunos.size(); ++i) Lembrar(mMemorias[i], alunos[i], deltaTime, g.esquecimento);
-    if (etapa == 1) {
-        const float tEtapa = t - t1;
-        const bool lstm = tEtapa >= 0.5f * kDuracoes[1];
-        if (lstm && !mLstm) {
-            mLstm = true;
-        }
-        size_t alvo = 0;
-        if (batalha) {
-            const Player* quem = Aluno();
-            for (size_t i = 0; i < batalha->Jogadores().size() && i < mMemorias.size(); ++i) {
-                if (batalha->Jogadores()[i] == quem) alvo = i;
-            }
-        }
-        // A memoria que se ve: o rastro de cada aluno, um ponto a cada decimo de segundo.
-        if (mRastros.size() != alunos.size()) mRastros.assign(alunos.size(), {});
-        if (t >= mProximoRastro) {
-            mProximoRastro = t + 0.1f;
-            for (size_t i = 0; i < alunos.size(); ++i) {
-                mRastros[i].push_back(alunos[i]);
-                if (mRastros[i].size() > 10) mRastros[i].erase(mRastros[i].begin());
-            }
-        }
-        for (const auto& rastro : mRastros) {
-            for (size_t k = 0; k < rastro.size(); ++k) {
-                const auto a = static_cast<Uint8>(40.0f + 160.0f * static_cast<float>(k + 1) / static_cast<float>(rastro.size()));
-                Circulo(rastro[k], 3.0f + 0.3f * static_cast<float>(k), SDL_Color{kFantasma.r, kFantasma.g, kFantasma.b, a}, 6);
-            }
-        }
-        // O fantasma: o aluno onde a rede acha que ele vai estar - com a mira em cima. E la que os
-        // tiros caem: quem muda de rumo escapa.
-        for (const Memoria& m : mMemorias) {
-            Vector2 antes = m.onde;
-            for (int k = 1; k <= 8; ++k) {
-                const Vector2 agora = Prever(m, 0.12f * static_cast<float>(k), lstm);
-                if (k % 2 == 0) Linha(antes, agora, kFantasma);
-                antes = agora;
-            }
-            const Vector2 f = antes;
-            Circulo(f + Vector2(0.0f, -16.0f), 8.0f, kFantasma, 12);
-            Retangulo(f + Vector2(-9.0f, -7.0f), f + Vector2(9.0f, 16.0f), kFantasma);
-            Circulo(f, 26.0f, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 170}, 18);
-            Linha(f + Vector2(-34.0f, 0.0f), f + Vector2(-18.0f, 0.0f), kPerigo);
-            Linha(f + Vector2(18.0f, 0.0f), f + Vector2(34.0f, 0.0f), kPerigo);
-            Linha(f + Vector2(0.0f, -34.0f), f + Vector2(0.0f, -18.0f), kPerigo);
-            Linha(f + Vector2(0.0f, 18.0f), f + Vector2(0.0f, 34.0f), kPerigo);
-        }
-        for (const Mira& mira : mMiras) {
-            if (t < mira.ate) Tracejada(mira.de, mira.para, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 150}, 12.0f);
-        }
-        mMiras.erase(std::remove_if(mMiras.begin(), mMiras.end(), [&](const Mira& m) { return t >= m.ate; }), mMiras.end());
-        if (t >= mProximaPrevisao && alvo < mMemorias.size()) {
-            mProximaPrevisao = t + g.entrePrevisoes;
-            // A camera que atira: o professor, e as dos lados do laboratorio, uma de cada vez.
-            static const std::array<Vector2, 3> kDe = {Vector2(0.5f, 0.0f), Vector2(0.0f, 0.4f), Vector2(1.0f, 0.4f)};
-            const int vez = static_cast<int>(std::lround(tEtapa / std::max(g.entrePrevisoes, 0.05f)));
-            const Vector2 r = kDe[static_cast<size_t>(vez % 3)];
-            const Vector2 de = vez % 3 == 0 ? GetPosition() : Vector2(c.x + c.w * r.x, c.y + c.h * r.y);
-            const Memoria& m = mMemorias[alvo];
-            const float tempo = Encontro(m, de, g.velocidadeDaPrevisao, lstm);
-            Vector2 para = Prever(m, tempo, lstm);
-            para = Vector2(std::clamp(para.x, c.x + 10.0f, c.x + c.w - 10.0f), std::clamp(para.y, c.y + 10.0f, c.y + c.h - 10.0f));
-            for (BossProjectile* p : DispararEm(kGatilhoDaPrevisao, de, g.tirosDaPrevisao, AnguloAte(de, para),
-                                                g.aberturaDaPrevisao, g.velocidadeDaPrevisao)) {
-                Cara(p, "Previsao");
-            }
-            mMiras.push_back(Mira{de, para, t + 0.35f});
-            SomDoDisparo();
-        }
-        return;
+void Michel::AtualizarRecorrente(const float t, const float tEtapa, const SDL_FRect& c, const std::vector<Vector2>& alunos) {
+    using namespace Laboratorio;
+    const Laboratorio::Degrau& g = mDegrauDoLaboratorio;
+    const Battle* batalha = Batalha();
+    const bool lstm = tEtapa >= 0.5f * kDuracoes[1];
+    if (lstm && !mLstm) {
+        mLstm = true;
     }
+    size_t alvo = 0;
+    if (batalha) {
+        const Player* quem = Aluno();
+        for (size_t i = 0; i < batalha->Jogadores().size() && i < mMemorias.size(); ++i) {
+            if (batalha->Jogadores()[i] == quem) alvo = i;
+        }
+    }
+    // A memoria que se ve: o rastro de cada aluno, um ponto a cada decimo de segundo.
+    if (mRastros.size() != alunos.size()) mRastros.assign(alunos.size(), {});
+    if (t >= mProximoRastro) {
+        mProximoRastro = t + 0.1f;
+        for (size_t i = 0; i < alunos.size(); ++i) {
+            mRastros[i].push_back(alunos[i]);
+            if (mRastros[i].size() > 10) mRastros[i].erase(mRastros[i].begin());
+        }
+    }
+    for (const auto& rastro : mRastros) {
+        for (size_t k = 0; k < rastro.size(); ++k) {
+            const auto a = static_cast<Uint8>(40.0f + 160.0f * static_cast<float>(k + 1) / static_cast<float>(rastro.size()));
+            Circulo(rastro[k], 3.0f + 0.3f * static_cast<float>(k), SDL_Color{kFantasma.r, kFantasma.g, kFantasma.b, a}, 6);
+        }
+    }
+    // O fantasma: o aluno onde a rede acha que ele vai estar - com a mira em cima. E la que os
+    // tiros caem: quem muda de rumo escapa.
+    for (const Memoria& m : mMemorias) {
+        Vector2 antes = m.onde;
+        for (int k = 1; k <= 8; ++k) {
+            const Vector2 agora = Prever(m, 0.12f * static_cast<float>(k), lstm);
+            if (k % 2 == 0) Linha(antes, agora, kFantasma);
+            antes = agora;
+        }
+        const Vector2 f = antes;
+        Circulo(f + Vector2(0.0f, -16.0f), 8.0f, kFantasma, 12);
+        Retangulo(f + Vector2(-9.0f, -7.0f), f + Vector2(9.0f, 16.0f), kFantasma);
+        Circulo(f, 26.0f, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 170}, 18);
+        Linha(f + Vector2(-34.0f, 0.0f), f + Vector2(-18.0f, 0.0f), kPerigo);
+        Linha(f + Vector2(18.0f, 0.0f), f + Vector2(34.0f, 0.0f), kPerigo);
+        Linha(f + Vector2(0.0f, -34.0f), f + Vector2(0.0f, -18.0f), kPerigo);
+        Linha(f + Vector2(0.0f, 18.0f), f + Vector2(0.0f, 34.0f), kPerigo);
+    }
+    for (const Mira& mira : mMiras) {
+        if (t < mira.ate) Tracejada(mira.de, mira.para, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 150}, 12.0f);
+    }
+    mMiras.erase(std::remove_if(mMiras.begin(), mMiras.end(), [&](const Mira& m) { return t >= m.ate; }), mMiras.end());
+    if (t >= mProximaPrevisao && alvo < mMemorias.size()) {
+        mProximaPrevisao = t + g.entrePrevisoes;
+        // A camera que atira: o professor, e as dos lados do laboratorio, uma de cada vez.
+        static const std::array<Vector2, 3> kDe = {Vector2(0.5f, 0.0f), Vector2(0.0f, 0.4f), Vector2(1.0f, 0.4f)};
+        const int vez = static_cast<int>(std::lround(tEtapa / std::max(g.entrePrevisoes, 0.05f)));
+        const Vector2 r = kDe[static_cast<size_t>(vez % 3)];
+        const Vector2 de = vez % 3 == 0 ? GetPosition() : Vector2(c.x + c.w * r.x, c.y + c.h * r.y);
+        const Memoria& m = mMemorias[alvo];
+        const float tempo = Encontro(m, de, g.velocidadeDaPrevisao, lstm);
+        Vector2 para = Prever(m, tempo, lstm);
+        para = Vector2(std::clamp(para.x, c.x + 10.0f, c.x + c.w - 10.0f), std::clamp(para.y, c.y + 10.0f, c.y + c.h - 10.0f));
+        for (BossProjectile* p : DispararEm(kGatilhoDaPrevisao, de, g.tirosDaPrevisao, AnguloAte(de, para),
+                                            g.aberturaDaPrevisao, g.velocidadeDaPrevisao)) {
+            Cara(p, "Previsao");
+        }
+        mMiras.push_back(Mira{de, para, t + 0.35f});
+        SomDoDisparo();
+    }
+}
 
-    // ---- A deteccao: o aluno entre os colegas do MaVIlab ----
-    const float tEtapa = t - t2;
-    const float topo = c.y + c.h * 0.5f, chao = c.y + c.h - 22.0f;
+void Michel::MoverOsColegas(const float t, const float deltaTime, const SDL_FRect& c, const float topo, const float chao) {
+    using namespace Laboratorio;
     if (mColegas.empty()) {
         for (int k = 0; k < kColegas; ++k) {
             Colega colega;
@@ -1190,6 +1223,12 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
         k.p->SetPosition(onde);
         k.confianca = Confianca(k.confianca, k.rapidez, k.tiros, deltaTime);
     }
+}
+
+void Michel::MedirOsAlunos(const float deltaTime) {
+    using namespace Laboratorio;
+    const Laboratorio::Degrau& g = mDegrauDoLaboratorio;
+    const Battle* batalha = Batalha();
     if (batalha) {
         const auto& jogadores = batalha->Jogadores();
         if (mConfiancaDosAlunos.size() != jogadores.size()) {
@@ -1213,7 +1252,11 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
             mDisparosAntes[i] = j->Disparos();
         }
     }
+}
 
+void Michel::RodadaDoDetector(const float t, const float tEtapa, const SDL_FRect& c, const float topo, const float chao, const std::vector<Vector2>& alunos) {
+    using namespace Laboratorio;
+    const Laboratorio::Degrau& g = mDegrauDoLaboratorio;
     // As caixas de todos: os colegas e os alunos.
     constexpr float kLado = 62.0f;
     std::vector<Caixa> caixas;
@@ -1267,15 +1310,12 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
         } else {
             if (mDetectados.empty() && !caixas.empty()) {
                 const int quantas = static_cast<int>(std::max<size_t>(1, alunos.size()));
-                std::string texto = "Detectado: ";
                 for (const int e : Nms(caixas, confiancas, 0.3f, quantas)) {
                     const size_t k = static_cast<size_t>(e);
                     mDetectados.push_back(Detectado{(caixas[k].de + caixas[k].ate) * 0.5f, nomes[k],
                                                     static_cast<int>(std::lround(confiancas[k] * 100.0f)), qualAluno[k]});
                     if (qualAluno[k] >= 0) ++mAlunosDetectados;
                     else ++mColegasDetectados;
-                    if (texto.size() > 11) texto += ", ";
-                    texto += nomes[k] + " (" + Porcento(confiancas[k]) + ")";
                 }
                 SomDoDisparo();
             }
@@ -1306,6 +1346,11 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
             }
         }
     }
+}
+
+void Michel::Rastrear(const std::vector<Vector2>& alunos) {
+    using namespace Laboratorio;
+    const Laboratorio::Degrau& g = mDegrauDoLaboratorio;
     // O rastreador: a caixa segue o aluno detectado, e os cantos atiram nele.
     const bool atira = mRelogio >= mProximoRastreio;
     if (atira) mProximoRastreio = mRelogio + g.entreRastreios;
@@ -1326,6 +1371,50 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
         }
         SomDoDisparo();
     }
+}
+
+void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
+    using namespace Laboratorio;
+    const Degrau& g = mDegrauDoLaboratorio;
+    const SDL_FRect c = Campo();
+    const int etapa = EtapaNoTempo(t);
+    const float t1 = kDuracoes[0], t2 = kDuracoes[0] + kDuracoes[1];
+    const std::vector<Vector2> alunos = Alunos();
+    Varrer(t, 0.28f, 7.0f);
+
+    // ---- A segmentacao: a mascara do decoder, da grade grossa a fina ----
+    SegmentarComODecoder(t, etapa, c, alunos);
+    AtualizarMascaras(t, c);
+    if (etapa == 0 && t < mElosAte) {
+        for (const auto& [antes, agora] : mElos) {
+            Tracejada(antes, agora, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 200}, 10.0f);
+            Circulo(antes, 10.0f, SDL_Color{kPerigo.r, kPerigo.g, kPerigo.b, 200}, 10);
+        }
+    }
+    if (etapa == 0) {
+        if (t >= mProximoRuido) {
+            mProximoRuido = t + 2.0f * g.entreRuidos;
+            Um(kGatilhoDoRuido, Vector2(mSorteio.Real(c.x + 20.0f, c.x + c.w - 20.0f), c.y + 96.0f), "Ruido",
+               Vector2(0.0f, 150.0f));
+        }
+        return;
+    }
+
+    // ---- A recorrente: a memoria do caminho, e a previsao ----
+    if (mMemorias.size() != alunos.size()) mMemorias.assign(alunos.size(), Memoria{});
+    for (size_t i = 0; i < alunos.size(); ++i) Lembrar(mMemorias[i], alunos[i], deltaTime, g.esquecimento);
+    if (etapa == 1) {
+        AtualizarRecorrente(t, t - t1, c, alunos);
+        return;
+    }
+
+    // ---- A deteccao: o aluno entre os colegas do MaVIlab ----
+    const float tEtapa = t - t2;
+    const float topo = c.y + c.h * 0.5f, chao = c.y + c.h - 22.0f;
+    MoverOsColegas(t, deltaTime, c, topo, chao);
+    MedirOsAlunos(deltaTime);
+    RodadaDoDetector(t, tEtapa, c, topo, chao, alunos);
+    Rastrear(alunos);
     // O ruido: uma garoa que pede que se ande um pouco.
     if (t >= mProximoRuido) {
         mProximoRuido = t + g.entreRuidos;

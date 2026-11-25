@@ -30,222 +30,235 @@ namespace Golpe {
         return Materia::Generico;
     }
 
+    namespace {
+        // A rodada de cada materia (DaVez).
+
+        void DoAndre(Rodada& r) {
+            // For (i = 0; i < 4; i++) - um tiro por volta do laco.
+            r.duracao = 2.0f;
+            for (int i = 0; i < 4; ++i) {
+                Tiro t;
+                t.quando = 0.1f * static_cast<float>(i);
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoSalles(Rodada& r) {
+            // Push, push, push, push - cada um em cima do outro -, e o pop comeca pelo de cima.
+            r.duracao = 2.0f;
+            for (int i = 0; i < 4; ++i) {
+                Tiro t;
+                t.quando = 0.2f * static_cast<float>(i);
+                t.dy = -34.0f - 22.0f * static_cast<float>(i);
+                const float pop = 0.9f + 0.15f * static_cast<float>(3 - i);
+                t.espera = pop - t.quando;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoRicardo(Rodada& r, Variacao::Sorteio& s) {
+            // O barramento: oito fios, e so os bits 1 do byte atiram.
+            r.duracao = 1.5f;
+            const auto bits = Byte(s);
+            for (int b = 0; b < 8; ++b) {
+                if (!bits[static_cast<size_t>(b)]) continue;
+                Tiro t;
+                t.dx = (static_cast<float>(b) - 3.5f) * 12.0f;
+                t.paralelo = true;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoThiago(Rodada& r) {
+            // Cada escrita fica na linha, esperando o commit.
+            r.duracao = 3.0f;
+            for (int i = 0; i < 6; ++i) {
+                Tiro t;
+                t.quando = 0.3f * static_cast<float>(i);
+                t.dx = -50.0f + 20.0f * static_cast<float>(i);
+                t.dy = -40.0f;
+                t.espera = 2.0f - t.quando;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoLuizinho(Rodada& r) {
+            // Dois ponteiros, um de cada lado, apontando para o chefe.
+            r.duracao = 1.0f;
+            for (const float lado : {-60.0f, 60.0f}) {
+                Tiro t;
+                t.desvio = lado;
+                t.velocidade = 650.0f;
+                t.curva = 260.0f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoVladimir(Rodada& r) {
+            // S -> S S, duas vezes: um tiro, dois, quatro.
+            r.duracao = 2.0f;
+            Tiro t;
+            t.divide = 0.14f;
+            t.geracoes = 1;
+            r.tiros.push_back(t);
+        }
+
+        void DoJulio(Rodada& r) {
+            // O gradiente: cada passo erra para um lado, e erra menos.
+            r.duracao = 1.5f;
+            for (int i = 0; i < 3; ++i) {
+                Tiro t;
+                t.quando = 0.15f * static_cast<float>(i);
+                t.onda = (i % 2 == 0) ? 60.0f : -60.0f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DaMariaLucia(Rodada& r) {
+            // O observer nao tem relogio: quem dispara e o aluno.
+            r.duracao = 1.0f;
+        }
+
+        void DoLucas(Rodada& r) {
+            // O fetch vai ao servidor, de lado, e a resposta volta no chefe.
+            r.duracao = 1.5f;
+            for (int i = 0; i < 3; ++i) {
+                Tiro t;
+                t.quando = 0.12f * static_cast<float>(i);
+                t.desvio = (i % 2 == 0) ? 50.0f : -50.0f;
+                t.reMira = 0.3f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoVitor(Rodada& r, const int k) {
+            // A janela: uma rajada do tamanho dela.
+            r.duracao = 2.2f;
+            const int n = Janela(k);
+            for (int i = 0; i < n; ++i) {
+                Tiro t;
+                t.quando = 0.08f * static_cast<float>(i);
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoArroyo(Rodada& r, const int k) {
+            // A busca binaria: cada rodada corta o intervalo pela metade - os dois tiros saem
+            // abertos, viram para o chefe no meio do voo e se fecham nele, cada vez mais perto.
+            r.duracao = 1.2f;
+            const float metade = 48.0f / static_cast<float>(1 << (k % 4));
+            for (const float lado : {-metade, metade}) {
+                Tiro t;
+                t.desvio = lado;
+                t.reMira = 0.22f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoGoulart(Rodada& r, const int k) {
+            // O Round Robin: cada rodada e o quantum de um processo - uma rajada curta -, e o
+            // seguinte vem de outro lado.
+            r.duracao = 1.4f;
+            const float lado = 12.0f * static_cast<float>(k % 3 - 1);
+            for (int i = 0; i < 3; ++i) {
+                Tiro t;
+                t.quando = 0.08f * static_cast<float>(i);
+                t.desvio = lado;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoDaniel(Rodada& r) {
+            // O comite: tres arvores, de tres lugares, votam no mesmo alvo - cada tiro sai
+            // aberto para um lado e mira de novo no chefe.
+            r.duracao = 1.5f;
+            for (int i = 0; i < 3; ++i) {
+                Tiro t;
+                t.quando = 0.05f * static_cast<float>(i);
+                t.dx = 26.0f * static_cast<float>(i - 1);
+                t.desvio = 30.0f * static_cast<float>(i - 1);
+                t.reMira = 0.22f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoMichel(Rodada& r) {
+            // O bloco 2x2 do max pooling: quatro tiros num quadrado, que voam juntos, em paralelo.
+            r.duracao = 2.0f;
+            for (int i = 0; i < 4; ++i) {
+                Tiro t;
+                const int metade = i / 2;   // inteira: 0, 0, 1, 1
+                t.dx = 9.0f * static_cast<float>(2 * (i % 2) - 1);
+                t.dy = 9.0f * static_cast<float>(2 * metade - 1);
+                t.paralelo = true;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DaSabrina(Rodada& r) {
+            // A dupla helice: duas fitas saem juntas e se enroscam no caminho, cada uma para um
+            // lado - e o par seguinte vem logo atras.
+            r.duracao = 1.8f;
+            for (int i = 0; i < 4; ++i) {
+                Tiro t;
+                const int par = i / 2;      // inteira: o par de fitas
+                t.quando = 0.18f * static_cast<float>(par);
+                t.onda = (i % 2 == 0) ? 46.0f : -46.0f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoFerreira(Rodada& r) {
+            // O codigo Konami: cima, cima, baixo, baixo, esquerda, direita, esquerda, direita - cada
+            // tiro sai um pouco para o lado da seta dele -, e B e A, os dois que se dividem em dois.
+            r.duracao = 5.8f;
+            constexpr float kSetas[8][2] = {{0, -1}, {0, -1}, {0, 1}, {0, 1}, {-1, 0}, {1, 0}, {-1, 0}, {1, 0}};
+            for (int i = 0; i < 8; ++i) {
+                Tiro t;
+                t.quando = 0.3f * static_cast<float>(i);
+                t.dx = 12.0f * kSetas[i][0];
+                t.dy = 12.0f * kSetas[i][1];
+                r.tiros.push_back(t);
+            }
+            for (int i = 0; i < 2; ++i) {
+                Tiro t;
+                t.quando = 2.9f + 0.35f * static_cast<float>(i);
+                t.divide = 0.25f;
+                r.tiros.push_back(t);
+            }
+        }
+
+        void DoGenerico(Rodada& r) {
+            r.duracao = 1.5f;
+            for (const float d : {-7.0f, 0.0f, 7.0f}) {
+                Tiro t;
+                t.desvio = d;
+                r.tiros.push_back(t);
+            }
+        }
+    }
+
     Rodada DaVez(const Materia m, const int k, Variacao::Sorteio& s) {
         Rodada r;
         switch (m) {
-            case Materia::Andre:
-                // For (i = 0; i < 4; i++) - um tiro por volta do laco.
-                r.duracao = 2.0f;
-                for (int i = 0; i < 4; ++i) {
-                    Tiro t;
-                    t.quando = 0.1f * static_cast<float>(i);
-                    r.tiros.push_back(t);
-                }
-                break;
-
-            case Materia::Salles:
-                // Push, push, push, push - cada um em cima do outro -, e o pop comeca pelo de cima.
-                r.duracao = 2.0f;
-                for (int i = 0; i < 4; ++i) {
-                    Tiro t;
-                    t.quando = 0.2f * static_cast<float>(i);
-                    t.dy = -34.0f - 22.0f * static_cast<float>(i);
-                    const float pop = 0.9f + 0.15f * static_cast<float>(3 - i);
-                    t.espera = pop - t.quando;
-                    r.tiros.push_back(t);
-                }
-                break;
-
-            case Materia::Ricardo: {
-                // O barramento: oito fios, e so os bits 1 do byte atiram.
-                r.duracao = 1.5f;
-                const auto bits = Byte(s);
-                for (int b = 0; b < 8; ++b) {
-                    if (!bits[static_cast<size_t>(b)]) continue;
-                    Tiro t;
-                    t.dx = (static_cast<float>(b) - 3.5f) * 12.0f;
-                    t.paralelo = true;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Thiago:
-                // Cada escrita fica na linha, esperando o commit.
-                r.duracao = 3.0f;
-                for (int i = 0; i < 6; ++i) {
-                    Tiro t;
-                    t.quando = 0.3f * static_cast<float>(i);
-                    t.dx = -50.0f + 20.0f * static_cast<float>(i);
-                    t.dy = -40.0f;
-                    t.espera = 2.0f - t.quando;
-                    r.tiros.push_back(t);
-                }
-                break;
-
-            case Materia::Luizinho:
-                // Dois ponteiros, um de cada lado, apontando para o chefe.
-                r.duracao = 1.0f;
-                for (const float lado : {-60.0f, 60.0f}) {
-                    Tiro t;
-                    t.desvio = lado;
-                    t.velocidade = 650.0f;
-                    t.curva = 260.0f;
-                    r.tiros.push_back(t);
-                }
-                break;
-
-            case Materia::Vladimir: {
-                // S -> S S, duas vezes: um tiro, dois, quatro.
-                r.duracao = 2.0f;
-                Tiro t;
-                t.divide = 0.14f;
-                t.geracoes = 1;
-                r.tiros.push_back(t);
-                break;
-            }
-
-            case Materia::Julio:
-                // O gradiente: cada passo erra para um lado, e erra menos.
-                r.duracao = 1.5f;
-                for (int i = 0; i < 3; ++i) {
-                    Tiro t;
-                    t.quando = 0.15f * static_cast<float>(i);
-                    t.onda = (i % 2 == 0) ? 60.0f : -60.0f;
-                    r.tiros.push_back(t);
-                }
-                break;
-
-            case Materia::MariaLucia:
-                // O observer nao tem relogio: quem dispara e o aluno.
-                r.duracao = 1.0f;
-                break;
-
-            case Materia::Lucas:
-                // O fetch vai ao servidor, de lado, e a resposta volta no chefe.
-                r.duracao = 1.5f;
-                for (int i = 0; i < 3; ++i) {
-                    Tiro t;
-                    t.quando = 0.12f * static_cast<float>(i);
-                    t.desvio = (i % 2 == 0) ? 50.0f : -50.0f;
-                    t.reMira = 0.3f;
-                    r.tiros.push_back(t);
-                }
-                break;
-
-            case Materia::Vitor: {
-                // A janela: uma rajada do tamanho dela.
-                r.duracao = 2.2f;
-                const int n = Janela(k);
-                for (int i = 0; i < n; ++i) {
-                    Tiro t;
-                    t.quando = 0.08f * static_cast<float>(i);
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Arroyo: {
-                // A busca binaria: cada rodada corta o intervalo pela metade - os dois tiros saem
-                // abertos, viram para o chefe no meio do voo e se fecham nele, cada vez mais perto.
-                r.duracao = 1.2f;
-                const float metade = 48.0f / static_cast<float>(1 << (k % 4));
-                for (const float lado : {-metade, metade}) {
-                    Tiro t;
-                    t.desvio = lado;
-                    t.reMira = 0.22f;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Goulart: {
-                // O Round Robin: cada rodada e o quantum de um processo - uma rajada curta -, e o
-                // seguinte vem de outro lado.
-                r.duracao = 1.4f;
-                const float lado = 12.0f * static_cast<float>(k % 3 - 1);
-                for (int i = 0; i < 3; ++i) {
-                    Tiro t;
-                    t.quando = 0.08f * static_cast<float>(i);
-                    t.desvio = lado;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Daniel: {
-                // O comite: tres arvores, de tres lugares, votam no mesmo alvo - cada tiro sai
-                // aberto para um lado e mira de novo no chefe.
-                r.duracao = 1.5f;
-                for (int i = 0; i < 3; ++i) {
-                    Tiro t;
-                    t.quando = 0.05f * static_cast<float>(i);
-                    t.dx = 26.0f * static_cast<float>(i - 1);
-                    t.desvio = 30.0f * static_cast<float>(i - 1);
-                    t.reMira = 0.22f;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Michel: {
-                // O bloco 2x2 do max pooling: quatro tiros num quadrado, que voam juntos, em paralelo.
-                r.duracao = 2.0f;
-                for (int i = 0; i < 4; ++i) {
-                    Tiro t;
-                    const int metade = i / 2;   // inteira: 0, 0, 1, 1
-                    t.dx = 9.0f * static_cast<float>(2 * (i % 2) - 1);
-                    t.dy = 9.0f * static_cast<float>(2 * metade - 1);
-                    t.paralelo = true;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Sabrina: {
-                // A dupla helice: duas fitas saem juntas e se enroscam no caminho, cada uma para um
-                // lado - e o par seguinte vem logo atras.
-                r.duracao = 1.8f;
-                for (int i = 0; i < 4; ++i) {
-                    Tiro t;
-                    const int par = i / 2;      // inteira: o par de fitas
-                    t.quando = 0.18f * static_cast<float>(par);
-                    t.onda = (i % 2 == 0) ? 46.0f : -46.0f;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
-            case Materia::Ferreira: {
-                // O codigo Konami: cima, cima, baixo, baixo, esquerda, direita, esquerda, direita - cada
-                // tiro sai um pouco para o lado da seta dele -, e B e A, os dois que se dividem em dois.
-                r.duracao = 5.8f;
-                constexpr float kSetas[8][2] = {{0, -1}, {0, -1}, {0, 1}, {0, 1}, {-1, 0}, {1, 0}, {-1, 0}, {1, 0}};
-                for (int i = 0; i < 8; ++i) {
-                    Tiro t;
-                    t.quando = 0.3f * static_cast<float>(i);
-                    t.dx = 12.0f * kSetas[i][0];
-                    t.dy = 12.0f * kSetas[i][1];
-                    r.tiros.push_back(t);
-                }
-                for (int i = 0; i < 2; ++i) {
-                    Tiro t;
-                    t.quando = 2.9f + 0.35f * static_cast<float>(i);
-                    t.divide = 0.25f;
-                    r.tiros.push_back(t);
-                }
-                break;
-            }
-
+            case Materia::Andre: DoAndre(r); break;
+            case Materia::Salles: DoSalles(r); break;
+            case Materia::Ricardo: DoRicardo(r, s); break;
+            case Materia::Thiago: DoThiago(r); break;
+            case Materia::Luizinho: DoLuizinho(r); break;
+            case Materia::Vladimir: DoVladimir(r); break;
+            case Materia::Julio: DoJulio(r); break;
+            case Materia::MariaLucia: DaMariaLucia(r); break;
+            case Materia::Lucas: DoLucas(r); break;
+            case Materia::Vitor: DoVitor(r, k); break;
+            case Materia::Arroyo: DoArroyo(r, k); break;
+            case Materia::Goulart: DoGoulart(r, k); break;
+            case Materia::Daniel: DoDaniel(r); break;
+            case Materia::Michel: DoMichel(r); break;
+            case Materia::Sabrina: DaSabrina(r); break;
+            case Materia::Ferreira: DoFerreira(r); break;
             case Materia::Generico:
-            default:
-                r.duracao = 1.5f;
-                for (const float d : {-7.0f, 0.0f, 7.0f}) {
-                    Tiro t;
-                    t.desvio = d;
-                    r.tiros.push_back(t);
-                }
-                break;
+            default: DoGenerico(r); break;
         }
         return r;
     }

@@ -102,6 +102,137 @@ namespace {
         return true;
     }
 
+    /// O colisor: de qual lado do quadro e o raio, e em quantas partes.
+    void LerColisor(const nlohmann::json& j, const std::string& onde,
+                    std::vector<std::string>& problemas, DescricaoDeProjetil& saida) {
+        saida.colisorDimensao = Texto(j, "colisorDimensao", "largura");
+        if (!DimensaoDeColisorExiste(saida.colisorDimensao)) {
+            problemas.emplace_back(onde + "\"colisorDimensao\" \"" + saida.colisorDimensao +
+                                   "\" nao existe (use largura ou altura); usando largura");
+            saida.colisorDimensao = "largura";
+        }
+
+        saida.colisorDivisor = Numero(j, "colisorDivisor", 2.0f);
+        if (saida.colisorDivisor <= 0.0f) {
+            problemas.emplace_back(onde + "\"colisorDivisor\" precisa ser maior que zero; usando 2");
+            saida.colisorDivisor = 2.0f;
+        }
+    }
+
+    /// Derrubavel, abrigo e a resistencia (a do normal e a do dificil).
+    void LerResistencia(const nlohmann::json& j, const std::string& onde,
+                        std::vector<std::string>& problemas, DescricaoDeProjetil& saida) {
+        // "derrubavel" so aceita true ou false.
+        if (j.contains("derrubavel") && !j["derrubavel"].is_boolean()) {
+            problemas.emplace_back(onde + "\"derrubavel\" precisa ser true ou false; usando false");
+        }
+        saida.derrubavel = Booleano(j, "derrubavel", false);
+
+        if (j.contains("abrigo") && !j["abrigo"].is_boolean()) {
+            problemas.emplace_back(onde + "\"abrigo\" precisa ser true ou false; usando false");
+        }
+        saida.abrigo = Booleano(j, "abrigo", false);
+
+        // A resistencia e um inteiro de 1 para cima, e so num derrubavel.
+        if (j.contains("resistencia")) {
+            if (!j["resistencia"].is_number_integer() || j["resistencia"].get<int>() < 1) {
+                problemas.emplace_back(onde + "\"resistencia\" precisa ser um inteiro de 1 para cima; usando 1");
+            } else if (!saida.derrubavel) {
+                problemas.emplace_back(onde + "\"resistencia\" so vale num projetil \"derrubavel\"; ignorada");
+            } else {
+                saida.resistencia = j["resistencia"].get<int>();
+            }
+        }
+
+        // O bloco "dificil": so a resistencia, com as regras dela.
+        if (j.contains("dificil")) {
+            const auto& d = j["dificil"];
+            if (!d.is_object() || d.size() != 1 || !d.contains("resistencia")) {
+                problemas.emplace_back(onde + "\"dificil\" so aceita { \"resistencia\": n }; ignorado");
+            } else if (!d["resistencia"].is_number_integer() || d["resistencia"].get<int>() < 1) {
+                problemas.emplace_back(onde + "\"dificil.resistencia\" precisa ser um inteiro de 1 para cima; ignorada");
+            } else if (!saida.derrubavel) {
+                problemas.emplace_back(onde + "\"dificil.resistencia\" so vale num projetil \"derrubavel\"; ignorada");
+            } else {
+                saida.resistenciaNoDificil = d["resistencia"].get<int>();
+            }
+        }
+    }
+
+    /// O efeito de acorrentar: tudo ou nada.
+    void LerAcorrenta(const nlohmann::json& j, const std::string& onde,
+                      std::vector<std::string>& problemas, DescricaoDeProjetil& saida) {
+        if (j.contains("acorrenta")) {
+            const auto& a = j["acorrenta"];
+            if (!a.is_object()) {
+                problemas.emplace_back(onde + "\"acorrenta\" deveria ser um objeto com "
+                                              "\"segundos\", \"fatorDeVelocidade\" e "
+                                              "\"multiplicadorDaPerda\"");
+            }
+            else {
+                saida.acorrenta.segundos = Numero(a, "segundos", 0.0f);
+                saida.acorrenta.fatorDeVelocidade = Numero(a, "fatorDeVelocidade", 1.0f);
+                saida.acorrenta.multiplicadorDaPerda = Numero(a, "multiplicadorDaPerda", 1.0f);
+
+                if (saida.acorrenta.segundos <= 0.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.segundos\" precisa ser maior "
+                                                  "que zero; o efeito foi ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+                else if (saida.acorrenta.fatorDeVelocidade <= 0.0f
+                         || saida.acorrenta.fatorDeVelocidade > 1.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.fatorDeVelocidade\" precisa "
+                                                  "estar entre 0 (exclusivo) e 1; o efeito foi "
+                                                  "ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+                else if (saida.acorrenta.multiplicadorDaPerda < 0.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.multiplicadorDaPerda\" nao pode "
+                                                  "ser negativo; o efeito foi ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+            }
+        }
+    }
+
+    /// As margens de fora da tela onde o projetil ainda vive.
+    void LerMargens(const nlohmann::json& j, const std::string& onde,
+                    std::vector<std::string>& problemas, DescricaoDeProjetil& saida) {
+        saida.margemEmSprites = Numero(j, "margemEmSprites", 1.0f);
+        if (saida.margemEmSprites < 0.0f) {
+            problemas.emplace_back(onde + "\"margemEmSprites\" nao pode ser negativa; usando 1");
+            saida.margemEmSprites = 1.0f;
+        }
+
+        // Zero e valido aqui, e quer dizer "sem parcela proporcional a tela".
+        saida.margemDivisorDeTela = Numero(j, "margemDivisorDeTela", 12.0f);
+        if (saida.margemDivisorDeTela < 0.0f) {
+            problemas.emplace_back(onde + "\"margemDivisorDeTela\" nao pode ser negativa"
+                                          " (use 0 para nenhuma folga de tela); usando 12");
+            saida.margemDivisorDeTela = 12.0f;
+        }
+    }
+
+    /// A animacao inicial e resolvida aqui, e nao na ponte.
+    void ResolverAnimacaoInicial(const nlohmann::json& j, const std::string& onde,
+                                 std::vector<std::string>& problemas, DescricaoDeProjetil& saida) {
+        saida.animacaoInicial = Texto(j, "animacaoInicial");
+        if (saida.animacaoInicial.empty()) {
+            saida.animacaoInicial = saida.animacoes.front().nome;
+        } else {
+            bool existe = false;
+            for (const auto& a : saida.animacoes) {
+                if (a.nome == saida.animacaoInicial) { existe = true; break; }
+            }
+            if (!existe) {
+                problemas.emplace_back(onde + "\"animacaoInicial\" \"" + saida.animacaoInicial +
+                                       "\" nao esta entre as animacoes deste projetil; usando \"" +
+                                       saida.animacoes.front().nome + "\"");
+                saida.animacaoInicial = saida.animacoes.front().nome;
+            }
+        }
+    }
+
     /// Le uma entrada de projetil. Devolve false quando ela e inaproveitavel.
     bool LerProjetil(const nlohmann::json& j, const std::string& onde,
                      std::vector<std::string>& problemas, DescricaoDeProjetil& saida) {
@@ -141,121 +272,17 @@ namespace {
             }
         }
 
-        saida.colisorDimensao = Texto(j, "colisorDimensao", "largura");
-        if (!DimensaoDeColisorExiste(saida.colisorDimensao)) {
-            problemas.emplace_back(onde + "\"colisorDimensao\" \"" + saida.colisorDimensao +
-                                   "\" nao existe (use largura ou altura); usando largura");
-            saida.colisorDimensao = "largura";
-        }
-
-        saida.colisorDivisor = Numero(j, "colisorDivisor", 2.0f);
-        if (saida.colisorDivisor <= 0.0f) {
-            problemas.emplace_back(onde + "\"colisorDivisor\" precisa ser maior que zero; usando 2");
-            saida.colisorDivisor = 2.0f;
-        }
+        LerColisor(j, onde, problemas, saida);
 
         saida.posicionarNoDono = Booleano(j, "posicionarNoDono", true);
         saida.rotacionarComAVelocidade = Booleano(j, "rotacionarComAVelocidade", false);
 
-        // "derrubavel" so aceita true ou false.
-        if (j.contains("derrubavel") && !j["derrubavel"].is_boolean()) {
-            problemas.emplace_back(onde + "\"derrubavel\" precisa ser true ou false; usando false");
-        }
-        saida.derrubavel = Booleano(j, "derrubavel", false);
+        LerResistencia(j, onde, problemas, saida);
 
-        if (j.contains("abrigo") && !j["abrigo"].is_boolean()) {
-            problemas.emplace_back(onde + "\"abrigo\" precisa ser true ou false; usando false");
-        }
-        saida.abrigo = Booleano(j, "abrigo", false);
+        LerAcorrenta(j, onde, problemas, saida);
+        LerMargens(j, onde, problemas, saida);
 
-        // A resistencia e um inteiro de 1 para cima, e so num derrubavel.
-        if (j.contains("resistencia")) {
-            if (!j["resistencia"].is_number_integer() || j["resistencia"].get<int>() < 1) {
-                problemas.emplace_back(onde + "\"resistencia\" precisa ser um inteiro de 1 para cima; usando 1");
-            } else if (!saida.derrubavel) {
-                problemas.emplace_back(onde + "\"resistencia\" so vale num projetil \"derrubavel\"; ignorada");
-            } else {
-                saida.resistencia = j["resistencia"].get<int>();
-            }
-        }
-
-        // O bloco "dificil": so a resistencia, com as regras dela.
-        if (j.contains("dificil")) {
-            const auto& d = j["dificil"];
-            if (!d.is_object() || d.size() != 1 || !d.contains("resistencia")) {
-                problemas.emplace_back(onde + "\"dificil\" so aceita { \"resistencia\": n }; ignorado");
-            } else if (!d["resistencia"].is_number_integer() || d["resistencia"].get<int>() < 1) {
-                problemas.emplace_back(onde + "\"dificil.resistencia\" precisa ser um inteiro de 1 para cima; ignorada");
-            } else if (!saida.derrubavel) {
-                problemas.emplace_back(onde + "\"dificil.resistencia\" so vale num projetil \"derrubavel\"; ignorada");
-            } else {
-                saida.resistenciaNoDificil = d["resistencia"].get<int>();
-            }
-        }
-
-        // ---- O efeito de acorrentar ----
-        if (j.contains("acorrenta")) {
-            const auto& a = j["acorrenta"];
-            if (!a.is_object()) {
-                problemas.emplace_back(onde + "\"acorrenta\" deveria ser um objeto com "
-                                              "\"segundos\", \"fatorDeVelocidade\" e "
-                                              "\"multiplicadorDaPerda\"");
-            }
-            else {
-                saida.acorrenta.segundos = Numero(a, "segundos", 0.0f);
-                saida.acorrenta.fatorDeVelocidade = Numero(a, "fatorDeVelocidade", 1.0f);
-                saida.acorrenta.multiplicadorDaPerda = Numero(a, "multiplicadorDaPerda", 1.0f);
-
-                if (saida.acorrenta.segundos <= 0.0f) {
-                    problemas.emplace_back(onde + "\"acorrenta.segundos\" precisa ser maior "
-                                                  "que zero; o efeito foi ignorado");
-                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
-                }
-                else if (saida.acorrenta.fatorDeVelocidade <= 0.0f
-                         || saida.acorrenta.fatorDeVelocidade > 1.0f) {
-                    problemas.emplace_back(onde + "\"acorrenta.fatorDeVelocidade\" precisa "
-                                                  "estar entre 0 (exclusivo) e 1; o efeito foi "
-                                                  "ignorado");
-                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
-                }
-                else if (saida.acorrenta.multiplicadorDaPerda < 0.0f) {
-                    problemas.emplace_back(onde + "\"acorrenta.multiplicadorDaPerda\" nao pode "
-                                                  "ser negativo; o efeito foi ignorado");
-                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
-                }
-            }
-        }
-
-        saida.margemEmSprites = Numero(j, "margemEmSprites", 1.0f);
-        if (saida.margemEmSprites < 0.0f) {
-            problemas.emplace_back(onde + "\"margemEmSprites\" nao pode ser negativa; usando 1");
-            saida.margemEmSprites = 1.0f;
-        }
-
-        // Zero e valido aqui, e quer dizer "sem parcela proporcional a tela".
-        saida.margemDivisorDeTela = Numero(j, "margemDivisorDeTela", 12.0f);
-        if (saida.margemDivisorDeTela < 0.0f) {
-            problemas.emplace_back(onde + "\"margemDivisorDeTela\" nao pode ser negativa"
-                                          " (use 0 para nenhuma folga de tela); usando 12");
-            saida.margemDivisorDeTela = 12.0f;
-        }
-
-        // A animacao inicial e resolvida aqui, e nao na ponte: assim quem le a descricao.
-        saida.animacaoInicial = Texto(j, "animacaoInicial");
-        if (saida.animacaoInicial.empty()) {
-            saida.animacaoInicial = saida.animacoes.front().nome;
-        } else {
-            bool existe = false;
-            for (const auto& a : saida.animacoes) {
-                if (a.nome == saida.animacaoInicial) { existe = true; break; }
-            }
-            if (!existe) {
-                problemas.emplace_back(onde + "\"animacaoInicial\" \"" + saida.animacaoInicial +
-                                       "\" nao esta entre as animacoes deste projetil; usando \"" +
-                                       saida.animacoes.front().nome + "\"");
-                saida.animacaoInicial = saida.animacoes.front().nome;
-            }
-        }
+        ResolverAnimacaoInicial(j, onde, problemas, saida);
 
         return true;
     }

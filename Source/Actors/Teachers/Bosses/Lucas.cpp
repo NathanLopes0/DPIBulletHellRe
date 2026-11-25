@@ -577,15 +577,9 @@ void Lucas::NovoCiclo(const float t) {
     TrocarAnuncio(Masmorra::kFase, "É perigoso ir sozinho!");
 }
 
-void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
+void Lucas::AtualizarAsGosmas(const float deltaTime, const std::vector<Player*>& alunos) {
     Battle* b = Batalha();
-    if (!b) return;
-    const Masmorra::Degrau& g = mDegrauDaMasmorra;
     const Dom::Campo c = CampoPuro();
-    // A rodada seguinte comeca um pouco depois do desfecho da anterior.
-    if (!mRodadaNaSala || (mDesfecho != Desfecho::EmAberto && t >= mProximaRodada)) NovoCiclo(t);
-    const std::vector<Player*>& alunos = b->Jogadores();
-
     // As gosmas andam pela faixa do meio da sala, quicando.
     for (size_t i = 0; i < mGosmas.size() && i < mRumoDasGosmas.size(); ++i) {
         BossProjectile* gosma = mGosmas[i];
@@ -620,7 +614,10 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
     if (mChaveP && mComAChave >= 0 && static_cast<size_t>(mComAChave) < alunos.size() && alunos[static_cast<size_t>(mComAChave)]) {
         Prender(mChaveP, alunos[static_cast<size_t>(mComAChave)]->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca));
     }
-    if (mBauP) Prender(mBauP, mBau);
+}
+
+void Lucas::AtualizarAsTochas() {
+    Battle* b = Batalha();
     // As tochas: a apagada e enfeite; a acesa, o tiro do aluno apaga - e ela volta apagada.
     for (size_t i = 0; i < mTochas.size() && i < mTochasP.size(); ++i) {
         if (!mTochasP[i]) {
@@ -632,77 +629,86 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
         Prender(mTochasP[i], mTochas[i]);
         if (mAcesas[i]) Circulo(mTochas[i] + Vector2(0.0f, -10.0f), 16.0f + 2.0f * std::sin(mRelogio * 9.0f), kCaminho, 16);
     }
+}
 
-    if (mDesfecho == Desfecho::EmAberto) {
-        // O bau aberto por quem tem a chave: o Elixir erguido acima da cabeca, e o bonus.
-        if (mComAChave >= 0 && static_cast<size_t>(mComAChave) < alunos.size()) {
-            Player* a = alunos[static_cast<size_t>(mComAChave)];
-            if (a && Masmorra::Alcanca(a->GetPosition(), mBau)) {
-                mDesfecho = Desfecho::DoAluno;
-                mProximaRodada = t + Masmorra::kPausaDepoisDoAluno;
-                mQuemBebeu = mComAChave;
-                Cara(mBauP, "Aberto");
-                Matar(mChaveP);
-                mElixirP = Peca("item", a->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca), "Elixir");
-                if (mElixirP) mElixirP->DefinirEnfeite(true);
-                mErguidoAte = t + Masmorra::kErguido;
-                mElixirAte = mRelogio + g.bonus;
-                a->Proteger(g.bonus);
-                a->Impulsionar(g.bonus, g.impulso);
-                a->Reforcar(g.bonus, kTintaDoElixir, kRastroDoElixir);
-                b->Faiscar(a->GetPosition(), Hud::Faisca::Coleta);
-                if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
-                    mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
-                }
-                TrocarAnuncio(Masmorra::kFase, "{:ok, :elixir}");
-            }
-        }
-        // O professor: cada tocha apagada, na ordem, e so entao o bau. O tracejado mostra para onde.
-        const int tocha = mAcendendo >= 0 ? mAcendendo : Masmorra::ProximaTocha(mAcesas);
-        const Vector2 lugar = tocha >= 0 ? mTochas[static_cast<size_t>(tocha)] : mBau;
-        const Vector2 destino = lugar + Vector2(0.0f, tocha >= 0 ? kAbaixoDaTocha : -kAcimaDoBau);
-        mAlvo = Masmorra::Passo(GetPosition(), destino, g.rapidezDoProfessor, deltaTime);
-        Tracejada(GetPosition(), lugar, kCaminho);
-        const bool chegou = (GetPosition() - destino).Length() <= Masmorra::kChegou + 6.0f;
-        if (tocha >= 0 && chegou && mAcendendo < 0) {
-            mAcendendo = tocha;
-            mAcendeEm = t + g.acender;
-        }
-        if (mAcendendo >= 0) {
-            // O fogo que pega, em volta da tocha.
-            const float u = std::clamp(1.0f - (mAcendeEm - t) / std::max(0.05f, g.acender), 0.0f, 1.0f);
-            Circulo(mTochas[static_cast<size_t>(mAcendendo)], 8.0f + 18.0f * u, kCaminho, 18);
-            if (t >= mAcendeEm) {
-                const size_t i = static_cast<size_t>(mAcendendo);
-                mAcesas[i] = true;
-                if (mTochasP[i]) {
-                    Cara(mTochasP[i], "Acesa");
-                    mTochasP[i]->DefinirEnfeite(false);
-                }
-                b->Faiscar(mTochas[i], Hud::Faisca::Coleta);
-                mAcendendo = -1;
-            }
-        }
-        if (mDesfecho == Desfecho::EmAberto && tocha < 0 && chegou) {
-            // Chegou antes, com as tochas acesas: bebe o Elixir.
-            mDesfecho = Desfecho::DoProfessor;
-            mProximaRodada = t + g.furia + Masmorra::kPausaDepoisDaFuria;
+void Lucas::AbrirOBau(const float t, const std::vector<Player*>& alunos) {
+    Battle* b = Batalha();
+    const Masmorra::Degrau& g = mDegrauDaMasmorra;
+    // O bau aberto por quem tem a chave: o Elixir erguido acima da cabeca, e o bonus.
+    if (mComAChave >= 0 && static_cast<size_t>(mComAChave) < alunos.size()) {
+        Player* a = alunos[static_cast<size_t>(mComAChave)];
+        if (a && Masmorra::Alcanca(a->GetPosition(), mBau)) {
+            mDesfecho = Desfecho::DoAluno;
+            mProximaRodada = t + Masmorra::kPausaDepoisDoAluno;
+            mQuemBebeu = mComAChave;
             Cara(mBauP, "Aberto");
-            mInicioDaFuria = t;
-            mProximaRajada = t + 0.5f;
-            mProximoAnel = t + 0.5f;
-            mElixirP = Peca("item", GetPosition() + Vector2(0.0f, -60.0f), "Elixir");
+            Matar(mChaveP);
+            mElixirP = Peca("item", a->GetPosition() + Vector2(0.0f, -Masmorra::kAcimaDaCabeca), "Elixir");
             if (mElixirP) mElixirP->DefinirEnfeite(true);
-            mErguidoAte = t + 0.5f;
-            TrocarAnuncio(Masmorra::kFase, "{:error, :furia}");
-        }
-        // O leque com que ele atrapalha a cacada.
-        if (mDesfecho == Desfecho::EmAberto && t >= mProximoLeque) {
-            mProximoLeque = t + g.entreLeques;
-            Leque("leque", GetPosition() + Vector2(0.0f, 40.0f), g.tirosDoLeque, 30.0f, 230.0f);
+            mErguidoAte = t + Masmorra::kErguido;
+            mElixirAte = mRelogio + g.bonus;
+            a->Proteger(g.bonus);
+            a->Impulsionar(g.bonus, g.impulso);
+            a->Reforcar(g.bonus, kTintaDoElixir, kRastroDoElixir);
+            b->Faiscar(a->GetPosition(), Hud::Faisca::Coleta);
+            if (mScene && mScene->GetGame() && mScene->GetGame()->GetAudio()) {
+                mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
+            }
+            TrocarAnuncio(Masmorra::kFase, "{:ok, :elixir}");
         }
     }
+}
 
+void Lucas::AndarOProfessor(const float t, const float deltaTime) {
+    Battle* b = Batalha();
+    const Masmorra::Degrau& g = mDegrauDaMasmorra;
+    // O professor: cada tocha apagada, na ordem, e so entao o bau. O tracejado mostra para onde.
+    const int tocha = mAcendendo >= 0 ? mAcendendo : Masmorra::ProximaTocha(mAcesas);
+    const Vector2 lugar = tocha >= 0 ? mTochas[static_cast<size_t>(tocha)] : mBau;
+    const Vector2 destino = lugar + Vector2(0.0f, tocha >= 0 ? kAbaixoDaTocha : -kAcimaDoBau);
+    mAlvo = Masmorra::Passo(GetPosition(), destino, g.rapidezDoProfessor, deltaTime);
+    Tracejada(GetPosition(), lugar, kCaminho);
+    const bool chegou = (GetPosition() - destino).Length() <= Masmorra::kChegou + 6.0f;
+    if (tocha >= 0 && chegou && mAcendendo < 0) {
+        mAcendendo = tocha;
+        mAcendeEm = t + g.acender;
+    }
+    if (mAcendendo >= 0) {
+        // O fogo que pega, em volta da tocha.
+        const float u = std::clamp(1.0f - (mAcendeEm - t) / std::max(0.05f, g.acender), 0.0f, 1.0f);
+        Circulo(mTochas[static_cast<size_t>(mAcendendo)], 8.0f + 18.0f * u, kCaminho, 18);
+        if (t >= mAcendeEm) {
+            const size_t i = static_cast<size_t>(mAcendendo);
+            mAcesas[i] = true;
+            if (mTochasP[i]) {
+                Cara(mTochasP[i], "Acesa");
+                mTochasP[i]->DefinirEnfeite(false);
+            }
+            b->Faiscar(mTochas[i], Hud::Faisca::Coleta);
+            mAcendendo = -1;
+        }
+    }
+    if (mDesfecho == Desfecho::EmAberto && tocha < 0 && chegou) {
+        // Chegou antes, com as tochas acesas: bebe o Elixir.
+        mDesfecho = Desfecho::DoProfessor;
+        mProximaRodada = t + g.furia + Masmorra::kPausaDepoisDaFuria;
+        Cara(mBauP, "Aberto");
+        mInicioDaFuria = t;
+        mProximaRajada = t + 0.5f;
+        mProximoAnel = t + 0.5f;
+        mElixirP = Peca("item", GetPosition() + Vector2(0.0f, -60.0f), "Elixir");
+        if (mElixirP) mElixirP->DefinirEnfeite(true);
+        mErguidoAte = t + 0.5f;
+        TrocarAnuncio(Masmorra::kFase, "{:error, :furia}");
+    }
+    // O leque com que ele atrapalha a cacada.
+    if (mDesfecho == Desfecho::EmAberto && t >= mProximoLeque) {
+        mProximoLeque = t + g.entreLeques;
+        Leque("leque", GetPosition() + Vector2(0.0f, 40.0f), g.tirosDoLeque, 30.0f, 230.0f);
+    }
+}
+
+void Lucas::MostrarOElixir(const float t, const std::vector<Player*>& alunos) {
     // O Elixir erguido: em cima de quem abriu o bau (ou do professor), por um instante.
     if (mElixirP) {
         if (t >= mErguidoAte) {
@@ -722,13 +728,10 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
             Coracao(centro + Vector2(Math::Cos(a), Math::Sin(a)) * 34.0f, 4.0f, kCoracao);
         }
     }
-    // Depois do desfecho, o professor volta para o alto; na furia, de la ele atira, balancando de um
-    // lado para o outro - a espiral nao sai sempre do mesmo ponto, e ele nao e um alvo parado.
-    if (mDesfecho != Desfecho::EmAberto) {
-        const float balanco = mDesfecho == Desfecho::DoProfessor ? 0.22f * Math::Sin(Math::TwoPi * (t - mInicioDaFuria) / 3.0f) : 0.0f;
-        mAlvo = Vector2(c.x + c.w * (0.5f + balanco), c.y + kYDoProfessor);
-    }
-    AtualizarFadas(deltaTime);
+}
+
+void Lucas::AtirarNaFuria(const float t) {
+    const Masmorra::Degrau& g = mDegrauDaMasmorra;
     if (mDesfecho == Desfecho::DoProfessor && t - mInicioDaFuria < g.furia) {
         const float tf = t - mInicioDaFuria;
         const Vector2 de = GetPosition() + Vector2(0.0f, 30.0f);
@@ -745,6 +748,34 @@ void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
             SomDoDisparo();
         }
     }
+}
+
+void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {
+    Battle* b = Batalha();
+    if (!b) return;
+    const Dom::Campo c = CampoPuro();
+    // A rodada seguinte comeca um pouco depois do desfecho da anterior.
+    if (!mRodadaNaSala || (mDesfecho != Desfecho::EmAberto && t >= mProximaRodada)) NovoCiclo(t);
+    const std::vector<Player*>& alunos = b->Jogadores();
+
+    AtualizarAsGosmas(deltaTime, alunos);
+    if (mBauP) Prender(mBauP, mBau);
+    AtualizarAsTochas();
+
+    if (mDesfecho == Desfecho::EmAberto) {
+        AbrirOBau(t, alunos);
+        AndarOProfessor(t, deltaTime);
+    }
+
+    MostrarOElixir(t, alunos);
+    // Depois do desfecho, o professor volta para o alto; na furia, de la ele atira, balancando de um
+    // lado para o outro - a espiral nao sai sempre do mesmo ponto, e ele nao e um alvo parado.
+    if (mDesfecho != Desfecho::EmAberto) {
+        const float balanco = mDesfecho == Desfecho::DoProfessor ? 0.22f * Math::Sin(Math::TwoPi * (t - mInicioDaFuria) / 3.0f) : 0.0f;
+        mAlvo = Vector2(c.x + c.w * (0.5f + balanco), c.y + kYDoProfessor);
+    }
+    AtualizarFadas(deltaTime);
+    AtirarNaFuria(t);
 }
 
 void Lucas::AtualizarFadas(const float deltaTime) {

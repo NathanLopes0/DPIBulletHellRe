@@ -699,14 +699,7 @@ void Daniel::AtualizarColeta(const float t, const float deltaTime) {
 
 // ---- Fase 2: as k-medias ----
 
-void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
-    (void)deltaTime;
-    const SDL_FRect c = Campo();
-    const Agrupamento::Degrau& g = mDegrauDoAgrupamento;
-    Varrer(t, 0.3f, 12.0f);
-    DesenharGrafico();
-
-    // Quem chega aqui sem a coleta (ou com pouco) ganha um conjunto de dados.
+void Daniel::MontarOsDados() {
     if (!mAgrupou) {
         mAgrupou = true;
         while (mPontos.size() < 30) {
@@ -732,8 +725,11 @@ void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
         mProximoOutlier = Agrupamento::kOutliersDesde;
         mProximoLeque = 2.0f;
     }
-    for (const Ponto& p : mPontos) if (p.p) p.p->RenovarTempoDeVida();
+}
 
+std::vector<Vector2> Daniel::AtualizarOsOutliers(const float t) {
+    const SDL_FRect c = Campo();
+    const Agrupamento::Degrau& g = mDegrauDoAgrupamento;
     // Os outliers: chegam a partir de kOutliersDesde, pousam longe de tudo e puxam a media.
     const SDL_FRect gr = Grafico();
     if (t >= mProximoOutlier && mOutliersFeitos < g.maisOutliers) {
@@ -775,15 +771,11 @@ void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
         }
     }
     mOutliers.erase(std::remove_if(mOutliers.begin(), mOutliers.end(), [](const Outlier& o) { return !o.p; }), mOutliers.end());
+    return pesados;
+}
 
-    // A iteracao: a atribuicao, o deslize ate a media, e o anel de cada grupo, no tipo dele.
-    std::vector<Vector2> pontos;
-    std::vector<int> tipos;
-    for (const Ponto& p : mPontos) {
-        pontos.push_back(p.onde);
-        tipos.push_back(p.tipo);
-    }
-    const bool instavel = t >= Agrupamento::kInstavelDesde;
+void Daniel::Iterar(const float t, const bool instavel, const std::vector<Vector2>& pontos, const std::vector<int>& tipos, const std::vector<Vector2>& pesados) {
+    const Agrupamento::Degrau& g = mDegrauDoAgrupamento;
     if (t >= mProximaIteracao && mDeslizeDesde < 0.0f) {
         mProximaIteracao = t + g.entreIteracoes * (instavel ? g.fatorInstavel : 1.0f);
         mGrupos = Agrupamento::Atribuir(pontos, mCentros);
@@ -820,12 +812,9 @@ void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
             SomDoDisparo();
         }
     }
-    if (mTiposDosGrupos.size() != mCentros.size()) {
-        mTiposDosGrupos.assign(mCentros.size(), -1);
-        if (!mGrupos.empty()) {
-            for (size_t k = 0; k < mCentros.size(); ++k) mTiposDosGrupos[k] = Agrupamento::TipoDoGrupo(tipos, mGrupos, static_cast<int>(k));
-        }
-    }
+}
+
+void Daniel::DesenharOsGrupos(const float t, const bool instavel, const std::vector<Vector2>& pontos) {
     // O desenho: a linha de cada ponto ao centroide dele (forte logo depois da atribuicao), e o centroide.
     const float brilho = std::clamp(1.0f - (t - mAtribuiuEm) / 0.9f, 0.25f, 1.0f);
     for (size_t k = 0; k < pontos.size() && k < mGrupos.size(); ++k) {
@@ -849,6 +838,34 @@ void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
         }
         Circulo(onde, 22.0f, Alfa(CorDo(tipo), 0.9f), 20);
     }
+}
+
+void Daniel::AtualizarAgrupamento(const float t, const float deltaTime) {
+    (void)deltaTime;
+    const Agrupamento::Degrau& g = mDegrauDoAgrupamento;
+    Varrer(t, 0.3f, 12.0f);
+    DesenharGrafico();
+    MontarOsDados();
+    for (const Ponto& p : mPontos) if (p.p) p.p->RenovarTempoDeVida();
+
+    const std::vector<Vector2> pesados = AtualizarOsOutliers(t);
+
+    // A iteracao: a atribuicao, o deslize ate a media, e o anel de cada grupo, no tipo dele.
+    std::vector<Vector2> pontos;
+    std::vector<int> tipos;
+    for (const Ponto& p : mPontos) {
+        pontos.push_back(p.onde);
+        tipos.push_back(p.tipo);
+    }
+    const bool instavel = t >= Agrupamento::kInstavelDesde;
+    Iterar(t, instavel, pontos, tipos, pesados);
+    if (mTiposDosGrupos.size() != mCentros.size()) {
+        mTiposDosGrupos.assign(mCentros.size(), -1);
+        if (!mGrupos.empty()) {
+            for (size_t k = 0; k < mCentros.size(); ++k) mTiposDosGrupos[k] = Agrupamento::TipoDoGrupo(tipos, mGrupos, static_cast<int>(k));
+        }
+    }
+    DesenharOsGrupos(t, instavel, pontos);
 
     if (t >= mProximoLeque) {
         mProximoLeque = t + g.entreLeques;
@@ -877,29 +894,8 @@ void Daniel::EsconderRotulosSobrando() {
     for (size_t i = mRotulosUsados; i < mRotulos.size(); ++i) if (mRotulos[i]) mRotulos[i]->Mostrar(false);
 }
 
-void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
-    const Battle* b = Batalha();
-    if (!b) return;
-    mRotulosUsados = 0;
+void Daniel::AtualizarOsNucleos(const float t, const Vector2 professor) {
     const Sobreajuste::Degrau& g = mDegrauDoSobreajuste;
-    const auto& jogadores = b->Jogadores();
-    // Mais baixo que nas outras fases: os nucleos giram em volta dele inteiros, longe do alto.
-    Varrer(t, 0.22f, 14.0f);
-    if (mAlvo) mAlvo->y = Campo().y + kYDoProfessorNoModelo;
-    const Vector2 professor = GetPosition();
-
-    if (!mModeloComecou) {
-        mModeloComecou = true;
-        mMemorias.assign(jogadores.size(), Sobreajuste::Memoria{});
-        for (int k = 0; k < Sobreajuste::kNucleos; ++k) mNucleos[static_cast<size_t>(k)] = Nucleo{nullptr, g.vidaDoNucleo, false};
-        mProximoTiro = Sobreajuste::kTreino;
-        mProximoDecorado = Sobreajuste::kTreino + 1.5f;
-        mDecoradoEm = -1.0f;
-        mAlunoDaVez = 0;
-        mProximoLeque = Sobreajuste::kTreino + 1.0f;
-    }
-    if (mMemorias.size() < jogadores.size()) mMemorias.resize(jogadores.size());
-
     // Os nucleos: um de cada tipo, girando em volta do professor. O aberto apanha; o fechado, "tim".
     for (int k = 0; k < Sobreajuste::kNucleos; ++k) {
         Nucleo& n = mNucleos[static_cast<size_t>(k)];
@@ -945,9 +941,9 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             Matar(n.p);
         }
     }
+}
 
-    // O modelo grava os passos (os dados de treino) e desenha a curva que passa por todos.
-    const bool validando = t >= Sobreajuste::kValidacao;
+void Daniel::DesenharOModelo(const float t, const bool validando, const std::vector<Player*>& jogadores) {
     for (size_t i = 0; i < jogadores.size() && i < mMemorias.size(); ++i) {
         if (!jogadores[i]) continue;
         if (!validando) Sobreajuste::Registrar(mMemorias[i], jogadores[i]->GetPosition(), t);
@@ -963,159 +959,169 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
             Linha(curva[k - 1] + Vector2(0.0f, tremor + 1.0f), curva[k] + Vector2(0.0f, tremor + 1.0f), Alfa(cor, 0.5f));
         }
     }
+}
 
-    if (!validando) {
-        // A previsao: os tres nucleos atiram juntos para onde o aluno estava indo - um tiro de cada
-        // tipo, e o do tipo que vence o seu e o que importa desviar.
-        if (t >= mProximoTiro && !mMemorias.empty()) {
-            mProximoTiro = t + g.entreTiros;
-            const size_t i = static_cast<size_t>(mAlunoDaVez) % mMemorias.size();
-            mAlunoDaVez = (mAlunoDaVez + 1) % static_cast<int>(mMemorias.size());
-            if (!mMemorias[i].pontos.empty()) {
-                bool marcou = false;
-                for (int k = 0; k < Sobreajuste::kNucleos; ++k) {
-                    const Nucleo& n = mNucleos[static_cast<size_t>(k)];
-                    if (n.quebrado || !n.p) continue;
-                    const Vector2 de = n.p->GetPosition();
-                    // Mira onde o aluno vai estar quando o tiro chegar (o tempo de viagem ate ele).
-                    const float viagem = (mMemorias[i].pontos.back() - de).Length() / std::max(1.0f, g.velocidade);
-                    const Vector2 para = Sobreajuste::Previsao(mMemorias[i], viagem * g.adiante);
-                    Vector2 rumo = para - de;
-                    rumo = rumo * (g.velocidade / std::max(1.0f, rumo.Length()));
-                    if (BossProjectile* p = Monstrinho(kGatilhoDaPrevisao, de, k, rumo)) p->SetScale(1.4f);
-                    // O fantasma: onde o modelo acha que o aluno vai estar quando a rajada chegar.
-                    if (!marcou) {
-                        marcou = true;
-                        mFantasmas.push_back(Fantasma{para, i, t, t + (para - de).Length() / std::max(1.0f, g.velocidade)});
-                        ++mRajadasDaPrevisao;
-                    }
+void Daniel::DispararAPrevisao(const float t) {
+    const Sobreajuste::Degrau& g = mDegrauDoSobreajuste;
+    // A previsao: os tres nucleos atiram juntos para onde o aluno estava indo - um tiro de cada
+    // tipo, e o do tipo que vence o seu e o que importa desviar.
+    if (t >= mProximoTiro && !mMemorias.empty()) {
+        mProximoTiro = t + g.entreTiros;
+        const size_t i = static_cast<size_t>(mAlunoDaVez) % mMemorias.size();
+        mAlunoDaVez = (mAlunoDaVez + 1) % static_cast<int>(mMemorias.size());
+        if (!mMemorias[i].pontos.empty()) {
+            bool marcou = false;
+            for (int k = 0; k < Sobreajuste::kNucleos; ++k) {
+                const Nucleo& n = mNucleos[static_cast<size_t>(k)];
+                if (n.quebrado || !n.p) continue;
+                const Vector2 de = n.p->GetPosition();
+                // Mira onde o aluno vai estar quando o tiro chegar (o tempo de viagem ate ele).
+                const float viagem = (mMemorias[i].pontos.back() - de).Length() / std::max(1.0f, g.velocidade);
+                const Vector2 para = Sobreajuste::Previsao(mMemorias[i], viagem * g.adiante);
+                Vector2 rumo = para - de;
+                rumo = rumo * (g.velocidade / std::max(1.0f, rumo.Length()));
+                if (BossProjectile* p = Monstrinho(kGatilhoDaPrevisao, de, k, rumo)) p->SetScale(1.4f);
+                // O fantasma: onde o modelo acha que o aluno vai estar quando a rajada chegar.
+                if (!marcou) {
+                    marcou = true;
+                    mFantasmas.push_back(Fantasma{para, i, t, t + (para - de).Length() / std::max(1.0f, g.velocidade)});
+                    ++mRajadasDaPrevisao;
                 }
             }
-        }
-        // E o leque do proprio professor, sem tipo.
-        if (t >= mProximoLeque) {
-            mProximoLeque = t + g.entreLeques;
-            Leque(professor + Vector2(0.0f, 40.0f), g.tirosDoLeque, kAberturaDoLeque, kVelocidadeDoLeque);
-        }
-        // O que ele decorou: a mira aparece onde o aluno mais passou, e os nucleos atiram la.
-        if (t >= mProximoDecorado && mDecoradoEm < 0.0f && !mMemorias.empty()) {
-            mProximoDecorado = t + g.entreDecorados;
-            const size_t i = static_cast<size_t>(mSorteio.Inteiro(0, static_cast<int>(mMemorias.size()) - 1));
-            const auto decorados = Sobreajuste::Decorados(mMemorias[i], 70.0f, 1);
-            if (!decorados.empty()) {
-                mDecorado = decorados.front();
-                mDecoradoEm = t + g.avisoDoDecorado;
-            }
-        }
-        if (mDecoradoEm >= 0.0f) {
-            const float falta = std::max(0.0f, mDecoradoEm - t);
-            const float r = 14.0f + 30.0f * falta / std::max(0.05f, g.avisoDoDecorado);
-            Circulo(mDecorado, r, SDL_Color{255, 255, 255, 200}, 20, true);
-            Rotulo("decorado", mDecorado + Vector2(0.0f, -r - 22.0f), SDL_Color{235, 240, 255, 255});
-            Linha(mDecorado + Vector2(-r - 6.0f, 0.0f), mDecorado + Vector2(-r + 6.0f, 0.0f), SDL_Color{255, 255, 255, 220}, true);
-            Linha(mDecorado + Vector2(r - 6.0f, 0.0f), mDecorado + Vector2(r + 6.0f, 0.0f), SDL_Color{255, 255, 255, 220}, true);
-            Linha(mDecorado + Vector2(0.0f, -r - 6.0f), mDecorado + Vector2(0.0f, -r + 6.0f), SDL_Color{255, 255, 255, 220}, true);
-            Linha(mDecorado + Vector2(0.0f, r - 6.0f), mDecorado + Vector2(0.0f, r + 6.0f), SDL_Color{255, 255, 255, 220}, true);
-            if (t >= mDecoradoEm) {
-                mDecoradoEm = -1.0f;
-                for (int k = 0; k < Sobreajuste::kNucleos; ++k) {
-                    const Nucleo& n = mNucleos[static_cast<size_t>(k)];
-                    if (n.quebrado || !n.p) continue;
-                    const Vector2 de = n.p->GetPosition();
-                    const float centro = Math::ToDegrees(Math::Atan2(mDecorado.y - de.y, mDecorado.x - de.x));
-                    for (int s = 0; s < g.tirosNoDecorado; ++s) {
-                        const float a = Math::ToRadians(centro + (static_cast<float>(s) - (g.tirosNoDecorado - 1) * 0.5f) * 6.0f);
-                        Monstrinho(kGatilhoDoDecorado, de, k, Vector2(Math::Cos(a), Math::Sin(a)) * g.velocidade * 0.9f);
-                    }
-                }
-                SomDoDisparo();
-            }
-        }
-    } else {
-        // A validacao: chegam dados novos - o aluno de verdade, que mudou de caminho -, e o modelo,
-        // que so decorou o treino, erra todos: o tracejado e o erro dele ate cada um. Quem falha e o
-        // modelo, e o aluno ganhou: a curva se desfaz na cor dela, e um brilho dourado sai dele.
-        const float desde = t - Sobreajuste::kValidacao;
-        Vector2 de(1e9f, 1e9f), ate(-1e9f, -1e9f);
-        for (const auto& m : mMemorias) {
-            for (const Vector2& p : m.pontos) {
-                de = Vector2(std::min(de.x, p.x), std::min(de.y, p.y));
-                ate = Vector2(std::max(ate.x, p.x), std::max(ate.y, p.y));
-            }
-        }
-        const bool temCurva = de.x <= ate.x;
-        if (!mRiscou && temCurva) {
-            const float u = std::clamp(desde / Sobreajuste::kRiscando, 0.0f, 1.0f);
-            for (const auto& m : mMemorias) {
-                const auto curva = Sobreajuste::Curva(m.pontos, 6, 22.0f);
-                if (curva.size() < 3) continue;
-                // Os dados novos aparecem um a um, cada um de um lado da curva, longe dela.
-                for (int k = 0; k < kDadosNovos; ++k) {
-                    if (u < static_cast<float>(k) / static_cast<float>(kDadosNovos)) break;
-                    const size_t i = 1 + (curva.size() - 2) * static_cast<size_t>(k) / static_cast<size_t>(kDadosNovos);
-                    Vector2 tangente = curva[i + 1] - curva[i - 1];
-                    const float comprimento = std::max(1.0f, tangente.Length());
-                    tangente = tangente * (1.0f / comprimento);
-                    const Vector2 normal(-tangente.y, tangente.x);
-                    const float lado = (k % 2 == 0 ? 1.0f : -1.0f) * (42.0f + 14.0f * static_cast<float>(k % 3));
-                    const Vector2 novo = curva[i] + normal * lado;
-                    Tracejada(curva[i], novo, kErroDoModelo, 5.0f);
-                    Disco(novo, 5.0f, kDadoNovo, true);
-                    Circulo(novo, 9.0f, kDadoNovo, 16, true);
-                }
-            }
-            if (u >= 1.0f) {
-                // Nao generalizou: a curva vira pedacos, que caem.
-                mRiscou = true;
-                for (const auto& m : mMemorias) {
-                    const auto curva = Sobreajuste::Curva(m.pontos, 6, 22.0f);
-                    for (size_t k = 1; k < curva.size(); k += 2) mPedacos.emplace_back(curva[k - 1], curva[k]);
-                }
-                if (Battle* bb = Batalha()) {
-                    for (const Player* aluno : jogadores) if (aluno) bb->Faiscar(aluno->GetPosition(), Hud::Faisca::Coleta);
-                }
-            }
-        }
-        if (mRiscou) {
-            const float caiu = std::max(0.0f, desde - Sobreajuste::kRiscando);
-            if (caiu < Sobreajuste::kCaindo) {
-                // Os pedacos se espalham - um pulinho para cima e para os lados - e caem devagar,
-                // apagando: a curva fica la embaixo, e eles nao podem sumir da tela de uma vez.
-                const float a = 1.0f - caiu / Sobreajuste::kCaindo;
-                for (size_t k = 0; k < mPedacos.size(); ++k) {
-                    const float lado = (k % 2 == 0 ? 1.0f : -1.0f) * (25.0f + 20.0f * static_cast<float>(k % 3)) * caiu;
-                    const float y = -70.0f * caiu + 0.5f * 160.0f * caiu * caiu;
-                    const Vector2 d(lado, y);
-                    const Vector2 meio = (mPedacos[k].first + mPedacos[k].second) * 0.5f;
-                    const Vector2 giro = (mPedacos[k].second - meio) * std::max(0.2f, 1.0f - caiu);
-                    Linha(meio - giro + d, meio + giro + d, Alfa(kCurva, a));
-                }
-            }
-        }
-        // O veredito, acima da curva, enquanto ela se desfaz: o overfitting e do modelo.
-        if (mScene && !mVeredito) {
-            auto nova = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 340, 26, kOrdemDasLinhas + 2, 20);
-            nova->Pintar(SDL_Color{150, 225, 255, 200}, SDL_Color{10, 18, 32, 215}, SDL_Color{180, 235, 255, 255});
-            nova->Escrever("overfitting: o modelo decorou, não generalizou");
-            mVeredito = nova.get();
-            mScene->AddActor(std::move(nova));
-        }
-        if (mVeredito) {
-            const bool mostrar = temCurva && desde < Sobreajuste::kRiscando + Sobreajuste::kCaindo + 0.8f;
-            if (mostrar) {
-                const SDL_FRect c = Campo();
-                const float x = std::clamp((de.x + ate.x) * 0.5f, c.x + 180.0f, c.x + c.w - 180.0f);
-                const float y = std::clamp(de.y - 60.0f, c.y + 200.0f, c.y + c.h - 40.0f);
-                mVeredito->SetPosition(Vector2(x, y));
-            }
-            mVeredito->Mostrar(mostrar);
-        }
-        // Sem o modelo, o professor atira ele mesmo, sem tipo.
-        if (t >= mProximoLeque) {
-            mProximoLeque = t + g.entreLeques;
-            Leque(professor + Vector2(0.0f, 40.0f), g.tirosDoLeque, kAberturaDoLeque, kVelocidadeDoLeque);
         }
     }
+}
+
+void Daniel::AtualizarODecorado(const float t) {
+    const Sobreajuste::Degrau& g = mDegrauDoSobreajuste;
+    // O que ele decorou: a mira aparece onde o aluno mais passou, e os nucleos atiram la.
+    if (t >= mProximoDecorado && mDecoradoEm < 0.0f && !mMemorias.empty()) {
+        mProximoDecorado = t + g.entreDecorados;
+        const size_t i = static_cast<size_t>(mSorteio.Inteiro(0, static_cast<int>(mMemorias.size()) - 1));
+        const auto decorados = Sobreajuste::Decorados(mMemorias[i], 70.0f, 1);
+        if (!decorados.empty()) {
+            mDecorado = decorados.front();
+            mDecoradoEm = t + g.avisoDoDecorado;
+        }
+    }
+    if (mDecoradoEm >= 0.0f) {
+        const float falta = std::max(0.0f, mDecoradoEm - t);
+        const float r = 14.0f + 30.0f * falta / std::max(0.05f, g.avisoDoDecorado);
+        Circulo(mDecorado, r, SDL_Color{255, 255, 255, 200}, 20, true);
+        Rotulo("decorado", mDecorado + Vector2(0.0f, -r - 22.0f), SDL_Color{235, 240, 255, 255});
+        Linha(mDecorado + Vector2(-r - 6.0f, 0.0f), mDecorado + Vector2(-r + 6.0f, 0.0f), SDL_Color{255, 255, 255, 220}, true);
+        Linha(mDecorado + Vector2(r - 6.0f, 0.0f), mDecorado + Vector2(r + 6.0f, 0.0f), SDL_Color{255, 255, 255, 220}, true);
+        Linha(mDecorado + Vector2(0.0f, -r - 6.0f), mDecorado + Vector2(0.0f, -r + 6.0f), SDL_Color{255, 255, 255, 220}, true);
+        Linha(mDecorado + Vector2(0.0f, r - 6.0f), mDecorado + Vector2(0.0f, r + 6.0f), SDL_Color{255, 255, 255, 220}, true);
+        if (t >= mDecoradoEm) {
+            mDecoradoEm = -1.0f;
+            for (int k = 0; k < Sobreajuste::kNucleos; ++k) {
+                const Nucleo& n = mNucleos[static_cast<size_t>(k)];
+                if (n.quebrado || !n.p) continue;
+                const Vector2 de = n.p->GetPosition();
+                const float centro = Math::ToDegrees(Math::Atan2(mDecorado.y - de.y, mDecorado.x - de.x));
+                for (int s = 0; s < g.tirosNoDecorado; ++s) {
+                    const float a = Math::ToRadians(centro + (static_cast<float>(s) - (g.tirosNoDecorado - 1) * 0.5f) * 6.0f);
+                    Monstrinho(kGatilhoDoDecorado, de, k, Vector2(Math::Cos(a), Math::Sin(a)) * g.velocidade * 0.9f);
+                }
+            }
+            SomDoDisparo();
+        }
+    }
+}
+
+void Daniel::DesfazerACurva(const float desde, const bool temCurva, const std::vector<Player*>& jogadores) {
+    if (!mRiscou && temCurva) {
+        const float u = std::clamp(desde / Sobreajuste::kRiscando, 0.0f, 1.0f);
+        for (const auto& m : mMemorias) {
+            const auto curva = Sobreajuste::Curva(m.pontos, 6, 22.0f);
+            if (curva.size() < 3) continue;
+            // Os dados novos aparecem um a um, cada um de um lado da curva, longe dela.
+            for (int k = 0; k < kDadosNovos; ++k) {
+                if (u < static_cast<float>(k) / static_cast<float>(kDadosNovos)) break;
+                const size_t i = 1 + (curva.size() - 2) * static_cast<size_t>(k) / static_cast<size_t>(kDadosNovos);
+                Vector2 tangente = curva[i + 1] - curva[i - 1];
+                const float comprimento = std::max(1.0f, tangente.Length());
+                tangente = tangente * (1.0f / comprimento);
+                const Vector2 normal(-tangente.y, tangente.x);
+                const float lado = (k % 2 == 0 ? 1.0f : -1.0f) * (42.0f + 14.0f * static_cast<float>(k % 3));
+                const Vector2 novo = curva[i] + normal * lado;
+                Tracejada(curva[i], novo, kErroDoModelo, 5.0f);
+                Disco(novo, 5.0f, kDadoNovo, true);
+                Circulo(novo, 9.0f, kDadoNovo, 16, true);
+            }
+        }
+        if (u >= 1.0f) {
+            // Nao generalizou: a curva vira pedacos, que caem.
+            mRiscou = true;
+            for (const auto& m : mMemorias) {
+                const auto curva = Sobreajuste::Curva(m.pontos, 6, 22.0f);
+                for (size_t k = 1; k < curva.size(); k += 2) mPedacos.emplace_back(curva[k - 1], curva[k]);
+            }
+            if (Battle* bb = Batalha()) {
+                for (const Player* aluno : jogadores) if (aluno) bb->Faiscar(aluno->GetPosition(), Hud::Faisca::Coleta);
+            }
+        }
+    }
+    if (mRiscou) {
+        const float caiu = std::max(0.0f, desde - Sobreajuste::kRiscando);
+        if (caiu < Sobreajuste::kCaindo) {
+            // Os pedacos se espalham - um pulinho para cima e para os lados - e caem devagar,
+            // apagando: a curva fica la embaixo, e eles nao podem sumir da tela de uma vez.
+            const float a = 1.0f - caiu / Sobreajuste::kCaindo;
+            for (size_t k = 0; k < mPedacos.size(); ++k) {
+                const float lado = (k % 2 == 0 ? 1.0f : -1.0f) * (25.0f + 20.0f * static_cast<float>(k % 3)) * caiu;
+                const float y = -70.0f * caiu + 0.5f * 160.0f * caiu * caiu;
+                const Vector2 d(lado, y);
+                const Vector2 meio = (mPedacos[k].first + mPedacos[k].second) * 0.5f;
+                const Vector2 giro = (mPedacos[k].second - meio) * std::max(0.2f, 1.0f - caiu);
+                Linha(meio - giro + d, meio + giro + d, Alfa(kCurva, a));
+            }
+        }
+    }
+}
+
+void Daniel::AtualizarAValidacao(const float t, const Vector2 professor, const std::vector<Player*>& jogadores) {
+    const Sobreajuste::Degrau& g = mDegrauDoSobreajuste;
+    // A validacao: chegam dados novos - o aluno de verdade, que mudou de caminho -, e o modelo,
+    // que so decorou o treino, erra todos: o tracejado e o erro dele ate cada um. Quem falha e o
+    // modelo, e o aluno ganhou: a curva se desfaz na cor dela, e um brilho dourado sai dele.
+    const float desde = t - Sobreajuste::kValidacao;
+    Vector2 de(1e9f, 1e9f), ate(-1e9f, -1e9f);
+    for (const auto& m : mMemorias) {
+        for (const Vector2& p : m.pontos) {
+            de = Vector2(std::min(de.x, p.x), std::min(de.y, p.y));
+            ate = Vector2(std::max(ate.x, p.x), std::max(ate.y, p.y));
+        }
+    }
+    const bool temCurva = de.x <= ate.x;
+    DesfazerACurva(desde, temCurva, jogadores);
+    // O veredito, acima da curva, enquanto ela se desfaz: o overfitting e do modelo.
+    if (mScene && !mVeredito) {
+        auto nova = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 340, 26, kOrdemDasLinhas + 2, 20);
+        nova->Pintar(SDL_Color{150, 225, 255, 200}, SDL_Color{10, 18, 32, 215}, SDL_Color{180, 235, 255, 255});
+        nova->Escrever("overfitting: o modelo decorou, não generalizou");
+        mVeredito = nova.get();
+        mScene->AddActor(std::move(nova));
+    }
+    if (mVeredito) {
+        const bool mostrar = temCurva && desde < Sobreajuste::kRiscando + Sobreajuste::kCaindo + 0.8f;
+        if (mostrar) {
+            const SDL_FRect c = Campo();
+            const float x = std::clamp((de.x + ate.x) * 0.5f, c.x + 180.0f, c.x + c.w - 180.0f);
+            const float y = std::clamp(de.y - 60.0f, c.y + 200.0f, c.y + c.h - 40.0f);
+            mVeredito->SetPosition(Vector2(x, y));
+        }
+        mVeredito->Mostrar(mostrar);
+    }
+    // Sem o modelo, o professor atira ele mesmo, sem tipo.
+    if (t >= mProximoLeque) {
+        mProximoLeque = t + g.entreLeques;
+        Leque(professor + Vector2(0.0f, 40.0f), g.tirosDoLeque, kAberturaDoLeque, kVelocidadeDoLeque);
+    }
+}
+
+void Daniel::JulgarOsFantasmas(const float t, const std::vector<Player*>& jogadores) {
     // Os fantasmas da previsao: o modelo mostra onde acha que o aluno vai estar, e quando a rajada
     // chega e ele nao esta la, "errou!" - mudar o caminho e o jeito de ganhar dele.
     for (size_t q = 0; q < mFantasmas.size(); ++q) {
@@ -1153,6 +1159,49 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
     mFantasmas.erase(std::remove_if(mFantasmas.begin(), mFantasmas.end(),
                                     [t](const Fantasma& f) { return t > f.chega + 0.9f; }),
                      mFantasmas.end());
+}
+
+void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
+    const Battle* b = Batalha();
+    if (!b) return;
+    mRotulosUsados = 0;
+    const Sobreajuste::Degrau& g = mDegrauDoSobreajuste;
+    const auto& jogadores = b->Jogadores();
+    // Mais baixo que nas outras fases: os nucleos giram em volta dele inteiros, longe do alto.
+    Varrer(t, 0.22f, 14.0f);
+    if (mAlvo) mAlvo->y = Campo().y + kYDoProfessorNoModelo;
+    const Vector2 professor = GetPosition();
+
+    if (!mModeloComecou) {
+        mModeloComecou = true;
+        mMemorias.assign(jogadores.size(), Sobreajuste::Memoria{});
+        for (int k = 0; k < Sobreajuste::kNucleos; ++k) mNucleos[static_cast<size_t>(k)] = Nucleo{nullptr, g.vidaDoNucleo, false};
+        mProximoTiro = Sobreajuste::kTreino;
+        mProximoDecorado = Sobreajuste::kTreino + 1.5f;
+        mDecoradoEm = -1.0f;
+        mAlunoDaVez = 0;
+        mProximoLeque = Sobreajuste::kTreino + 1.0f;
+    }
+    if (mMemorias.size() < jogadores.size()) mMemorias.resize(jogadores.size());
+
+    AtualizarOsNucleos(t, professor);
+
+    // O modelo grava os passos (os dados de treino) e desenha a curva que passa por todos.
+    const bool validando = t >= Sobreajuste::kValidacao;
+    DesenharOModelo(t, validando, jogadores);
+
+    if (!validando) {
+        DispararAPrevisao(t);
+        // E o leque do proprio professor, sem tipo.
+        if (t >= mProximoLeque) {
+            mProximoLeque = t + g.entreLeques;
+            Leque(professor + Vector2(0.0f, 40.0f), g.tirosDoLeque, kAberturaDoLeque, kVelocidadeDoLeque);
+        }
+        AtualizarODecorado(t);
+    } else {
+        AtualizarAValidacao(t, professor, jogadores);
+    }
+    JulgarOsFantasmas(t, jogadores);
     EsconderRotulosSobrando();
     (void)deltaTime;
 }
@@ -1164,28 +1213,9 @@ Confusao::Grade Daniel::GradeDaMatriz() const {
     return Confusao::Grade{c.x + c.w * 0.24f, c.y + 190.0f, c.w * 0.52f, c.h * 0.4f};
 }
 
-void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
-    (void)deltaTime;
-    const Battle* b = Batalha();
-    if (!b) return;
-    mRotulosUsados = 0;
-    const Confusao::Degrau& g = mDegrauDaConfusao;
-    const Confusao::Grade grade = GradeDaMatriz();
-    const auto& jogadores = b->Jogadores();
-    Varrer(t, 0.3f, 10.0f);
+void Daniel::DesenharAMatriz(const Confusao::Grade& grade, const Confusao::Matriz& errosNaCasa) {
     const float lw = grade.w / static_cast<float>(Confusao::kTipos);
     const float lh = grade.h / static_cast<float>(Confusao::kTipos);
-
-    // Os erros de cada casa, agora: a casa acende enquanto tem um.
-    std::array<std::array<int, Confusao::kTipos>, Confusao::kTipos> errosNaCasa{};
-    int errosNoCampo = 0;
-    for (const Classificado& cl : mClassificados) {
-        if (cl.p && cl.pousou && cl.real != cl.previsto && cl.corrigidoEm < 0.0f) {
-            ++errosNaCasa[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
-            ++errosNoCampo;
-        }
-    }
-
     // A grade: a diagonal (os acertos) em verde, a casa com erro em vermelho, piscando.
     for (int r = 0; r < Confusao::kTipos; ++r) {
         for (int pr = 0; pr < Confusao::kTipos; ++pr) {
@@ -1222,8 +1252,10 @@ void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
     Rotulo("previsto →", Vector2(grade.x + grade.w * 0.5f, grade.y - 44.0f), SDL_Color{210, 215, 230, 255}, 120);
     Rotulo("acurácia: " + std::to_string(Confusao::Porcento(mMatriz)) + "%",
            Vector2(grade.x + grade.w + 92.0f, grade.y + 14.0f), SDL_Color{150, 240, 165, 255}, 150);
+}
 
-    // O modelo classifica: cada monstrinho voa do professor para a casa que ele escolheu.
+void Daniel::Classificar(const float t, const Confusao::Grade& grade, const int errosNoCampo) {
+    const Confusao::Degrau& g = mDegrauDaConfusao;
     const float entre = t < Confusao::kFimDaClassificacao ? g.entreAmostras : g.naSegundaEtapa;
     if (mEscolheu && t >= mProximaClassificada) {
         mProximaClassificada = t + entre;
@@ -1238,7 +1270,64 @@ void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
             mClassificados.push_back(Classificado{p, real, previsto, false, g.vidaDoErro, 0.0f, 0.0f, -1.0f, de});
         }
     }
+}
 
+void Daniel::AtualizarOErro(Classificado& cl, const Vector2 lugar, const float t, const std::vector<Player*>& jogadores) {
+    const Confusao::Degrau& g = mDegrauDaConfusao;
+    // Um erro: atira no aluno, apanha do tiro dele e, sem correcao, vaza.
+    cl.p->SetPosition(lugar);
+    const float falta = std::clamp((cl.vaza - t) / std::max(0.1f, g.paciencia), 0.0f, 1.0f);
+    Circulo(lugar, kRaioDaAmostra + 6.0f + 2.0f * Math::Sin(mRelogio * 12.0f), SDL_Color{255, 80, 70, 230}, 16, true);
+    const int lados = std::max(1, static_cast<int>(20.0f * falta));
+    for (int s = 0; s < lados; ++s) {
+        const float a0 = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(s) / 20.0f;
+        const float a1 = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(s + 1) / 20.0f;
+        Linha(lugar + Vector2(Math::Cos(a0), Math::Sin(a0)) * (kRaioDaAmostra + 11.0f),
+              lugar + Vector2(Math::Cos(a1), Math::Sin(a1)) * (kRaioDaAmostra + 11.0f), SDL_Color{255, 255, 255, 190}, true);
+    }
+    cl.vida -= Golpear(lugar, kRaioDaAmostra + 4.0f, cl.real);
+    if (cl.vida <= 0.0f) {
+        // Corrigido: sai da casa errada e desliza para a diagonal - e vale nota.
+        --mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
+        ++mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.real)];
+        cl.corrigidoEm = t;
+        cl.de = lugar;
+        Efeito(cl.real, lugar, 14, 150.0f);
+        if (Battle* bb = Batalha()) {
+            bb->Faiscar(lugar, Hud::Faisca::Coleta);
+            bb->Conquistar(g.premioDaCorrecao);
+        }
+        return;
+    }
+    if (t >= cl.proximoTiro) {
+        cl.proximoTiro = t + g.entreTirosDoErro;
+        // No aluno mais perto, no tipo de verdade dele.
+        const Player* alvo = nullptr;
+        for (const Player* a : jogadores) {
+            if (a && (!alvo || (a->GetPosition() - lugar).Length() < (alvo->GetPosition() - lugar).Length())) alvo = a;
+        }
+        if (alvo) {
+            Vector2 rumo = alvo->GetPosition() - lugar;
+            rumo = rumo * (g.velocidadeDoErro / std::max(1.0f, rumo.Length()));
+            Monstrinho(Confusao::kGatilhoDoErro, lugar, cl.real, rumo);
+        }
+    }
+    if (t >= cl.vaza) {
+        // Vazou para a producao: o erro estoura num anel do tipo dele, e fica na matriz.
+        const auto anel = DispararEm(Confusao::kGatilhoDoVazamento, lugar, g.tirosDoVazamento, std::nullopt,
+                                     std::nullopt, g.velocidadeDoVazamento);
+        for (BossProjectile* p : anel) {
+            Cara(p, Tipos::kCaras[static_cast<size_t>(cl.real)]);
+            p->DefinirClasse(cl.real);
+        }
+        Efeito(cl.real, lugar, 16, 180.0f);
+        SomDoDisparo();
+        Matar(cl.p);
+    }
+}
+
+void Daniel::AtualizarOsClassificados(const float t, const float deltaTime, const Confusao::Grade& grade, const std::vector<Player*>& jogadores) {
+    const Confusao::Degrau& g = mDegrauDaConfusao;
     // Os lugares de cada casa, na ordem: os quietos e os erros dividem a casa.
     std::array<std::array<int, Confusao::kTipos>, Confusao::kTipos> ocupados{};
     for (Classificado& cl : mClassificados) {
@@ -1277,57 +1366,11 @@ void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
             }
             continue;
         }
-        // Um erro: atira no aluno, apanha do tiro dele e, sem correcao, vaza.
-        cl.p->SetPosition(lugar);
-        const float falta = std::clamp((cl.vaza - t) / std::max(0.1f, g.paciencia), 0.0f, 1.0f);
-        Circulo(lugar, kRaioDaAmostra + 6.0f + 2.0f * Math::Sin(mRelogio * 12.0f), SDL_Color{255, 80, 70, 230}, 16, true);
-        const int lados = std::max(1, static_cast<int>(20.0f * falta));
-        for (int s = 0; s < lados; ++s) {
-            const float a0 = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(s) / 20.0f;
-            const float a1 = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(s + 1) / 20.0f;
-            Linha(lugar + Vector2(Math::Cos(a0), Math::Sin(a0)) * (kRaioDaAmostra + 11.0f),
-                  lugar + Vector2(Math::Cos(a1), Math::Sin(a1)) * (kRaioDaAmostra + 11.0f), SDL_Color{255, 255, 255, 190}, true);
-        }
-        cl.vida -= Golpear(lugar, kRaioDaAmostra + 4.0f, cl.real);
-        if (cl.vida <= 0.0f) {
-            // Corrigido: sai da casa errada e desliza para a diagonal - e vale nota.
-            --mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
-            ++mMatriz[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.real)];
-            cl.corrigidoEm = t;
-            cl.de = lugar;
-            Efeito(cl.real, lugar, 14, 150.0f);
-            if (Battle* bb = Batalha()) {
-                bb->Faiscar(lugar, Hud::Faisca::Coleta);
-                bb->Conquistar(g.premioDaCorrecao);
-            }
-            continue;
-        }
-        if (t >= cl.proximoTiro) {
-            cl.proximoTiro = t + g.entreTirosDoErro;
-            // No aluno mais perto, no tipo de verdade dele.
-            const Player* alvo = nullptr;
-            for (const Player* a : jogadores) {
-                if (a && (!alvo || (a->GetPosition() - lugar).Length() < (alvo->GetPosition() - lugar).Length())) alvo = a;
-            }
-            if (alvo) {
-                Vector2 rumo = alvo->GetPosition() - lugar;
-                rumo = rumo * (g.velocidadeDoErro / std::max(1.0f, rumo.Length()));
-                Monstrinho(Confusao::kGatilhoDoErro, lugar, cl.real, rumo);
-            }
-        }
-        if (t >= cl.vaza) {
-            // Vazou para a producao: o erro estoura num anel do tipo dele, e fica na matriz.
-            const auto anel = DispararEm(Confusao::kGatilhoDoVazamento, lugar, g.tirosDoVazamento, std::nullopt,
-                                         std::nullopt, g.velocidadeDoVazamento);
-            for (BossProjectile* p : anel) {
-                Cara(p, Tipos::kCaras[static_cast<size_t>(cl.real)]);
-                p->DefinirClasse(cl.real);
-            }
-            Efeito(cl.real, lugar, 16, 180.0f);
-            SomDoDisparo();
-            Matar(cl.p);
-        }
+        AtualizarOErro(cl, lugar, t, jogadores);
     }
+}
+
+void Daniel::TirarOsQuietos() {
     // Os quietos demais de uma casa saem, os mais velhos primeiro (a contagem fica).
     std::array<std::array<int, Confusao::kTipos>, Confusao::kTipos> quietos{};
     for (auto it = mClassificados.rbegin(); it != mClassificados.rend(); ++it) {
@@ -1340,6 +1383,31 @@ void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
     mClassificados.erase(std::remove_if(mClassificados.begin(), mClassificados.end(),
                                         [](const Classificado& cl) { return !cl.p; }),
                          mClassificados.end());
+}
+
+void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
+    const Battle* b = Batalha();
+    if (!b) return;
+    mRotulosUsados = 0;
+    const Confusao::Degrau& g = mDegrauDaConfusao;
+    const Confusao::Grade grade = GradeDaMatriz();
+    const auto& jogadores = b->Jogadores();
+    Varrer(t, 0.3f, 10.0f);
+
+    // Os erros de cada casa, agora: a casa acende enquanto tem um.
+    Confusao::Matriz errosNaCasa{};
+    int errosNoCampo = 0;
+    for (const Classificado& cl : mClassificados) {
+        if (cl.p && cl.pousou && cl.real != cl.previsto && cl.corrigidoEm < 0.0f) {
+            ++errosNaCasa[static_cast<size_t>(cl.real)][static_cast<size_t>(cl.previsto)];
+            ++errosNoCampo;
+        }
+    }
+
+    DesenharAMatriz(grade, errosNaCasa);
+    Classificar(t, grade, errosNoCampo);
+    AtualizarOsClassificados(t, deltaTime, grade, jogadores);
+    TirarOsQuietos();
 
     // E o leque do proprio professor, sem tipo.
     if (mEscolheu && t >= 1.0f && t >= mProximoLeque) {

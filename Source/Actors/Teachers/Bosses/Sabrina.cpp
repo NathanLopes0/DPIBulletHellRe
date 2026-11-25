@@ -636,90 +636,153 @@ void Sabrina::AtualizarBases(const float deltaTime, const bool rna) {
     }
 }
 
-void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
+void Sabrina::AtualizarAsOndas(const float t) {
     using namespace Pareamento;
-    const Degrau& g = mDegrauDoCodigo;
+    const Pareamento::Degrau& g = mDegrauDoCodigo;
     const SDL_FRect c = Campo();
-    const int etapa = EtapaNoTempo(t);
-    const float inicio = etapa == 0 ? 0.0f : etapa == 1 ? kDuracoes[0] : kDuracoes[0] + kDuracoes[1];
-    const float tEtapa = t - inicio;
-    const bool rna = etapa > 0;
-    Varrer(t, 0.32f, 7.5f);
-    AtualizarBases(deltaTime, rna);
-    const float fitaY = c.y + 124.0f;
-
-    // ---- O pareamento: as ondas de uma base so ----
-    if (etapa == 0) {
-        if (mOndas == 0 && mProximaOnda <= 0.0f) {
-            mDominante = DaClasse(mSorteio.Inteiro(0, 3), false);
-            mProximaOnda = 1.0f;
-        }
-        Circulo(GetPosition(), 34.0f + 3.0f * Math::Sin(mRelogio * 8.0f), CorDa(mDominante), 18);
-        if (t >= mProximaOnda) {
-            mProximaOnda = t + g.entreOndas;
-            const int n = g.basesPorLinha;
-            const auto bases = Onda(mSorteio, mDominante, n * g.linhasDaOnda, g.fracaoDominante, false);
-            const float de = c.x + 24.0f, ate = c.x + c.w - 24.0f;
-            const float passo = (ate - de) / static_cast<float>(std::max(1, n - 1));
-            for (int linha = 0; linha < g.linhasDaOnda; ++linha) {
-                for (int k = 0; k < n; ++k) {
-                    const float x = de + passo * (static_cast<float>(k) + (linha % 2 == 1 ? 0.5f : 0.0f));
-                    if (x > ate) continue;
-                    const Base b = bases[static_cast<size_t>(linha * n + k)];
-                    const Vector2 onde(x, c.y + 104.0f - static_cast<float>(linha) * g.entreLinhas);
-                    if (BossProjectile* p = Um(kGatilhoDaOnda, onde, Pareamento::Cara(b), Vector2(0.0f, g.velocidadeDaOnda))) {
-                        p->DefinirClasse(ClasseDoTiro(b));
-                    }
+    if (mOndas == 0 && mProximaOnda <= 0.0f) {
+        mDominante = DaClasse(mSorteio.Inteiro(0, 3), false);
+        mProximaOnda = 1.0f;
+    }
+    Circulo(GetPosition(), 34.0f + 3.0f * Math::Sin(mRelogio * 8.0f), CorDa(mDominante), 18);
+    if (t >= mProximaOnda) {
+        mProximaOnda = t + g.entreOndas;
+        const int n = g.basesPorLinha;
+        const auto bases = Onda(mSorteio, mDominante, n * g.linhasDaOnda, g.fracaoDominante, false);
+        const float de = c.x + 24.0f, ate = c.x + c.w - 24.0f;
+        const float passo = (ate - de) / static_cast<float>(std::max(1, n - 1));
+        for (int linha = 0; linha < g.linhasDaOnda; ++linha) {
+            for (int k = 0; k < n; ++k) {
+                const float x = de + passo * (static_cast<float>(k) + (linha % 2 == 1 ? 0.5f : 0.0f));
+                if (x > ate) continue;
+                const Base b = bases[static_cast<size_t>(linha * n + k)];
+                const Vector2 onde(x, c.y + 104.0f - static_cast<float>(linha) * g.entreLinhas);
+                if (BossProjectile* p = Um(kGatilhoDaOnda, onde, Pareamento::Cara(b), Vector2(0.0f, g.velocidadeDaOnda))) {
+                    p->DefinirClasse(ClasseDoTiro(b));
                 }
             }
-            ++mOndas;
-            SomDoDisparo();
-            mDominante = Outra(mSorteio, mDominante, false);
         }
-        return;
+        ++mOndas;
+        SomDoDisparo();
+        mDominante = Outra(mSorteio, mDominante, false);
     }
+}
 
-    // ---- A transcricao: a polimerase le o molde e solta o RNA ----
-    if (etapa == 1) {
-        const int n = g.basesDoMolde;
-        const float de = c.x + 40.0f, passo = (c.w - 80.0f) / static_cast<float>(std::max(1, n - 1));
-        if (mFitaMolde.empty()) {
-            mFitaMolde = Molde(Sequencia(mSorteio, n, g.repetir, true));
-            mLidas = 0;
-        }
-        mLetrasDoMolde.resize(static_cast<size_t>(n), nullptr);
-        for (int k = 0; k < n; ++k) {
-            BossProjectile*& l = mLetrasDoMolde[static_cast<size_t>(k)];
-            const Vector2 onde(de + passo * static_cast<float>(k), fitaY);
-            if (!Vivo(l)) l = Enfeite(kGatilhoDaLetra, onde, "L" + LetraDa(mFitaMolde[static_cast<size_t>(k)]));
-        }
-        const int lendo = std::min(n - 1, static_cast<int>(tEtapa / g.porBase));
-        while (mLidas <= lendo) {
-            const int k = mLidas++;
-            const Base doRna = Transcrever(mFitaMolde[static_cast<size_t>(k)]);
-            const Vector2 onde(de + passo * static_cast<float>(k), fitaY + 26.0f);
-            Bases(kGatilhoDoRna, onde, doRna, g.tirosPorBase, AnguloAteOAluno(onde), g.aberturaPorBase, g.velocidadeDoRna, true);
-            mLetrasDoRna.push_back(Enfeite(kGatilhoDaLetra, onde, "L" + LetraDa(doRna)));
-            if (k % 3 == 0) SomDoDisparo();
-        }
-        const float xDaPolimerase = de + passo * std::min(static_cast<float>(n - 1), tEtapa / g.porBase);
-        if (!Vivo(mMaquina)) mMaquina = Enfeite(kGatilhoDaMaquina, Vector2(xDaPolimerase, fitaY + 8.0f), "Polimerase");
-        if (mMaquina) {
-            mMaquina->SetPosition(Vector2(xDaPolimerase, fitaY + 8.0f));
-            Cara(mMaquina, "Polimerase");
-        }
-        // O esqueleto do molde, e a janela do que vem: quem le a frente sabe que base pegar.
-        Linha(Vector2(de - 14.0f, fitaY - 13.0f), Vector2(de + passo * static_cast<float>(n - 1) + 14.0f, fitaY - 13.0f), kEsqueleto);
-        if (lendo + 1 < n) {
-            const int ate = std::min(n - 1, lendo + 4);
-            Retangulo(Vector2(de + passo * static_cast<float>(lendo + 1) - 13.0f, fitaY - 13.0f),
-                      Vector2(de + passo * static_cast<float>(ate) + 13.0f, fitaY + 13.0f), kOuro);
-        } else {
-        }
-        return;
+void Sabrina::AtualizarATranscricao(const float tEtapa, const float fitaY) {
+    using namespace Pareamento;
+    const Pareamento::Degrau& g = mDegrauDoCodigo;
+    const SDL_FRect c = Campo();
+    const int n = g.basesDoMolde;
+    const float de = c.x + 40.0f, passo = (c.w - 80.0f) / static_cast<float>(std::max(1, n - 1));
+    if (mFitaMolde.empty()) {
+        mFitaMolde = Molde(Sequencia(mSorteio, n, g.repetir, true));
+        mLidas = 0;
     }
+    mLetrasDoMolde.resize(static_cast<size_t>(n), nullptr);
+    for (int k = 0; k < n; ++k) {
+        BossProjectile*& l = mLetrasDoMolde[static_cast<size_t>(k)];
+        const Vector2 onde(de + passo * static_cast<float>(k), fitaY);
+        if (!Vivo(l)) l = Enfeite(kGatilhoDaLetra, onde, "L" + LetraDa(mFitaMolde[static_cast<size_t>(k)]));
+    }
+    const int lendo = std::min(n - 1, static_cast<int>(tEtapa / g.porBase));
+    while (mLidas <= lendo) {
+        const int k = mLidas++;
+        const Base doRna = Transcrever(mFitaMolde[static_cast<size_t>(k)]);
+        const Vector2 onde(de + passo * static_cast<float>(k), fitaY + 26.0f);
+        Bases(kGatilhoDoRna, onde, doRna, g.tirosPorBase, AnguloAteOAluno(onde), g.aberturaPorBase, g.velocidadeDoRna, true);
+        mLetrasDoRna.push_back(Enfeite(kGatilhoDaLetra, onde, "L" + LetraDa(doRna)));
+        if (k % 3 == 0) SomDoDisparo();
+    }
+    const float xDaPolimerase = de + passo * std::min(static_cast<float>(n - 1), tEtapa / g.porBase);
+    if (!Vivo(mMaquina)) mMaquina = Enfeite(kGatilhoDaMaquina, Vector2(xDaPolimerase, fitaY + 8.0f), "Polimerase");
+    if (mMaquina) {
+        mMaquina->SetPosition(Vector2(xDaPolimerase, fitaY + 8.0f));
+        Cara(mMaquina, "Polimerase");
+    }
+    // O esqueleto do molde, e a janela do que vem: quem le a frente sabe que base pegar.
+    Linha(Vector2(de - 14.0f, fitaY - 13.0f), Vector2(de + passo * static_cast<float>(n - 1) + 14.0f, fitaY - 13.0f), kEsqueleto);
+    if (lendo + 1 < n) {
+        const int ate = std::min(n - 1, lendo + 4);
+        Retangulo(Vector2(de + passo * static_cast<float>(lendo + 1) - 13.0f, fitaY - 13.0f),
+                  Vector2(de + passo * static_cast<float>(ate) + 13.0f, fitaY + 13.0f), kOuro);
+    }
+}
 
-    // ---- A traducao: o ribossomo le os codons ----
+void Sabrina::DispararOCodon(const Pareamento::Familia fam, const Pareamento::Base* b, const Vector2 onde, const float mira) {
+    using namespace Pareamento;
+    const Pareamento::Degrau& g = mDegrauDoCodigo;
+    const int m = g.tirosPorBaseNaTraducao;
+    switch (fam) {
+        case Familia::Hidrofobico:
+            // Foge da agua: vem reto, junto e rapido.
+            for (int q = 0; q < 3; ++q) {
+                Bases(kGatilhoDoCodon, onde, b[q], m, mira + 4.0f * static_cast<float>(q - 1), 5.0f, g.velocidadeHidrofobica, true);
+            }
+            break;
+        case Familia::Polar:
+            for (int q = 0; q < 3; ++q) {
+                Bases(kGatilhoDoCodon, onde, b[q], m, mira + g.aberturaPolar / 3.0f * static_cast<float>(q - 1),
+                      g.aberturaPolar / 3.0f, g.velocidadePolar, true);
+            }
+            break;
+        case Familia::Positivo:
+            // A carga positiva persegue o aluno.
+            for (int q = 0; q < 3; ++q) {
+                for (BossProjectile* p : Bases(kGatilhoDoCodon, onde, b[q], m, mira + 28.0f * static_cast<float>(q - 1), 12.0f,
+                                               g.velocidadePositiva, true)) {
+                    mTeleguiados.push_back({p, mRelogio + 1.6f});
+                }
+            }
+            break;
+        case Familia::Negativo: {
+            // A carga negativa espalha em anel.
+            const float giro = mSorteio.Real(0.0f, 360.0f);
+            for (int q = 0; q < g.anelNegativo; ++q) {
+                Bases(kGatilhoDoCodon, onde, b[q % 3], 1, giro + 360.0f * static_cast<float>(q) / static_cast<float>(g.anelNegativo),
+                      0.0f, g.velocidadeNegativa, true);
+            }
+            break;
+        }
+        case Familia::Parada:
+            // A cadeia se solta e cai no aluno.
+            for (size_t q = 0; q < mPolipeptideo.size(); ++q) {
+                BossProjectile* p = mPolipeptideo[q];
+                if (!Vivo(p)) continue;
+                Vector2 rumo = PosicaoDoAluno() - p->GetPosition();
+                if (rumo.LengthSq() < 1.0f) rumo = Vector2(0.0f, 1.0f);
+                rumo.Normalize();
+                if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Girado(rumo, mSorteio.Real(-10.0f, 10.0f)) * g.quedaDaCadeia);
+            }
+            mPolipeptideo.clear();
+            mOndeDoPolipeptideo.clear();
+            break;
+    }
+}
+
+void Sabrina::GuiarOsPositivos(const float deltaTime) {
+    const Pareamento::Degrau& g = mDegrauDoCodigo;
+    // Os positivos perseguem o aluno por um tempo.
+    for (Teleguiado& tg : mTeleguiados) {
+        if (!Vivo(tg.p) || mRelogio > tg.ate) {
+            tg.p = nullptr;
+            continue;
+        }
+        if (auto* rb = tg.p->GetComponent<RigidBodyComponent>()) {
+            const Vector2 v = rb->GetVelocity();
+            const float rapidez = v.Length();
+            const float agora = Math::Atan2(v.y, v.x);
+            const float vira = Math::VirarPara(agora, PosicaoDoAluno() - tg.p->GetPosition(), g.giroPositivo * deltaTime);
+            rb->SetVelocity(Vector2(Math::Cos(vira), Math::Sin(vira)) * rapidez);
+        }
+    }
+    mTeleguiados.erase(std::remove_if(mTeleguiados.begin(), mTeleguiados.end(), [](const Teleguiado& tg) { return tg.p == nullptr; }),
+                       mTeleguiados.end());
+}
+
+void Sabrina::AtualizarATraducao(const float tEtapa, const float deltaTime, const float fitaY) {
+    using namespace Pareamento;
+    const Pareamento::Degrau& g = mDegrauDoCodigo;
+    const SDL_FRect c = Campo();
     if (mMensageiro.empty()) {
         mMensageiro = Gene(mSorteio, 5);
         const auto segundo = Gene(mSorteio, 6);
@@ -753,55 +816,8 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
                            mMensageiro[static_cast<size_t>(3 * k + 2)]};
         const char aa = Traduzir(b[0], b[1], b[2]);
         const Familia fam = FamiliaDe(aa);
-        mUltimoAminoacido = aa;
         const Vector2 onde(de + passo * static_cast<float>(3 * k + 1), fitaY + 30.0f);
-        const float mira = AnguloAteOAluno(onde);
-        const int m = g.tirosPorBaseNaTraducao;
-        switch (fam) {
-            case Familia::Hidrofobico:
-                // Foge da agua: vem reto, junto e rapido.
-                for (int q = 0; q < 3; ++q) {
-                    Bases(kGatilhoDoCodon, onde, b[q], m, mira + 4.0f * static_cast<float>(q - 1), 5.0f, g.velocidadeHidrofobica, true);
-                }
-                break;
-            case Familia::Polar:
-                for (int q = 0; q < 3; ++q) {
-                    Bases(kGatilhoDoCodon, onde, b[q], m, mira + g.aberturaPolar / 3.0f * static_cast<float>(q - 1),
-                          g.aberturaPolar / 3.0f, g.velocidadePolar, true);
-                }
-                break;
-            case Familia::Positivo:
-                // A carga positiva persegue o aluno.
-                for (int q = 0; q < 3; ++q) {
-                    for (BossProjectile* p : Bases(kGatilhoDoCodon, onde, b[q], m, mira + 28.0f * static_cast<float>(q - 1), 12.0f,
-                                                   g.velocidadePositiva, true)) {
-                        mTeleguiados.push_back({p, mRelogio + 1.6f});
-                    }
-                }
-                break;
-            case Familia::Negativo: {
-                // A carga negativa espalha em anel.
-                const float giro = mSorteio.Real(0.0f, 360.0f);
-                for (int q = 0; q < g.anelNegativo; ++q) {
-                    Bases(kGatilhoDoCodon, onde, b[q % 3], 1, giro + 360.0f * static_cast<float>(q) / static_cast<float>(g.anelNegativo),
-                          0.0f, g.velocidadeNegativa, true);
-                }
-                break;
-            }
-            case Familia::Parada:
-                // A cadeia se solta e cai no aluno.
-                for (size_t q = 0; q < mPolipeptideo.size(); ++q) {
-                    BossProjectile* p = mPolipeptideo[q];
-                    if (!Vivo(p)) continue;
-                    Vector2 rumo = PosicaoDoAluno() - p->GetPosition();
-                    if (rumo.LengthSq() < 1.0f) rumo = Vector2(0.0f, 1.0f);
-                    rumo.Normalize();
-                    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Girado(rumo, mSorteio.Real(-10.0f, 10.0f)) * g.quedaDaCadeia);
-                }
-                mPolipeptideo.clear();
-                mOndeDoPolipeptideo.clear();
-                break;
-        }
+        DispararOCodon(fam, b, onde, AnguloAteOAluno(onde));
         if (fam != Familia::Parada) {
             const Vector2 ponta = mOndeDoPolipeptideo.empty() ? ribossomo + Vector2(0.0f, 24.0f) : mOndeDoPolipeptideo.back() + Vector2(0.0f, 14.0f);
             if (BossProjectile* p = Um(kGatilhoDaCadeia, ponta, CaraDaFamilia(fam))) {
@@ -828,25 +844,34 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
             if (Vivo(mPolipeptideo[q])) Mover(mPolipeptideo[q], mOndeDoPolipeptideo[q], Vector2::Zero);
         }
     }
-    // Os positivos perseguem o aluno por um tempo.
-    for (Teleguiado& tg : mTeleguiados) {
-        if (!Vivo(tg.p) || mRelogio > tg.ate) {
-            tg.p = nullptr;
-            continue;
-        }
-        if (auto* rb = tg.p->GetComponent<RigidBodyComponent>()) {
-            const Vector2 v = rb->GetVelocity();
-            const float rapidez = v.Length();
-            const float agora = Math::Atan2(v.y, v.x);
-            const float vira = Math::VirarPara(agora, PosicaoDoAluno() - tg.p->GetPosition(), g.giroPositivo * deltaTime);
-            rb->SetVelocity(Vector2(Math::Cos(vira), Math::Sin(vira)) * rapidez);
-        }
-    }
-    mTeleguiados.erase(std::remove_if(mTeleguiados.begin(), mTeleguiados.end(), [](const Teleguiado& tg) { return tg.p == nullptr; }),
-                       mTeleguiados.end());
+    GuiarOsPositivos(deltaTime);
+}
 
-    const Base* codon = &mMensageiro[static_cast<size_t>(3 * lendo)];
-    const char aa = Traduzir(codon[0], codon[1], codon[2]);
+void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
+    using namespace Pareamento;
+    const SDL_FRect c = Campo();
+    const int etapa = EtapaNoTempo(t);
+    const float inicio = etapa == 0 ? 0.0f : etapa == 1 ? kDuracoes[0] : kDuracoes[0] + kDuracoes[1];
+    const float tEtapa = t - inicio;
+    const bool rna = etapa > 0;
+    Varrer(t, 0.32f, 7.5f);
+    AtualizarBases(deltaTime, rna);
+    const float fitaY = c.y + 124.0f;
+
+    // ---- O pareamento: as ondas de uma base so ----
+    if (etapa == 0) {
+        AtualizarAsOndas(t);
+        return;
+    }
+
+    // ---- A transcricao: a polimerase le o molde e solta o RNA ----
+    if (etapa == 1) {
+        AtualizarATranscricao(tEtapa, fitaY);
+        return;
+    }
+
+    // ---- A traducao: o ribossomo le os codons ----
+    AtualizarATraducao(tEtapa, deltaTime, fitaY);
 }
 
 // ---- Fase 3: a proteina ----
@@ -920,163 +945,183 @@ void Sabrina::CortarACadeia(const size_t i) {
     }
 }
 
-void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
+void Sabrina::AtualizarACadeia(const float deltaTime, const Vector2 aluno) {
     using namespace Dobramento;
-    const Degrau& g = mDegrauDaProteina;
+    const Dobramento::Degrau& g = mDegrauDaProteina;
     const SDL_FRect c = Campo();
-    const int etapa = EtapaNoTempo(t);
-    Varrer(t, 0.3f, 7.0f);
-    const Vector2 aluno = PosicaoDoAluno();
-
-    // Os pedacos soltos somem com o tempo.
-    for (Solto& s : mSoltosDaCadeia) {
-        if (Vivo(s.p) && mRelogio >= s.morre) Matar(s.p);
+    if (mCadeia.empty() && (mProximaCadeia < 0.0f || mRelogio >= mProximaCadeia)) {
+        // Cada cadeia sai de um canto do alto, o mais longe do aluno: fora da linha de tiro dele.
+        const bool esquerda = aluno.x > c.x + 0.5f * c.w;
+        const Vector2 de(esquerda ? c.x + 30.0f : c.x + c.w - 30.0f, c.y + 120.0f);
+        for (int k = 0; k < g.residuosIniciais; ++k) {
+            const Vector2 onde = de + Vector2(esquerda ? -3.0f : 3.0f, -3.0f) * static_cast<float>(k);
+            Residuo r;
+            r.familia = FamiliaQualquer(mSorteio);
+            r.p = Um(kGatilhoDoResiduo, onde, CaraDaFamilia(r.familia));
+            if (r.p) r.p->DefinirResistencia(g.resistencia);
+            mCadeia.push_back(r);
+            mOndeDaCadeia.push_back(onde);
+        }
+        Vector2 rumo = aluno - de;
+        if (rumo.LengthSq() < 1.0f) rumo = Vector2(0.0f, 1.0f);
+        rumo.Normalize();
+        mRumo = rumo;
+        mProximaCadeia = -1.0f;
+        mProximoResiduo = mRelogio + g.entreResiduos;
     }
-    mSoltosDaCadeia.erase(std::remove_if(mSoltosDaCadeia.begin(), mSoltosDaCadeia.end(), [](const Solto& s) { return !Vivo(s.p); }),
-                          mSoltosDaCadeia.end());
-
-    // ---- A cadeia: o polipeptideo persegue o aluno, e o tiro e a protease ----
-    if (etapa == 0) {
-        if (mCadeia.empty() && (mProximaCadeia < 0.0f || mRelogio >= mProximaCadeia)) {
-            // Cada cadeia sai de um canto do alto, o mais longe do aluno: fora da linha de tiro dele.
-            const bool esquerda = aluno.x > c.x + 0.5f * c.w;
-            const Vector2 de(esquerda ? c.x + 30.0f : c.x + c.w - 30.0f, c.y + 120.0f);
-            for (int k = 0; k < g.residuosIniciais; ++k) {
-                const Vector2 onde = de + Vector2(esquerda ? -3.0f : 3.0f, -3.0f) * static_cast<float>(k);
-                Residuo r;
-                r.familia = FamiliaQualquer(mSorteio);
-                r.p = Um(kGatilhoDoResiduo, onde, CaraDaFamilia(r.familia));
-                if (r.p) r.p->DefinirResistencia(g.resistencia);
-                mCadeia.push_back(r);
-                mOndeDaCadeia.push_back(onde);
-            }
-            Vector2 rumo = aluno - de;
-            if (rumo.LengthSq() < 1.0f) rumo = Vector2(0.0f, 1.0f);
-            rumo.Normalize();
-            mRumo = rumo;
-            mProximaCadeia = -1.0f;
+    if (!mCadeia.empty()) {
+        // A cabeca vira para o aluno, no maximo 'giro' por segundo.
+        const float agora = Math::Atan2(mRumo.y, mRumo.x);
+        const float vira = Math::VirarPara(agora, aluno - mOndeDaCadeia.front(), g.giro * deltaTime);
+        mRumo = Vector2(Math::Cos(vira), Math::Sin(vira));
+        Vector2 cabeca = mOndeDaCadeia.front() + mRumo * g.rapidez * deltaTime;
+        cabeca.x = std::clamp(cabeca.x, c.x + 14.0f, c.x + c.w - 14.0f);
+        cabeca.y = std::clamp(cabeca.y, c.y + 90.0f, c.y + c.h - 14.0f);
+        Arrastar(mOndeDaCadeia, cabeca, g.espacamento);
+        // Cresce um aminoacido por vez, no fim.
+        if (mRelogio >= mProximoResiduo && static_cast<int>(mCadeia.size()) < g.residuosMaximos && mOndeDaCadeia.size() >= 2) {
             mProximoResiduo = mRelogio + g.entreResiduos;
+            const Vector2 ultimo = mOndeDaCadeia.back();
+            Vector2 d = ultimo - mOndeDaCadeia[mOndeDaCadeia.size() - 2];
+            if (d.LengthSq() < 1e-4f) d = Vector2(0.0f, -1.0f);
+            d.Normalize();
+            const Vector2 onde = ultimo + d * g.espacamento;
+            Residuo r;
+            r.familia = FamiliaQualquer(mSorteio);
+            r.p = Um(kGatilhoDoResiduo, onde, CaraDaFamilia(r.familia));
+            if (r.p) r.p->DefinirResistencia(g.resistencia);
+            mCadeia.push_back(r);
+            mOndeDaCadeia.push_back(onde);
         }
-        if (!mCadeia.empty()) {
-            // A cabeca vira para o aluno, no maximo 'giro' por segundo.
-            const float agora = Math::Atan2(mRumo.y, mRumo.x);
-            const float vira = Math::VirarPara(agora, aluno - mOndeDaCadeia.front(), g.giro * deltaTime);
-            mRumo = Vector2(Math::Cos(vira), Math::Sin(vira));
-            Vector2 cabeca = mOndeDaCadeia.front() + mRumo * g.rapidez * deltaTime;
-            cabeca.x = std::clamp(cabeca.x, c.x + 14.0f, c.x + c.w - 14.0f);
-            cabeca.y = std::clamp(cabeca.y, c.y + 90.0f, c.y + c.h - 14.0f);
-            Arrastar(mOndeDaCadeia, cabeca, g.espacamento);
-            // Cresce um aminoacido por vez, no fim.
-            if (mRelogio >= mProximoResiduo && static_cast<int>(mCadeia.size()) < g.residuosMaximos && mOndeDaCadeia.size() >= 2) {
-                mProximoResiduo = mRelogio + g.entreResiduos;
-                const Vector2 ultimo = mOndeDaCadeia.back();
-                Vector2 d = ultimo - mOndeDaCadeia[mOndeDaCadeia.size() - 2];
-                if (d.LengthSq() < 1e-4f) d = Vector2(0.0f, -1.0f);
-                d.Normalize();
-                const Vector2 onde = ultimo + d * g.espacamento;
-                Residuo r;
-                r.familia = FamiliaQualquer(mSorteio);
-                r.p = Um(kGatilhoDoResiduo, onde, CaraDaFamilia(r.familia));
-                if (r.p) r.p->DefinirResistencia(g.resistencia);
-                mCadeia.push_back(r);
-                mOndeDaCadeia.push_back(onde);
-            }
-            // O residuo que sumiu sem o tiro (a onda do Ponto Extra) tambem corta.
-            for (size_t i = 0; i < mCadeia.size(); ++i) {
-                if (!Vivo(mCadeia[i].p)) {
-                    mCadeia[i].p = nullptr;
-                    CortarACadeia(i);
-                    break;
-                }
-            }
-            for (size_t i = 0; i < mCadeia.size(); ++i) {
-                if (i > 0) Linha(mOndeDaCadeia[i - 1], mOndeDaCadeia[i], kLigacao);
-                Mover(mCadeia[i].p, mOndeDaCadeia[i], mRumo * g.rapidez);
+        // O residuo que sumiu sem o tiro (a onda do Ponto Extra) tambem corta.
+        for (size_t i = 0; i < mCadeia.size(); ++i) {
+            if (!Vivo(mCadeia[i].p)) {
+                mCadeia[i].p = nullptr;
+                CortarACadeia(i);
+                break;
             }
         }
-        if (mRelogio >= mProximoLequeDaCadeia) {
-            mProximoLequeDaCadeia = mRelogio + g.entreLeques;
-            const Vector2 de = GetPosition() + Vector2(0.0f, 34.0f);
-            for (BossProjectile* p : DispararEm(kGatilhoDoLeque, de, g.tirosDoLeque, AnguloAteOAluno(de), 30.0f, g.velocidadeDoLeque)) {
-                Cara(p, CaraDaFamilia(FamiliaQualquer(mSorteio)));
-            }
+        for (size_t i = 0; i < mCadeia.size(); ++i) {
+            if (i > 0) Linha(mOndeDaCadeia[i - 1], mOndeDaCadeia[i], kLigacao);
+            Mover(mCadeia[i].p, mOndeDaCadeia[i], mRumo * g.rapidez);
         }
-        return;
     }
+    if (mRelogio >= mProximoLequeDaCadeia) {
+        mProximoLequeDaCadeia = mRelogio + g.entreLeques;
+        const Vector2 de = GetPosition() + Vector2(0.0f, 34.0f);
+        for (BossProjectile* p : DispararEm(kGatilhoDoLeque, de, g.tirosDoLeque, AnguloAteOAluno(de), 30.0f, g.velocidadeDoLeque)) {
+            Cara(p, CaraDaFamilia(FamiliaQualquer(mSorteio)));
+        }
+    }
+}
 
-    // ---- O dobramento: a cadeia colapsa num globulo, que rola ----
-    if (etapa == 1) {
-        if (!mGlobuloMontado) {
-            mGlobuloMontado = true;
-            const int n = g.residuosDoGlobulo;
-            std::vector<bool> hidrofobico;
-            mFamilias.clear();
-            mDeOnde.clear();
-            for (int k = 0; k < n; ++k) {
-                const bool daCadeia = k < static_cast<int>(mCadeia.size());
-                const Familia f = daCadeia ? mCadeia[static_cast<size_t>(k)].familia : FamiliaQualquer(mSorteio);
-                mFamilias.push_back(f);
-                hidrofobico.push_back(f == Familia::Hidrofobico);
-                const Vector2 onde = daCadeia ? mOndeDaCadeia[static_cast<size_t>(k)] : GetPosition() + Vector2(0.0f, 44.0f);
-                mDeOnde.push_back(onde);
-            }
-            mDobrado = Globulo(hidrofobico, g.nucleo);
-            for (Residuo& r : mCadeia) Matar(r.p);
-            mCadeia.clear();
-            mOndeDaCadeia.clear();
-            mAtomos.assign(static_cast<size_t>(n), Conta{});
-            // O globulo se forma no alto do campo: a cadeia voa ate la e se dobra.
-            mCentroDoGlobulo = Vector2(c.x + 0.5f * c.w, c.y + 0.4f * c.h);
-            const float a = mSorteio.Real(0.0f, Math::TwoPi);
-            mVelocidadeDoGlobulo = Vector2(Math::Cos(a), Math::Sin(a)) * g.rapidezDoGlobulo;
-            mComecoDoGlobulo = mRelogio;
-            mProximoBorrifo = mRelogio + g.colapso;
-            mGiroX = 0.0f;
-            mGiroY = 0.0f;
+void Sabrina::AtualizarOGlobulo(const float deltaTime, const Vector2 aluno) {
+    using namespace Dobramento;
+    const Dobramento::Degrau& g = mDegrauDaProteina;
+    const SDL_FRect c = Campo();
+    if (!mGlobuloMontado) {
+        mGlobuloMontado = true;
+        const int n = g.residuosDoGlobulo;
+        std::vector<bool> hidrofobico;
+        mFamilias.clear();
+        mDeOnde.clear();
+        for (int k = 0; k < n; ++k) {
+            const bool daCadeia = k < static_cast<int>(mCadeia.size());
+            const Familia f = daCadeia ? mCadeia[static_cast<size_t>(k)].familia : FamiliaQualquer(mSorteio);
+            mFamilias.push_back(f);
+            hidrofobico.push_back(f == Familia::Hidrofobico);
+            const Vector2 onde = daCadeia ? mOndeDaCadeia[static_cast<size_t>(k)] : GetPosition() + Vector2(0.0f, 44.0f);
+            mDeOnde.push_back(onde);
         }
-        mGiroY += g.giroY * deltaTime;
-        mGiroX += g.giroX * deltaTime;
-        const float u = std::clamp((mRelogio - mComecoDoGlobulo) / std::max(0.01f, g.colapso), 0.0f, 1.0f);
-        if (u >= 1.0f) {
-            // O globulo rola atras do aluno: a velocidade vira para ele, devagar, e quica nas paredes.
-            const float rapidez = mVelocidadeDoGlobulo.Length();
-            const float rumo = Math::VirarPara(Math::Atan2(mVelocidadeDoGlobulo.y, mVelocidadeDoGlobulo.x),
-                                               aluno - mCentroDoGlobulo, g.perseguicao * deltaTime);
-            mVelocidadeDoGlobulo = Vector2(Math::Cos(rumo), Math::Sin(rumo)) * rapidez;
-            mCentroDoGlobulo = Quicar(mCentroDoGlobulo, mVelocidadeDoGlobulo, deltaTime, g.raioDoGlobulo,
-                                      Vector2(c.x, c.y + 110.0f), Vector2(c.x + c.w, c.y + c.h));
-        }
+        mDobrado = Globulo(hidrofobico, g.nucleo);
+        for (Residuo& r : mCadeia) Matar(r.p);
+        mCadeia.clear();
+        mOndeDaCadeia.clear();
+        mAtomos.assign(static_cast<size_t>(n), Conta{});
+        // O globulo se forma no alto do campo: a cadeia voa ate la e se dobra.
+        mCentroDoGlobulo = Vector2(c.x + 0.5f * c.w, c.y + 0.4f * c.h);
+        const float a = mSorteio.Real(0.0f, Math::TwoPi);
+        mVelocidadeDoGlobulo = Vector2(Math::Cos(a), Math::Sin(a)) * g.rapidezDoGlobulo;
+        mComecoDoGlobulo = mRelogio;
+        mProximoBorrifo = mRelogio + g.colapso;
+        mGiroX = 0.0f;
+        mGiroY = 0.0f;
+    }
+    mGiroY += g.giroY * deltaTime;
+    mGiroX += g.giroX * deltaTime;
+    const float u = std::clamp((mRelogio - mComecoDoGlobulo) / std::max(0.01f, g.colapso), 0.0f, 1.0f);
+    if (u >= 1.0f) {
+        // O globulo rola atras do aluno: a velocidade vira para ele, devagar, e quica nas paredes.
+        const float rapidez = mVelocidadeDoGlobulo.Length();
+        const float rumo = Math::VirarPara(Math::Atan2(mVelocidadeDoGlobulo.y, mVelocidadeDoGlobulo.x),
+                                           aluno - mCentroDoGlobulo, g.perseguicao * deltaTime);
+        mVelocidadeDoGlobulo = Vector2(Math::Cos(rumo), Math::Sin(rumo)) * rapidez;
+        mCentroDoGlobulo = Quicar(mCentroDoGlobulo, mVelocidadeDoGlobulo, deltaTime, g.raioDoGlobulo,
+                                  Vector2(c.x, c.y + 110.0f), Vector2(c.x + c.w, c.y + c.h));
+    }
+    for (size_t k = 0; k < mAtomos.size(); ++k) {
+        const Helice::Ponto3& m = mDobrado[k];
+        Helice::Ponto3 p{m.x * g.raioDoGlobulo, m.y * g.raioDoGlobulo, m.z * g.raioDoGlobulo};
+        p = Helice::GirarEmY(p, mGiroY);
+        p = Helice::GirarEmX(p, mGiroX);
+        Helice::NaTela tela = Helice::Projetar(p, mCentroDoGlobulo, kDistanciaDaCamera);
+        if (u < 1.0f) tela.onde = mDeOnde[k] + (tela.onde - mDeOnde[k]) * Suave(u);
+        const bool frente = Helice::NaFrente(p.z, g.raioDoGlobulo, g.limiar);
+        Posicionar(mAtomos[k], tela, frente, kGatilhoDoAtomo, CaraDaFamilia(mFamilias[k]), deltaTime,
+                   CorDaFamilia(mFamilias[k], 90));
+    }
+    // As ligacoes da cadeia (bolas e varetas).
+    for (size_t k = 1; k < mAtomos.size(); ++k) Linha(mAtomos[k - 1].onde, mAtomos[k].onde, kLigacao);
+    // Os polares da frente borrifam agua para fora.
+    if (u >= 1.0f && mRelogio >= mProximoBorrifo) {
+        mProximoBorrifo = mRelogio + g.entreBorrifos;
         for (size_t k = 0; k < mAtomos.size(); ++k) {
-            const Helice::Ponto3& m = mDobrado[k];
-            Helice::Ponto3 p{m.x * g.raioDoGlobulo, m.y * g.raioDoGlobulo, m.z * g.raioDoGlobulo};
-            p = Helice::GirarEmY(p, mGiroY);
-            p = Helice::GirarEmX(p, mGiroX);
-            Helice::NaTela tela = Helice::Projetar(p, mCentroDoGlobulo, kDistanciaDaCamera);
-            if (u < 1.0f) tela.onde = mDeOnde[k] + (tela.onde - mDeOnde[k]) * Suave(u);
-            const bool frente = Helice::NaFrente(p.z, g.raioDoGlobulo, g.limiar);
-            Posicionar(mAtomos[k], tela, frente, kGatilhoDoAtomo, CaraDaFamilia(mFamilias[k]), deltaTime,
-                       CorDaFamilia(mFamilias[k], 90));
-        }
-        // As ligacoes da cadeia (bolas e varetas).
-        for (size_t k = 1; k < mAtomos.size(); ++k) Linha(mAtomos[k - 1].onde, mAtomos[k].onde, kLigacao);
-        // Os polares da frente borrifam agua para fora.
-        if (u >= 1.0f && mRelogio >= mProximoBorrifo) {
-            mProximoBorrifo = mRelogio + g.entreBorrifos;
-            for (size_t k = 0; k < mAtomos.size(); ++k) {
-                if (!mAtomos[k].frente || mFamilias[k] == Familia::Hidrofobico) continue;
-                const Vector2 de = mAtomos[k].onde;
-                const float a = AnguloAte(mCentroDoGlobulo, de);
-                for (BossProjectile* p : DispararEm(kGatilhoDaAgua, de, g.tirosDoBorrifo, a, 12.0f * static_cast<float>(g.tirosDoBorrifo - 1),
-                                                    g.velocidadeDoBorrifo)) {
-                    Cara(p, "Agua");
-                }
+            if (!mAtomos[k].frente || mFamilias[k] == Familia::Hidrofobico) continue;
+            const Vector2 de = mAtomos[k].onde;
+            const float a = AnguloAte(mCentroDoGlobulo, de);
+            for (BossProjectile* p : DispararEm(kGatilhoDaAgua, de, g.tirosDoBorrifo, a, 12.0f * static_cast<float>(g.tirosDoBorrifo - 1),
+                                                g.velocidadeDoBorrifo)) {
+                Cara(p, "Agua");
             }
-            SomDoDisparo();
         }
-        return;
+        SomDoDisparo();
     }
+}
 
-    // ---- O encaixe: o sitio ativo protege - e prende o tiro ----
+void Sabrina::AtualizarAsGotas(const float deltaTime, const Vector2 centro) {
+    using namespace Dobramento;
+    const Dobramento::Degrau& g = mDegrauDaProteina;
+    const SDL_FRect c = Campo();
+    // A agua: gotas em movimento browniano, do alto.
+    if (mRelogio >= mProximaGota) {
+        mProximaGota = mRelogio + g.entreGotas;
+        const Vector2 onde(mSorteio.Real(c.x + 12.0f, c.x + c.w - 12.0f), c.y + 100.0f);
+        const Vector2 v(mSorteio.Real(-30.0f, 30.0f), g.velocidadeDaGota);
+        if (BossProjectile* p = Um(kGatilhoDaAgua, onde, "Agua", v)) mGotas.push_back({p, v});
+    }
+    for (Gota& gota : mGotas) {
+        if (!Vivo(gota.p)) {
+            gota.p = nullptr;
+            continue;
+        }
+        // A dessolvatacao: o ligante desloca a agua do sitio, e a gota que entra evapora.
+        if (Dessolvata(gota.p->GetPosition(), centro, g.raioDoSitio, mSitioOcupado)) {
+            if (Battle* b = Batalha()) b->Faiscar(gota.p->GetPosition(), Hud::Faisca::Dissolvido);
+            gota.p->Kill();
+            gota.p = nullptr;
+            continue;
+        }
+        const float a = mSorteio.Real(0.0f, Math::TwoPi);
+        gota.v = Browniano(gota.v, Vector2(0.0f, g.velocidadeDaGota), Vector2(Math::Cos(a), Math::Sin(a)) * g.chute, deltaTime, 1.5f);
+        if (auto* rb = gota.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(gota.v);
+    }
+    mGotas.erase(std::remove_if(mGotas.begin(), mGotas.end(), [](const Gota& gota) { return gota.p == nullptr; }), mGotas.end());
+}
+
+void Sabrina::AtualizarOEncaixe(const float deltaTime) {
+    using namespace Dobramento;
+    const Dobramento::Degrau& g = mDegrauDaProteina;
+    const SDL_FRect c = Campo();
     if (mComecoDoEncaixe < 0.0f) {
         mComecoDoEncaixe = mRelogio;
         for (Conta& a : mAtomos) Matar(a.p);
@@ -1108,30 +1153,7 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
     const Vector2 dirDaBoca(Math::Cos(boca), Math::Sin(boca));
     Tracejada(centro + dirDaBoca * (g.raioDoSitio - 16.0f), centro + dirDaBoca * (g.raioDoSitio + 26.0f), kSitio, 4.0f);
 
-    // A agua: gotas em movimento browniano, do alto.
-    if (mRelogio >= mProximaGota) {
-        mProximaGota = mRelogio + g.entreGotas;
-        const Vector2 onde(mSorteio.Real(c.x + 12.0f, c.x + c.w - 12.0f), c.y + 100.0f);
-        const Vector2 v(mSorteio.Real(-30.0f, 30.0f), g.velocidadeDaGota);
-        if (BossProjectile* p = Um(kGatilhoDaAgua, onde, "Agua", v)) mGotas.push_back({p, v});
-    }
-    for (Gota& gota : mGotas) {
-        if (!Vivo(gota.p)) {
-            gota.p = nullptr;
-            continue;
-        }
-        // A dessolvatacao: o ligante desloca a agua do sitio, e a gota que entra evapora.
-        if (Dessolvata(gota.p->GetPosition(), centro, g.raioDoSitio, mSitioOcupado)) {
-            if (Battle* b = Batalha()) b->Faiscar(gota.p->GetPosition(), Hud::Faisca::Dissolvido);
-            gota.p->Kill();
-            gota.p = nullptr;
-            continue;
-        }
-        const float a = mSorteio.Real(0.0f, Math::TwoPi);
-        gota.v = Browniano(gota.v, Vector2(0.0f, g.velocidadeDaGota), Vector2(Math::Cos(a), Math::Sin(a)) * g.chute, deltaTime, 1.5f);
-        if (auto* rb = gota.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(gota.v);
-    }
-    mGotas.erase(std::remove_if(mGotas.begin(), mGotas.end(), [](const Gota& gota) { return gota.p == nullptr; }), mGotas.end());
+    AtualizarAsGotas(deltaTime, centro);
 
     // Quem esta encaixado ganha afinidade.
     bool algum = false;
@@ -1163,6 +1185,34 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
         }
     }
     mSitioOcupado = algum;
+}
+
+void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
+    const int etapa = Dobramento::EtapaNoTempo(t);
+    Varrer(t, 0.3f, 7.0f);
+    const Vector2 aluno = PosicaoDoAluno();
+
+    // Os pedacos soltos somem com o tempo.
+    for (Solto& s : mSoltosDaCadeia) {
+        if (Vivo(s.p) && mRelogio >= s.morre) Matar(s.p);
+    }
+    mSoltosDaCadeia.erase(std::remove_if(mSoltosDaCadeia.begin(), mSoltosDaCadeia.end(), [](const Solto& s) { return !Vivo(s.p); }),
+                          mSoltosDaCadeia.end());
+
+    // ---- A cadeia: o polipeptideo persegue o aluno, e o tiro e a protease ----
+    if (etapa == 0) {
+        AtualizarACadeia(deltaTime, aluno);
+        return;
+    }
+
+    // ---- O dobramento: a cadeia colapsa num globulo, que rola ----
+    if (etapa == 1) {
+        AtualizarOGlobulo(deltaTime, aluno);
+        return;
+    }
+
+    // ---- O encaixe: o sitio ativo protege - e prende o tiro ----
+    AtualizarOEncaixe(deltaTime);
 }
 
 // ---- A repescagem: o sequenciamento ----
@@ -1210,168 +1260,165 @@ void Sabrina::MontarOContig() {
     }
 }
 
-void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
+void Sabrina::AtualizarAPcr(const float t, const float deltaTime) {
     using namespace Sequenciamento;
-    const Degrau& g = mDegrauDoSequenciamento;
+    const Sequenciamento::Degrau& g = mDegrauDoSequenciamento;
     const SDL_FRect c = Campo();
-    const int etapa = EtapaNoTempo(t);
-    Varrer(t, 0.3f, 7.0f);
-    if (Vivo(mTesoura) && mRelogio >= mTesouraAte) Matar(mTesoura);
-
-    // ---- A PCR: cada ciclo dobra as copias, e o tiro derruba o primer ----
-    if (etapa == 0) {
-        if (mCopias.empty() && mCicloAntes < 0) {
-            for (int k = 0; k < g.moldes; ++k) {
-                Copia cp;
-                const float a = mSorteio.Real(0.0f, Math::TwoPi);
-                cp.v = Vector2(Math::Cos(a), Math::Sin(a)) * mSorteio.Real(g.rapidezMinima, g.rapidezMaxima);
-                const Vector2 onde(c.x + c.w * (0.5f + 0.25f * (static_cast<float>(k) - 0.5f * static_cast<float>(g.moldes - 1))),
-                                   c.y + 0.4f * c.h);
-                cp.p = Um(kGatilhoDaCopia, onde, "Dupla");
-                if (cp.p) cp.p->DefinirRotacaoPelaVelocidade(true);
-                mCopias.push_back(cp);
-            }
+    if (mCopias.empty() && mCicloAntes < 0) {
+        for (int k = 0; k < g.moldes; ++k) {
+            Copia cp;
+            const float a = mSorteio.Real(0.0f, Math::TwoPi);
+            cp.v = Vector2(Math::Cos(a), Math::Sin(a)) * mSorteio.Real(g.rapidezMinima, g.rapidezMaxima);
+            const Vector2 onde(c.x + c.w * (0.5f + 0.25f * (static_cast<float>(k) - 0.5f * static_cast<float>(g.moldes - 1))),
+                               c.y + 0.4f * c.h);
+            cp.p = Um(kGatilhoDaCopia, onde, "Dupla");
+            if (cp.p) cp.p->DefinirRotacaoPelaVelocidade(true);
+            mCopias.push_back(cp);
         }
-        const Ciclo ciclo = CicloNoTempo(t, g.periodo);
-        if (ciclo.numero != mCicloAntes || ciclo.passo != mPassoAntes) {
-            mCicloAntes = ciclo.numero;
-            mPassoAntes = ciclo.passo;
-            if (ciclo.passo == Passo::Desnatura) {
-                // 95 graus: a dupla fita se separa em duas.
-                std::vector<Copia> novas;
-                int total = static_cast<int>(mCopias.size());
-                for (Copia& cp : mCopias) {
-                    if (!cp.dupla || !Vivo(cp.p) || total >= g.teto) continue;
-                    cp.dupla = false;
-                    Cara(cp.p, "Simples");
-                    Copia irma;
-                    irma.dupla = false;
-                    irma.v = Girado(cp.v, 55.0f);
-                    cp.v = Girado(cp.v, -55.0f);
-                    irma.p = Um(kGatilhoDaCopia, cp.p->GetPosition(), "Simples");
-                    if (irma.p) {
-                        irma.p->DefinirRotacaoPelaVelocidade(true);
-                        novas.push_back(irma);
-                        ++total;
-                    }
-                }
-                mCopias.insert(mCopias.end(), novas.begin(), novas.end());
-            } else if (ciclo.passo == Passo::Anela) {
-                // 55 graus: o primer encosta em cada fita simples.
-                for (Copia& cp : mCopias) {
-                    if (cp.dupla || !Vivo(cp.p) || Vivo(cp.primer)) continue;
-                    cp.primer = Um(kGatilhoDoPrimer, cp.p->GetPosition(), "Primer");
-                    if (cp.primer) cp.primer->DefinirResistencia(g.resistenciaDoPrimer);
-                    cp.primerCaiu = false;
-                }
-            } else {
-                // 72 graus: a polimerase estende quem tem primer.
-                for (Copia& cp : mCopias) {
-                    if (cp.dupla || !Vivo(cp.p)) continue;
-                    if (Vivo(cp.primer)) {
-                        Matar(cp.primer);
-                        cp.dupla = true;
-                        Cara(cp.p, "Dupla");
-                    }
-                }
-                SomDoDisparo();
-            }
-        }
-        for (Copia& cp : mCopias) {
-            if (!Vivo(cp.p)) {
-                cp.p = nullptr;
-                Matar(cp.primer);
-                continue;
-            }
-            const Vector2 onde = Dobramento::Quicar(cp.p->GetPosition(), cp.v, deltaTime, 14.0f, Vector2(c.x, c.y + 100.0f),
-                                                    Vector2(c.x + c.w, c.y + c.h));
-            Mover(cp.p, onde, cp.v);
-            if (Vivo(cp.primer)) {
-                Vector2 lado(-cp.v.y, cp.v.x);
-                if (lado.LengthSq() > 1e-4f) lado.Normalize();
-                Mover(cp.primer, onde + lado * 13.0f, cp.v);
-            }
-        }
-        mCopias.erase(std::remove_if(mCopias.begin(), mCopias.end(), [](const Copia& cp) { return cp.p == nullptr; }), mCopias.end());
-        Termometro(ciclo.temperatura, 40.0f, 100.0f);
-        return;
     }
-
-    // ---- O shotgun: os reads montam o contig, e as pontas se aparam ----
-    if (etapa == 1) {
-        if (mContig.empty()) {
+    const Ciclo ciclo = CicloNoTempo(t, g.periodo);
+    if (ciclo.numero != mCicloAntes || ciclo.passo != mPassoAntes) {
+        mCicloAntes = ciclo.numero;
+        mPassoAntes = ciclo.passo;
+        if (ciclo.passo == Passo::Desnatura) {
+            // 95 graus: a dupla fita se separa em duas.
+            std::vector<Copia> novas;
+            int total = static_cast<int>(mCopias.size());
             for (Copia& cp : mCopias) {
-                Matar(cp.p);
-                Matar(cp.primer);
+                if (!cp.dupla || !Vivo(cp.p) || total >= g.teto) continue;
+                cp.dupla = false;
+                Cara(cp.p, "Simples");
+                Copia irma;
+                irma.dupla = false;
+                irma.v = Girado(cp.v, 55.0f);
+                cp.v = Girado(cp.v, -55.0f);
+                irma.p = Um(kGatilhoDaCopia, cp.p->GetPosition(), "Simples");
+                if (irma.p) {
+                    irma.p->DefinirRotacaoPelaVelocidade(true);
+                    novas.push_back(irma);
+                    ++total;
+                }
             }
-            mCopias.clear();
-            mAtras = g.pontaInicial;
-            mFrente = g.pontaInicial;
-            mGiroDoContig = mSorteio.Real(0.0f, Math::TwoPi);
-            for (int k = 0; k < mAtras + mFrente + 1; ++k) mContig.push_back(Um(kGatilhoDoContig, GetPosition(), "Contig"));
-            MontarOContig();
-            mProximaRajada = mRelogio + 0.6f;
-        }
-        mGiroDoContig += g.giro * deltaTime;
-        const Vector2 centro(c.x + 0.5f * c.w, c.y + 0.42f * c.h);
-        // Uma conta do meio que sumiu (a onda do Ponto Extra) volta; a ponta que sumiu e aparada.
-        for (size_t k = 0; k < mContig.size(); ++k) {
-            if (Vivo(mContig[k])) continue;
-            const bool tras = k == 0 && mAtras > 0, frente = k + 1 == mContig.size() && mFrente > 0;
-            if (tras) {
-                mContig.erase(mContig.begin());
-                --mAtras;
-            } else if (frente) {
-                mContig.pop_back();
-                --mFrente;
-            } else {
-                mContig[k] = Um(kGatilhoDoContig, centro, "Contig");
+            mCopias.insert(mCopias.end(), novas.begin(), novas.end());
+        } else if (ciclo.passo == Passo::Anela) {
+            // 55 graus: o primer encosta em cada fita simples.
+            for (Copia& cp : mCopias) {
+                if (cp.dupla || !Vivo(cp.p) || Vivo(cp.primer)) continue;
+                cp.primer = Um(kGatilhoDoPrimer, cp.p->GetPosition(), "Primer");
+                if (cp.primer) cp.primer->DefinirResistencia(g.resistenciaDoPrimer);
+                cp.primerCaiu = false;
             }
-            MontarOContig();
-            break;
-        }
-        const auto contas = Contig(centro, mAtras, mFrente, g.espacamento, mGiroDoContig);
-        for (size_t k = 0; k < mContig.size() && k < contas.size(); ++k) {
-            const Vector2 r = contas[k] - centro;
-            Mover(mContig[k], contas[k], Vector2(-r.y, r.x) * g.giro);
-        }
-        if (contas.size() >= 2) Linha(contas.front(), contas.back(), kEsqueleto);
-
-        // A rajada de reads, em leque.
-        if (mRelogio >= mProximaRajada) {
-            mProximaRajada = mRelogio + g.entreRajadas;
-            const Vector2 de = GetPosition() + Vector2(0.0f, 36.0f);
-            for (BossProjectile* p : DispararEm(kGatilhoDoRead, de, g.tirosDaRajada, AnguloAteOAluno(de), g.aberturaDaRajada,
-                                                g.velocidadeDoRead)) {
-                Cara(p, "Read");
-                p->DefinirRotacaoPelaVelocidade(true);
-                mReads.push_back(p);
+        } else {
+            // 72 graus: a polimerase estende quem tem primer.
+            for (Copia& cp : mCopias) {
+                if (cp.dupla || !Vivo(cp.p)) continue;
+                if (Vivo(cp.primer)) {
+                    Matar(cp.primer);
+                    cp.dupla = true;
+                    Cara(cp.p, "Dupla");
+                }
             }
             SomDoDisparo();
         }
-        // O read que encosta no contig se monta nele, na ponta mais perto.
-        for (BossProjectile*& read : mReads) {
-            if (!Vivo(read)) {
-                read = nullptr;
-                continue;
-            }
-            const int lado = Encosta(read->GetPosition(), centro, mAtras, mFrente, g.espacamento, mGiroDoContig, g.alcanceDoContig);
-            if (lado == 0) continue;
-            Matar(read);
-            if (lado < 0 && mAtras < g.pontaMaxima) {
-                ++mAtras;
-                mContig.insert(mContig.begin(), Um(kGatilhoDoContig, centro, "Contig"));
-            } else if (lado > 0 && mFrente < g.pontaMaxima) {
-                ++mFrente;
-                mContig.push_back(Um(kGatilhoDoContig, centro, "Contig"));
-            }
-            MontarOContig();
-        }
-        mReads.erase(std::remove(mReads.begin(), mReads.end(), nullptr), mReads.end());
-        return;
     }
+    for (Copia& cp : mCopias) {
+        if (!Vivo(cp.p)) {
+            cp.p = nullptr;
+            Matar(cp.primer);
+            continue;
+        }
+        const Vector2 onde = Dobramento::Quicar(cp.p->GetPosition(), cp.v, deltaTime, 14.0f, Vector2(c.x, c.y + 100.0f),
+                                                Vector2(c.x + c.w, c.y + c.h));
+        Mover(cp.p, onde, cp.v);
+        if (Vivo(cp.primer)) {
+            Vector2 lado(-cp.v.y, cp.v.x);
+            if (lado.LengthSq() > 1e-4f) lado.Normalize();
+            Mover(cp.primer, onde + lado * 13.0f, cp.v);
+        }
+    }
+    mCopias.erase(std::remove_if(mCopias.begin(), mCopias.end(), [](const Copia& cp) { return cp.p == nullptr; }), mCopias.end());
+    Termometro(ciclo.temperatura, 40.0f, 100.0f);
+}
 
-    // ---- O CRISPR: a fita desce como parede, e so o alvo do guia se corta ----
+void Sabrina::AtualizarOShotgun(const float deltaTime) {
+    using namespace Sequenciamento;
+    const Sequenciamento::Degrau& g = mDegrauDoSequenciamento;
+    const SDL_FRect c = Campo();
+    if (mContig.empty()) {
+        for (Copia& cp : mCopias) {
+            Matar(cp.p);
+            Matar(cp.primer);
+        }
+        mCopias.clear();
+        mAtras = g.pontaInicial;
+        mFrente = g.pontaInicial;
+        mGiroDoContig = mSorteio.Real(0.0f, Math::TwoPi);
+        for (int k = 0; k < mAtras + mFrente + 1; ++k) mContig.push_back(Um(kGatilhoDoContig, GetPosition(), "Contig"));
+        MontarOContig();
+        mProximaRajada = mRelogio + 0.6f;
+    }
+    mGiroDoContig += g.giro * deltaTime;
+    const Vector2 centro(c.x + 0.5f * c.w, c.y + 0.42f * c.h);
+    // Uma conta do meio que sumiu (a onda do Ponto Extra) volta; a ponta que sumiu e aparada.
+    for (size_t k = 0; k < mContig.size(); ++k) {
+        if (Vivo(mContig[k])) continue;
+        const bool tras = k == 0 && mAtras > 0, frente = k + 1 == mContig.size() && mFrente > 0;
+        if (tras) {
+            mContig.erase(mContig.begin());
+            --mAtras;
+        } else if (frente) {
+            mContig.pop_back();
+            --mFrente;
+        } else {
+            mContig[k] = Um(kGatilhoDoContig, centro, "Contig");
+        }
+        MontarOContig();
+        break;
+    }
+    const auto contas = Contig(centro, mAtras, mFrente, g.espacamento, mGiroDoContig);
+    for (size_t k = 0; k < mContig.size() && k < contas.size(); ++k) {
+        const Vector2 r = contas[k] - centro;
+        Mover(mContig[k], contas[k], Vector2(-r.y, r.x) * g.giro);
+    }
+    if (contas.size() >= 2) Linha(contas.front(), contas.back(), kEsqueleto);
+
+    // A rajada de reads, em leque.
+    if (mRelogio >= mProximaRajada) {
+        mProximaRajada = mRelogio + g.entreRajadas;
+        const Vector2 de = GetPosition() + Vector2(0.0f, 36.0f);
+        for (BossProjectile* p : DispararEm(kGatilhoDoRead, de, g.tirosDaRajada, AnguloAteOAluno(de), g.aberturaDaRajada,
+                                            g.velocidadeDoRead)) {
+            Cara(p, "Read");
+            p->DefinirRotacaoPelaVelocidade(true);
+            mReads.push_back(p);
+        }
+        SomDoDisparo();
+    }
+    // O read que encosta no contig se monta nele, na ponta mais perto.
+    for (BossProjectile*& read : mReads) {
+        if (!Vivo(read)) {
+            read = nullptr;
+            continue;
+        }
+        const int lado = Encosta(read->GetPosition(), centro, mAtras, mFrente, g.espacamento, mGiroDoContig, g.alcanceDoContig);
+        if (lado == 0) continue;
+        Matar(read);
+        if (lado < 0 && mAtras < g.pontaMaxima) {
+            ++mAtras;
+            mContig.insert(mContig.begin(), Um(kGatilhoDoContig, centro, "Contig"));
+        } else if (lado > 0 && mFrente < g.pontaMaxima) {
+            ++mFrente;
+            mContig.push_back(Um(kGatilhoDoContig, centro, "Contig"));
+        }
+        MontarOContig();
+    }
+    mReads.erase(std::remove(mReads.begin(), mReads.end(), nullptr), mReads.end());
+}
+
+void Sabrina::AtualizarOCrispr(const float t, const float deltaTime) {
+    using namespace Sequenciamento;
+    const Sequenciamento::Degrau& g = mDegrauDoSequenciamento;
+    const SDL_FRect c = Campo();
     if (mGuia.empty()) {
         for (BossProjectile*& p : mContig) Matar(p);
         mContig.clear();
@@ -1462,4 +1509,25 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
     }
     mGenomas.erase(std::remove_if(mGenomas.begin(), mGenomas.end(), [](const FitaDoGenoma& f) { return f.contas.empty(); }),
                    mGenomas.end());
+}
+
+void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
+    const int etapa = Sequenciamento::EtapaNoTempo(t);
+    Varrer(t, 0.3f, 7.0f);
+    if (Vivo(mTesoura) && mRelogio >= mTesouraAte) Matar(mTesoura);
+
+    // ---- A PCR: cada ciclo dobra as copias, e o tiro derruba o primer ----
+    if (etapa == 0) {
+        AtualizarAPcr(t, deltaTime);
+        return;
+    }
+
+    // ---- O shotgun: os reads montam o contig, e as pontas se aparam ----
+    if (etapa == 1) {
+        AtualizarOShotgun(deltaTime);
+        return;
+    }
+
+    // ---- O CRISPR: a fita desce como parede, e so o alvo do guia se corta ----
+    AtualizarOCrispr(t, deltaTime);
 }

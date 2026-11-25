@@ -116,6 +116,18 @@ private:
     // ---- Fase 3: a sala do Elixir ----
 
     void AtualizarMasmorra(float t, float deltaTime);
+    /// As gosmas quicam pela sala; derrotadas todas, cai a chave, e quem encosta nela a leva.
+    void AtualizarAsGosmas(float deltaTime, const std::vector<Player*>& alunos);
+    /// As tochas: a apagada e enfeite; a acesa, o tiro do aluno apaga - e ela volta apagada.
+    void AtualizarAsTochas();
+    /// O bau aberto por quem tem a chave: o Elixir erguido acima da cabeca, e o bonus.
+    void AbrirOBau(float t, const std::vector<Player*>& alunos);
+    /// O professor acende cada tocha apagada, na ordem, e so entao vai ao bau - e bebe o Elixir, se chegar antes.
+    void AndarOProfessor(float t, float deltaTime);
+    /// O Elixir erguido em cima de quem abriu o bau, e os coracoes do bonus do aluno.
+    void MostrarOElixir(float t, const std::vector<Player*>& alunos);
+    /// A furia do professor: a espiral de pipes e o anel, do alto.
+    void AtirarNaFuria(float t);
     void NovoCiclo(float t);
     enum class Desfecho { EmAberto, DoAluno, DoProfessor };
     bool mRodadaNaSala = false;     ///< ja ha uma rodada (bau, gosmas, tochas) na sala

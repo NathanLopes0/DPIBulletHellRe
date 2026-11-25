@@ -122,6 +122,16 @@ private:
     // ---- Fase 2: o codigo (e a base que o aluno carrega) ----
 
     void AtualizarCodigo(float t, float deltaTime);
+    /// O pareamento: as ondas de uma base so, e a dominante troca a cada onda.
+    void AtualizarAsOndas(float t);
+    /// A transcricao: a polimerase le o molde e solta o RNA.
+    void AtualizarATranscricao(float tEtapa, float fitaY);
+    /// A traducao: o ribossomo le os codons, e cada aminoacido ataca do jeito da familia dele.
+    void AtualizarATraducao(float tEtapa, float deltaTime, float fitaY);
+    /// O ataque de um codon, pela familia do aminoacido: reto, em leque, teleguiado, em anel - ou a cadeia que cai.
+    void DispararOCodon(Pareamento::Familia fam, const Pareamento::Base* b, Vector2 onde, float mira);
+    /// Os positivos perseguem o aluno por um tempo.
+    void GuiarOsPositivos(float deltaTime);
     void DesmontarCodigo();
     /// A base de cada aluno: o selo que o segue, o anel na cor dela, as pontes de hidrogenio ate os
     /// tiros que pareiam, a absorcao, e as capsulas que trocam a base.
@@ -155,7 +165,6 @@ private:
     std::vector<Pareamento::Base> mMensageiro;
     std::vector<BossProjectile*> mLetrasDoMensageiro;
     int mCodons = 0;
-    char mUltimoAminoacido = 'M';
     struct Teleguiado {
         BossProjectile* p = nullptr;
         float ate = 0.0f;
@@ -167,6 +176,14 @@ private:
     // ---- Fase 3: a proteina ----
 
     void AtualizarProteina(float t, float deltaTime);
+    /// A cadeia: o polipeptideo persegue o aluno, cresce no fim, e o tiro e a protease.
+    void AtualizarACadeia(float deltaTime, Vector2 aluno);
+    /// O dobramento: a cadeia colapsa num globulo, que rola atras do aluno e borrifa agua.
+    void AtualizarOGlobulo(float deltaTime, Vector2 aluno);
+    /// O encaixe: o sitio ativo protege - e prende o tiro.
+    void AtualizarOEncaixe(float deltaTime);
+    /// A agua: gotas em movimento browniano, do alto; a que entra no sitio ocupado evapora.
+    void AtualizarAsGotas(float deltaTime, Vector2 centro);
     void DesmontarProteina();
     struct Residuo {
         BossProjectile* p = nullptr;
@@ -220,6 +237,12 @@ private:
     // ---- A repescagem: o sequenciamento ----
 
     void AtualizarSequenciamento(float t, float deltaTime);
+    /// A PCR: cada ciclo dobra as copias, e o tiro derruba o primer.
+    void AtualizarAPcr(float t, float deltaTime);
+    /// O shotgun: os reads montam o contig, e as pontas se aparam.
+    void AtualizarOShotgun(float deltaTime);
+    /// O CRISPR: a fita desce como parede, e so o alvo do guia se corta.
+    void AtualizarOCrispr(float t, float deltaTime);
     void DesmontarSequenciamento();
     // A PCR
     struct Copia {

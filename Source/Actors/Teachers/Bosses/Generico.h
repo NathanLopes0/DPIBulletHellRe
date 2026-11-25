@@ -48,6 +48,16 @@ private:
     /// Anda o relogio e o desempenho, passa a etapa quando da, e puxa o gatilho do ritmo dela.
     void AndarORelogio(float deltaTime);
     void ComecarEtapa(Tutorial::Etapa e);
+    /// O que cada etapa ensina, em cima de cada aluno: o manche, o botao e (no computador) a tecla dele.
+    void MostrarOsControles(Tutorial::Etapa etapa, float te, bool noComputador, const std::vector<Player*>& alunos);
+    /// A linha do aluno ao professor, tracejada e andando para cima: e para la que se atira.
+    void LinhaAteOProfessor(Vector2 sobre, float te);
+    /// A seta tracejada do aluno ate o Ponto Extra dele, que espera no campo.
+    void SetaAteOPontoExtra(const Player* a, size_t i, float te);
+    /// A nota que sobe e desce: cada sinal voa ate a ponta da barra, e a seta fica ao lado dela.
+    void MostrarOsSinaisDaNota();
+    /// O fim: o visto verde no meio do campo; e o letreiro, na chegada e no fim.
+    void MostrarOFim(Tutorial::Etapa etapa, float te);
 
     // ---- O desenho (Boss::Linha e companhia) ----
     static constexpr int kOrdemDasLinhas = 120;

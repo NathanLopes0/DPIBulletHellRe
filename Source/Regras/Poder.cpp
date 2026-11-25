@@ -300,361 +300,381 @@ namespace Poder {
         }
     }
 
+    namespace {
+        // A previa de cada poder (Previa): o desenho, em coordenadas de 0 a 1, e a legenda.
+
+        void PreviaDaMatriz(Quadro& q, const float t) {
+            constexpr float kSai = 0.5f;
+            // Na miniatura o laco anda devagar, para se ver cada volta.
+            constexpr float kPorLinha = 0.30f, kPorCelula = 0.025f;
+            for (int k = 0; k < kLinhasDaMatriz * kColunasDaMatriz; ++k) {
+                const Celula c = CelulaDaMatriz(k);
+                const float idade = t - kSai - static_cast<float>(c.i) * kPorLinha - static_cast<float>(c.j) * kPorCelula;
+                const float y = 0.80f - idade * 0.26f;
+                if (idade < 0.0f || y < kHugoY + 0.04f) continue;
+                q.pontos.push_back({Marca::TiroSeu, kAlunoX + c.dx / kEntreColunas * 0.045f, y});
+            }
+            const int i = std::clamp(static_cast<int>((t - kSai) / kPorLinha), 0, kLinhasDaMatriz - 1);
+            if (t < kSai) q.legenda = "for (i = 0; i < 5; i++)";
+            else if (t < kSai + static_cast<float>(kLinhasDaMatriz) * kPorLinha) {
+                q.legenda = "i = " + std::to_string(i) + ":  for (j = 0; j < 8; j++)";
+            } else q.legenda = "5 linhas x 8 colunas = 40 tiros";
+        }
+
+        void PreviaDaPilha(Quadro& q, const float t, const float hugoX) {
+            constexpr float kDevolve = 2.7f;
+            constexpr int kCabem = 8;
+            const bool empilhando = t < kDevolve;
+            const int n = empilhando ? std::min(kCabem, static_cast<int>(t / 0.3f))
+                                     : std::max(0, kCabem - static_cast<int>((t - kDevolve) / 0.13f));
+            for (const Ponto& p : Chuva(t, 9)) {
+                // O que chega perto da capivara e comido: entra na pilha.
+                if (p.y > 0.70f && std::fabs(p.x - kAlunoX) < 0.24f) continue;
+                q.pontos.push_back(p);
+            }
+            for (int b = 0; b < n; ++b) {
+                const float base = 0.97f - static_cast<float>(b) * 0.075f;
+                Caixa(q, Marca::Estrutura, 0.61f, base - 0.055f, 0.68f, base);
+            }
+            for (int p = 0; p < kCabem - n && !empilhando; ++p) {
+                const float u = (t - kDevolve - static_cast<float>(p) * 0.13f) / 0.55f;
+                if (u >= 0.0f && u <= 1.0f) q.pontos.push_back(Entre(Marca::TiroSeu, 0.56f, 0.90f, hugoX, kHugoY, u));
+            }
+            q.pontos.push_back({Marca::Figura, kAlunoX, 0.97f});
+            q.legenda = (empilhando ? "push(tiro)   pilha: " : "pop() no Hugo   pilha: ") + std::to_string(n);
+        }
+
+        void PreviaDoCongelar(Quadro& q, const float t, const float hugoX) {
+            constexpr float kPara = 1.2f, kVolta = 3.4f;
+            const bool parado = t >= kPara && t < kVolta;
+            const float doHugo = t < kPara ? t : (parado ? kPara : kPara + (t - kVolta));
+            for (const Ponto& p : Chuva(doHugo, 10)) q.pontos.push_back(p);
+            Atirar(q, t, hugoX, kHugoY);
+            if (parado) Caixa(q, Marca::Estrutura, hugoX - 0.06f, kHugoY - 0.09f, hugoX + 0.06f, kHugoY + 0.09f);
+            q.legenda = parado ? "HLT: o clock parou" : "clock: o Hugo atira";
+        }
+
+        void PreviaDaTransacao(Quadro& q, const float t) {
+            constexpr float kBegin = 0.6f, kFim = 3.3f, kSalva = 0.62f;
+            const float acertos[] = {1.3f, 1.9f, 2.5f};
+            float nota = kSalva;
+            for (const float a : acertos) {
+                if (t >= a && t < kFim) nota -= 0.09f;
+                if (t >= a - 0.25f && t < a) {
+                    q.pontos.push_back({Marca::TiroDoHugo, kAlunoX, kAlunoY - 0.30f * (a - t) / 0.25f - 0.04f});
+                }
+            }
+            for (const Ponto& p : Chuva(t, 6)) if (std::fabs(p.x - kAlunoX) > 0.08f) q.pontos.push_back(p);
+            // A barra da nota, embaixo: o trilho, o quanto vale e a marca do BEGIN.
+            q.tracos.push_back({Marca::Apagado, 0.10f, 0.985f, 0.90f, 0.985f});
+            q.tracos.push_back({Marca::TiroSeu, 0.10f, 0.985f, 0.10f + 0.80f * nota, 0.985f});
+            if (t >= kBegin) {
+                const float x = 0.10f + 0.80f * kSalva;
+                q.tracos.push_back({Marca::Figura, x, 0.93f, x, 1.0f});
+                if (t < kFim) Caixa(q, Marca::Estrutura, kAlunoX - 0.07f, kAlunoY - 0.13f, kAlunoX + 0.07f, kAlunoY + 0.07f);
+            }
+            if (t < kBegin) q.legenda = "a nota, antes";
+            else if (t < acertos[0]) q.legenda = "BEGIN: a nota está salva";
+            else if (t < kFim) q.legenda = "apanhando: a nota cai";
+            else q.legenda = "ROLLBACK: a nota voltou";
+        }
+
+        void PreviaDoTryCatch(Quadro& q, const float t, const float hugoX) {
+            constexpr float kAbre = 0.5f, kFecha = 3.9f;
+            const float capturas[] = {1.2f, 2.5f};
+            const bool dentro = t >= kAbre && t < kFecha;
+            for (const Ponto& p : Chuva(t, 6)) if (std::fabs(p.x - kAlunoX) > 0.10f) q.pontos.push_back(p);
+            q.legenda = t < kAbre ? "fora do try: acerto tira nota" : (dentro ? "try {" : "}");
+            for (const float c : capturas) {
+                if (t >= c - 0.3f && t < c) {
+                    q.pontos.push_back({Marca::TiroDoHugo, kAlunoX, kAlunoY - 0.05f - 0.30f * (c - t) / 0.3f});
+                }
+                const float u = (t - c) / 0.65f;
+                if (u < 0.0f || u > 1.0f) continue;
+                for (int k = 0; k < 5; ++k) {
+                    Ponto p = Entre(Marca::TiroSeu, kAlunoX, kAlunoY - 0.06f, hugoX, kHugoY, u);
+                    p.x += DesvioNoLeque(k, 5, kAberturaDoFinally) / kAberturaDoFinally * 0.22f * u * (1.0f - u * 0.6f);
+                    q.pontos.push_back(p);
+                }
+                q.legenda = u < 0.45f ? "catch (acerto): não tira nota" : "finally: um leque no Hugo";
+            }
+            if (dentro) {
+                // As chaves do bloco, em volta do aluno.
+                for (const float lado : {-1.0f, 1.0f}) {
+                    const float x = kAlunoX + lado * 0.085f;
+                    q.tracos.push_back({Marca::Estrutura, x, kAlunoY - 0.13f, x, kAlunoY + 0.08f});
+                    q.tracos.push_back({Marca::Estrutura, x, kAlunoY - 0.13f, x - lado * 0.02f, kAlunoY - 0.13f});
+                    q.tracos.push_back({Marca::Estrutura, x, kAlunoY + 0.08f, x - lado * 0.02f, kAlunoY + 0.08f});
+                }
+            }
+        }
+
+        void PreviaDaBuscaBinaria(Quadro& q, const float t) {
+            // Dezesseis tiros do Hugo; a cada passo some a metade mais perto do aluno.
+            constexpr float kComeca = 1.1f, kPorPasso = 0.55f;
+            std::vector<Ponto> chuva = Chuva(std::min(t, kComeca), 16);
+            std::sort(chuva.begin(), chuva.end(), [](const Ponto& a, const Ponto& b) {
+                const auto d = [](const Ponto& p) {
+                    const float dx = p.x - kAlunoX, dy = (p.y - kAlunoY) / kAspecto;
+                    return dx * dx + dy * dy;
+                };
+                return d(a) < d(b);
+            });
+            const int passos = t < kComeca ? 0 : std::min(4, 1 + static_cast<int>((t - kComeca) / kPorPasso));
+            size_t ficam = chuva.size();
+            for (int k = 0; k < passos; ++k) ficam -= static_cast<size_t>(LevaNoPasso(static_cast<int>(ficam)));
+            for (size_t k = chuva.size() - ficam; k < chuva.size(); ++k) q.pontos.push_back(chuva[k]);
+            if (passos > 0 && t - kComeca - static_cast<float>(passos - 1) * kPorPasso < 0.3f) {
+                Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, 0.12f + 0.05f * static_cast<float>(passos));
+            }
+            q.legenda = passos == 0 ? "busca binária: 16 tiros"
+                                    : "passo " + std::to_string(passos) + ": sobram " + std::to_string(ficam) +
+                                          (passos == 4 ? "  (log₂ 16 = 4)" : "");
+        }
+
+        void PreviaDoRodizio(Quadro& q, const float t) {
+            // Doze tiros do Hugo caindo; o Round Robin os divide em quatro grupos, e so o da vez
+            // anda - os outros esperam, parados.
+            constexpr float kComeca = 0.8f;
+            constexpr int kTiros = 12;
+            const float desde = std::max(0.0f, t - kComeca);
+            const int quanta = static_cast<int>(desde / kQuantumDoRodizio);
+            const int daVez = GrupoDaVez(desde);
+            for (int k = 0; k < kTiros; ++k) {
+                const int grupo = k % kGruposDoRodizio;
+                // O quanto este tiro ja andou: tudo antes do rodizio, e depois so os quanta dele.
+                int dele = quanta / kGruposDoRodizio + (grupo < quanta % kGruposDoRodizio ? 1 : 0);
+                float andou = std::min(t, kComeca) + kQuantumDoRodizio * static_cast<float>(dele);
+                if (t > kComeca && grupo == daVez) andou += desde - kQuantumDoRodizio * static_cast<float>(quanta);
+                q.pontos.push_back(Chuva(andou, kTiros)[static_cast<size_t>(k)]);
+            }
+            q.legenda = t < kComeca ? "Round Robin: 12 tiros, 4 grupos"
+                                    : "quantum: o grupo " + std::to_string(daVez + 1) + " de 4 anda";
+        }
+
+        void PreviaDaCameraEscura(Quadro& q, const float t, const float hugoX) {
+            // A parede com o furo, em cima do aluno: o tiro do Hugo que a cruza sai do outro lado
+            // do furo, de cabeca para baixo, e volta subindo.
+            constexpr float kParede = 0.64f, kFuro = 0.03f;
+            q.tracos.push_back({Marca::Estrutura, 0.04f, kParede, kAlunoX - kFuro, kParede});
+            q.tracos.push_back({Marca::Estrutura, kAlunoX + kFuro, kParede, 0.96f, kParede});
+            for (const Ponto& p : Chuva(t, 10)) {
+                if (p.y < kParede) {
+                    q.pontos.push_back(p);
+                    continue;
+                }
+                const Vector2 pelo = PeloFuro(Vector2(p.x, p.y), Vector2(kAlunoX, kParede));
+                if (pelo.y > kHugoY + 0.04f) q.pontos.push_back({Marca::TiroDoHugo, pelo.x, pelo.y});
+                // O raio de luz do lugar de cada um ao furo.
+                q.tracos.push_back({Marca::Apagado, pelo.x, pelo.y, kAlunoX, kParede});
+            }
+            Atirar(q, t, hugoX, kHugoY);
+            q.legenda = Fracao01(t / 3.0f) < 0.5f ? "câmera escura: o furo em cima de você"
+                                                  : "o tiro passa e volta de cabeça para baixo";
+        }
+
+        void PreviaDasKMedias(Quadro& q, const float t) {
+            // Dezesseis tiros do Hugo caindo; as k-medias os juntam em quatro grupos - uma linha de
+            // cada tiro ate o centroide dele -, e cada grupo vira um tiro so, que segue caindo.
+            constexpr float kAgrupa = 1.2f, kJunta = 1.9f;
+            constexpr int kTiros = 16;
+            const std::vector<Ponto> agora = Chuva(t, kTiros);
+            std::vector<Vector2> naHora;
+            for (const Ponto& p : Chuva(std::min(t, kAgrupa), kTiros)) naHora.emplace_back(p.x, p.y);
+            std::vector<int> grupos;
+            const std::vector<Vector2> centros = KMedias(naHora, kGruposDasKMedias, grupos);
+            if (t < kJunta) {
+                for (const Ponto& p : agora) q.pontos.push_back(p);
+                if (t >= kAgrupa) {
+                    for (size_t k = 0; k < agora.size(); ++k) {
+                        const Vector2 c = centros[static_cast<size_t>(grupos[k])];
+                        const float desce = agora[k].y - naHora[k].y;
+                        q.tracos.push_back({Marca::Estrutura, agora[k].x, agora[k].y, c.x, c.y + desce});
+                    }
+                }
+            } else {
+                for (size_t g = 0; g < centros.size(); ++g) {
+                    // O centroide desce com o grupo dele.
+                    float desce = 0.0f;
+                    int n = 0;
+                    for (size_t k = 0; k < agora.size(); ++k) {
+                        if (grupos[k] != static_cast<int>(g)) continue;
+                        desce += agora[k].y - naHora[k].y;
+                        ++n;
+                    }
+                    q.pontos.push_back({Marca::TiroDoHugo, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f)});
+                    Anel(q, Marca::Estrutura, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f), 0.035f);
+                }
+            }
+            q.legenda = t < kAgrupa ? "k-médias: 16 tiros"
+                                    : (t < kJunta ? "atribuição: cada tiro ao centróide"
+                                                  : "16 tiros viram 4, e de novo a cada 2 s");
+        }
+
+        void PreviaDoConverter(Quadro& q, const float t, const float hugoX) {
+            constexpr float kRejeita = 1.4f, kRaio = 0.17f;
+            const std::vector<Ponto> naHora = Chuva(std::min(t, kRejeita), 10);
+            const std::vector<Ponto> agora = Chuva(t, 10);
+            for (size_t k = 0; k < naHora.size(); ++k) {
+                const float dx = naHora[k].x - kAlunoX, dy = (naHora[k].y - kAlunoY) / kAspecto;
+                const bool perto = dx * dx + dy * dy <= kRaio * kRaio;
+                if (t < kRejeita || !perto) {
+                    q.pontos.push_back(agora[k]);
+                    continue;
+                }
+                const float u = (t - kRejeita) / 0.9f;
+                if (u <= 1.0f) q.pontos.push_back(Entre(Marca::TiroSeu, naHora[k].x, naHora[k].y, hugoX, kHugoY, u));
+            }
+            if (t >= kRejeita && t < kRejeita + 0.45f) {
+                Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, kRaio * (t - kRejeita) / 0.45f);
+            }
+            q.legenda = t < kRejeita ? "o autômato lê os tiros em volta" : "rejeita: eles viram seus";
+        }
+
+        void PreviaDosAgentes(Quadro& q, const float t, float& hugoX) {
+            hugoX = 0.80f;
+            for (int k = 0; k < 3; ++k) {
+                const float a = 2.0f * Math::Pi * (static_cast<float>(k) / 3.0f + 0.4f * t);
+                q.pontos.push_back({Marca::Figura, kAlunoX + std::cos(a) * 0.07f,
+                                    kAlunoY - 0.03f + std::sin(a) * 0.07f * kAspecto * 0.6f});
+            }
+            for (int k = 0; k < 5; ++k) {
+                const float u = Fracao01(t * 0.6f + static_cast<float>(k) / 5.0f);
+                q.pontos.push_back(NaCurva(Marca::TiroSeu, kAlunoX, kAlunoY - 0.06f, kAlunoX, 0.30f, hugoX, kHugoY, u));
+            }
+            q.legenda = "os seus tiros caçam o alvo";
+        }
+
+        void PreviaDaBalaDePrata(Quadro& q, const float t, const float hugoX) {
+            constexpr float kSai = 1.4f, kQuebra = 2.4f;
+            const bool blindado = t < kQuebra;
+            if (blindado) Anel(q, Marca::Estrutura, hugoX, kHugoY + 0.02f, 0.075f);
+            Atirar(q, t, hugoX, kHugoY, blindado ? 0.78f : 1.0f);
+            if (t >= kSai && t < kQuebra) {
+                q.pontos.push_back(NaCurva(Marca::Figura, 0.40f, 0.80f, 0.12f, 0.40f, hugoX, kHugoY,
+                                           (t - kSai) / (kQuebra - kSai)));
+            }
+            if (t < kSai) q.legenda = "o Hugo blindado: nada passa";
+            else if (t < kQuebra) q.legenda = "a bala de prata";
+            else q.legenda = "o escudo quebrou";
+        }
+
+        void PreviaDoPromiseAll(Quadro& q, const float t, const float hugoX) {
+            constexpr float kResolve = 1.2f, kChega = 2.2f, kVolta = 3.5f;
+            constexpr float kOrientadorX = 0.36f, kOrientadorY = 0.78f;
+            for (int k = 0; k < 12; ++k) {
+                const float a = 2.0f * Math::Pi * static_cast<float>(k) / 12.0f;
+                const float x = kOrientadorX + std::cos(a) * 0.06f, y = kOrientadorY + std::sin(a) * 0.06f * kAspecto;
+                if (t < kResolve) q.pontos.push_back({Marca::Apagado, x, y});
+                else if (t < kChega) q.pontos.push_back(Entre(Marca::TiroSeu, x, y, hugoX, kHugoY, (t - kResolve) / (kChega - kResolve)));
+                else if (t < kVolta && k % 2 == 0) {
+                    q.pontos.push_back(Entre(Marca::Figura, hugoX, kHugoY, x, y, (t - kChega) / (kVolta - kChega)));
+                }
+            }
+            q.pontos.push_back({Marca::Figura, kOrientadorX, kOrientadorY});
+            if (t < kResolve) q.legenda = "12 promessas, pendentes";
+            else if (t < kChega) q.legenda = "resolvem juntas, no Hugo";
+            else q.legenda = "e voltam, desfazendo tiros";
+        }
+
+        void PreviaDoMutex(Quadro& q, const float t) {
+            constexpr float kFecha = 0.5f, kAbre = 3.9f, kPorta = 0.52f;
+            const bool fechada = t >= kFecha && t < kAbre;
+            for (Ponto p : Chuva(t, 10)) {
+                if (fechada && p.y > kPorta - 0.03f) p.y = kPorta - 0.03f;   // esperando na porta
+                q.pontos.push_back(p);
+            }
+            if (fechada) {
+                q.tracos.push_back({Marca::Estrutura, 0.02f, kPorta, 0.98f, kPorta});
+                q.tracos.push_back({Marca::Estrutura, 0.02f, kPorta + 0.025f, 0.98f, kPorta + 0.025f});
+                // Um de cada vez.
+                const float volta = (t - kFecha) / 0.7f;
+                const float x = 0.18f + 0.64f * Fracao01(std::floor(volta) * 0.37f);
+                q.pontos.push_back({Marca::TiroDoHugo, x, kPorta + 0.03f + (1.0f - kPorta - 0.03f) * Fracao01(volta)});
+            }
+            if (t < kFecha) q.legenda = "sem trava: todos de uma vez";
+            else if (fechada) q.legenda = "P(s): fila na porta, passa um por vez";
+            else q.legenda = "V(s): quem esperava morreu";
+        }
+
+        void PreviaDoModoDeus(Quadro& q, const float t) {
+            // A chuva do Hugo; ligado, a borda do campo acende e, a cada passo, um raio sai do
+            // aluno e apaga a gota mais perto - que vira nota.
+            constexpr float kSai = 0.5f, kPasso = 0.25f, kAceso = 0.12f, kBorda = 0.02f;
+            const bool ligado = t >= kSai;
+            std::vector<Ponto> chuva = Chuva(t, 12);
+            if (ligado) {
+                std::vector<Vector2> onde;
+                for (const Ponto& p : chuva) onde.emplace_back(p.x, p.y);
+                const int alvo = MaisPerto(onde, Vector2(kAlunoX, kAlunoY));
+                const float noPasso = std::fmod(t - kSai, kPasso);
+                if (alvo >= 0 && noPasso < kAceso) {
+                    Ponto& p = chuva[static_cast<size_t>(alvo)];
+                    q.tracos.push_back({Marca::Figura, kAlunoX, kAlunoY - 0.03f, p.x, p.y});
+                    p.marca = Marca::Apagado;
+                }
+                // A borda que brilha.
+                const float a = kBorda, b = 1.0f - kBorda;
+                q.tracos.push_back({Marca::Figura, a, a, b, a});
+                q.tracos.push_back({Marca::Figura, b, a, b, b});
+                q.tracos.push_back({Marca::Figura, b, b, a, b});
+                q.tracos.push_back({Marca::Figura, a, b, a, a});
+            }
+            for (const Ponto& p : chuva) q.pontos.push_back(p);
+            q.legenda = !ligado ? "modo deus: os códigos do jogo"
+                                : (t < kSai + 1.6f ? "godMode = true" : "cada tiro apagado vira nota");
+        }
+
+        void PreviaDaHelice(Quadro& q, const float t) {
+            // A helice sobe do aluno, par a par, as duas fitas girando; o tiro do Hugo que encosta
+            // numa base da frente some.
+            constexpr float kSai = 0.3f, kDura = 2.6f, kPar = 0.15f, kSobe = 0.3f, kLargura = 0.06f;
+            std::vector<Ponto> frente;
+            for (int k = 0;; ++k) {
+                const float nasce = kSai + static_cast<float>(k) * kPar;
+                if (nasce > t || nasce > kSai + kDura) break;
+                const float idade = t - nasce;
+                const float y = kAlunoY - 0.05f - idade * kSobe;
+                if (y < kHugoY + 0.03f) continue;
+                const NaHelice a = Base(0, idade), b = Base(1, idade);
+                const float xa = kAlunoX + a.dx / kRaioDaHelice * kLargura, xb = kAlunoX + b.dx / kRaioDaHelice * kLargura;
+                q.pontos.push_back({Marca::TiroSeu, xa, y});
+                q.pontos.push_back({Marca::TiroSeu, xb, y});
+                q.tracos.push_back({Marca::Estrutura, xa, y, xb, y});
+                frente.push_back({Marca::TiroSeu, a.frente > 0.0f ? xa : xb, y});
+            }
+            for (const Ponto& p : Chuva(t, 10)) {
+                bool varrido = false;
+                for (const Ponto& f : frente) varrido = varrido || std::hypot(p.x - f.x, p.y - f.y) < 0.045f;
+                if (!varrido) q.pontos.push_back(p);
+            }
+            q.legenda = t < kSai + 0.9f ? "dupla hélice: A-T, C-G"
+                                        : (t < kSai + 2.0f ? "5' ATGGATTACA 3'" : "a fita da frente varre os tiros do Hugo");
+        }
+    }
+
     Quadro Previa(const Tipo tipo, const float tempo) {
         Quadro q;
         const float t = std::fmod(std::max(0.0f, tempo), kCicloDaPrevia);
         float hugoX = kHugoX;
 
         switch (tipo) {
-            case Tipo::Matriz: {
-                constexpr float kSai = 0.5f;
-                // Na miniatura o laco anda devagar, para se ver cada volta.
-                constexpr float kPorLinha = 0.30f, kPorCelula = 0.025f;
-                for (int k = 0; k < kLinhasDaMatriz * kColunasDaMatriz; ++k) {
-                    const Celula c = CelulaDaMatriz(k);
-                    const float idade = t - kSai - static_cast<float>(c.i) * kPorLinha - static_cast<float>(c.j) * kPorCelula;
-                    const float y = 0.80f - idade * 0.26f;
-                    if (idade < 0.0f || y < kHugoY + 0.04f) continue;
-                    q.pontos.push_back({Marca::TiroSeu, kAlunoX + c.dx / kEntreColunas * 0.045f, y});
-                }
-                const int i = std::clamp(static_cast<int>((t - kSai) / kPorLinha), 0, kLinhasDaMatriz - 1);
-                if (t < kSai) q.legenda = "for (i = 0; i < 5; i++)";
-                else if (t < kSai + static_cast<float>(kLinhasDaMatriz) * kPorLinha) {
-                    q.legenda = "i = " + std::to_string(i) + ":  for (j = 0; j < 8; j++)";
-                } else q.legenda = "5 linhas x 8 colunas = 40 tiros";
-                break;
-            }
-            case Tipo::Pilha: {
-                constexpr float kDevolve = 2.7f;
-                constexpr int kCabem = 8;
-                const bool empilhando = t < kDevolve;
-                const int n = empilhando ? std::min(kCabem, static_cast<int>(t / 0.3f))
-                                         : std::max(0, kCabem - static_cast<int>((t - kDevolve) / 0.13f));
-                for (const Ponto& p : Chuva(t, 9)) {
-                    // O que chega perto da capivara e comido: entra na pilha.
-                    if (p.y > 0.70f && std::fabs(p.x - kAlunoX) < 0.24f) continue;
-                    q.pontos.push_back(p);
-                }
-                for (int b = 0; b < n; ++b) {
-                    const float base = 0.97f - static_cast<float>(b) * 0.075f;
-                    Caixa(q, Marca::Estrutura, 0.61f, base - 0.055f, 0.68f, base);
-                }
-                for (int p = 0; p < kCabem - n && !empilhando; ++p) {
-                    const float u = (t - kDevolve - static_cast<float>(p) * 0.13f) / 0.55f;
-                    if (u >= 0.0f && u <= 1.0f) q.pontos.push_back(Entre(Marca::TiroSeu, 0.56f, 0.90f, hugoX, kHugoY, u));
-                }
-                q.pontos.push_back({Marca::Figura, kAlunoX, 0.97f});
-                q.legenda = (empilhando ? "push(tiro)   pilha: " : "pop() no Hugo   pilha: ") + std::to_string(n);
-                break;
-            }
-            case Tipo::Congelar: {
-                constexpr float kPara = 1.2f, kVolta = 3.4f;
-                const bool parado = t >= kPara && t < kVolta;
-                const float doHugo = t < kPara ? t : (parado ? kPara : kPara + (t - kVolta));
-                for (const Ponto& p : Chuva(doHugo, 10)) q.pontos.push_back(p);
-                Atirar(q, t, hugoX, kHugoY);
-                if (parado) Caixa(q, Marca::Estrutura, hugoX - 0.06f, kHugoY - 0.09f, hugoX + 0.06f, kHugoY + 0.09f);
-                q.legenda = parado ? "HLT: o clock parou" : "clock: o Hugo atira";
-                break;
-            }
-            case Tipo::Transacao: {
-                constexpr float kBegin = 0.6f, kFim = 3.3f, kSalva = 0.62f;
-                const float acertos[] = {1.3f, 1.9f, 2.5f};
-                float nota = kSalva;
-                for (const float a : acertos) {
-                    if (t >= a && t < kFim) nota -= 0.09f;
-                    if (t >= a - 0.25f && t < a) {
-                        q.pontos.push_back({Marca::TiroDoHugo, kAlunoX, kAlunoY - 0.30f * (a - t) / 0.25f - 0.04f});
-                    }
-                }
-                for (const Ponto& p : Chuva(t, 6)) if (std::fabs(p.x - kAlunoX) > 0.08f) q.pontos.push_back(p);
-                // A barra da nota, embaixo: o trilho, o quanto vale e a marca do BEGIN.
-                q.tracos.push_back({Marca::Apagado, 0.10f, 0.985f, 0.90f, 0.985f});
-                q.tracos.push_back({Marca::TiroSeu, 0.10f, 0.985f, 0.10f + 0.80f * nota, 0.985f});
-                if (t >= kBegin) {
-                    const float x = 0.10f + 0.80f * kSalva;
-                    q.tracos.push_back({Marca::Figura, x, 0.93f, x, 1.0f});
-                    if (t < kFim) Caixa(q, Marca::Estrutura, kAlunoX - 0.07f, kAlunoY - 0.13f, kAlunoX + 0.07f, kAlunoY + 0.07f);
-                }
-                if (t < kBegin) q.legenda = "a nota, antes";
-                else if (t < acertos[0]) q.legenda = "BEGIN: a nota está salva";
-                else if (t < kFim) q.legenda = "apanhando: a nota cai";
-                else q.legenda = "ROLLBACK: a nota voltou";
-                break;
-            }
-            case Tipo::TryCatch: {
-                constexpr float kAbre = 0.5f, kFecha = 3.9f;
-                const float capturas[] = {1.2f, 2.5f};
-                const bool dentro = t >= kAbre && t < kFecha;
-                for (const Ponto& p : Chuva(t, 6)) if (std::fabs(p.x - kAlunoX) > 0.10f) q.pontos.push_back(p);
-                q.legenda = t < kAbre ? "fora do try: acerto tira nota" : (dentro ? "try {" : "}");
-                for (const float c : capturas) {
-                    if (t >= c - 0.3f && t < c) {
-                        q.pontos.push_back({Marca::TiroDoHugo, kAlunoX, kAlunoY - 0.05f - 0.30f * (c - t) / 0.3f});
-                    }
-                    const float u = (t - c) / 0.65f;
-                    if (u < 0.0f || u > 1.0f) continue;
-                    for (int k = 0; k < 5; ++k) {
-                        Ponto p = Entre(Marca::TiroSeu, kAlunoX, kAlunoY - 0.06f, hugoX, kHugoY, u);
-                        p.x += DesvioNoLeque(k, 5, kAberturaDoFinally) / kAberturaDoFinally * 0.22f * u * (1.0f - u * 0.6f);
-                        q.pontos.push_back(p);
-                    }
-                    q.legenda = u < 0.45f ? "catch (acerto): não tira nota" : "finally: um leque no Hugo";
-                }
-                if (dentro) {
-                    // As chaves do bloco, em volta do aluno.
-                    for (const float lado : {-1.0f, 1.0f}) {
-                        const float x = kAlunoX + lado * 0.085f;
-                        q.tracos.push_back({Marca::Estrutura, x, kAlunoY - 0.13f, x, kAlunoY + 0.08f});
-                        q.tracos.push_back({Marca::Estrutura, x, kAlunoY - 0.13f, x - lado * 0.02f, kAlunoY - 0.13f});
-                        q.tracos.push_back({Marca::Estrutura, x, kAlunoY + 0.08f, x - lado * 0.02f, kAlunoY + 0.08f});
-                    }
-                }
-                break;
-            }
-            case Tipo::BuscaBinaria: {
-                // Dezesseis tiros do Hugo; a cada passo some a metade mais perto do aluno.
-                constexpr float kComeca = 1.1f, kPorPasso = 0.55f;
-                std::vector<Ponto> chuva = Chuva(std::min(t, kComeca), 16);
-                std::sort(chuva.begin(), chuva.end(), [](const Ponto& a, const Ponto& b) {
-                    const auto d = [](const Ponto& p) {
-                        const float dx = p.x - kAlunoX, dy = (p.y - kAlunoY) / kAspecto;
-                        return dx * dx + dy * dy;
-                    };
-                    return d(a) < d(b);
-                });
-                const int passos = t < kComeca ? 0 : std::min(4, 1 + static_cast<int>((t - kComeca) / kPorPasso));
-                size_t ficam = chuva.size();
-                for (int k = 0; k < passos; ++k) ficam -= static_cast<size_t>(LevaNoPasso(static_cast<int>(ficam)));
-                for (size_t k = chuva.size() - ficam; k < chuva.size(); ++k) q.pontos.push_back(chuva[k]);
-                if (passos > 0 && t - kComeca - static_cast<float>(passos - 1) * kPorPasso < 0.3f) {
-                    Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, 0.12f + 0.05f * static_cast<float>(passos));
-                }
-                q.legenda = passos == 0 ? "busca binária: 16 tiros"
-                                        : "passo " + std::to_string(passos) + ": sobram " + std::to_string(ficam) +
-                                              (passos == 4 ? "  (log₂ 16 = 4)" : "");
-                break;
-            }
-            case Tipo::Rodizio: {
-                // Doze tiros do Hugo caindo; o Round Robin os divide em quatro grupos, e so o da vez
-                // anda - os outros esperam, parados.
-                constexpr float kComeca = 0.8f;
-                constexpr int kTiros = 12;
-                const float desde = std::max(0.0f, t - kComeca);
-                const int quanta = static_cast<int>(desde / kQuantumDoRodizio);
-                const int daVez = GrupoDaVez(desde);
-                for (int k = 0; k < kTiros; ++k) {
-                    const int grupo = k % kGruposDoRodizio;
-                    // O quanto este tiro ja andou: tudo antes do rodizio, e depois so os quanta dele.
-                    int dele = quanta / kGruposDoRodizio + (grupo < quanta % kGruposDoRodizio ? 1 : 0);
-                    float andou = std::min(t, kComeca) + kQuantumDoRodizio * static_cast<float>(dele);
-                    if (t > kComeca && grupo == daVez) andou += desde - kQuantumDoRodizio * static_cast<float>(quanta);
-                    q.pontos.push_back(Chuva(andou, kTiros)[static_cast<size_t>(k)]);
-                }
-                q.legenda = t < kComeca ? "Round Robin: 12 tiros, 4 grupos"
-                                        : "quantum: o grupo " + std::to_string(daVez + 1) + " de 4 anda";
-                break;
-            }
-            case Tipo::CameraEscura: {
-                // A parede com o furo, em cima do aluno: o tiro do Hugo que a cruza sai do outro lado
-                // do furo, de cabeca para baixo, e volta subindo.
-                constexpr float kParede = 0.64f, kFuro = 0.03f;
-                q.tracos.push_back({Marca::Estrutura, 0.04f, kParede, kAlunoX - kFuro, kParede});
-                q.tracos.push_back({Marca::Estrutura, kAlunoX + kFuro, kParede, 0.96f, kParede});
-                for (const Ponto& p : Chuva(t, 10)) {
-                    if (p.y < kParede) {
-                        q.pontos.push_back(p);
-                        continue;
-                    }
-                    const Vector2 pelo = PeloFuro(Vector2(p.x, p.y), Vector2(kAlunoX, kParede));
-                    if (pelo.y > kHugoY + 0.04f) q.pontos.push_back({Marca::TiroDoHugo, pelo.x, pelo.y});
-                    // O raio de luz do lugar de cada um ao furo.
-                    q.tracos.push_back({Marca::Apagado, pelo.x, pelo.y, kAlunoX, kParede});
-                }
-                Atirar(q, t, hugoX, kHugoY);
-                q.legenda = Fracao01(t / 3.0f) < 0.5f ? "câmera escura: o furo em cima de você"
-                                                      : "o tiro passa e volta de cabeça para baixo";
-                break;
-            }
-            case Tipo::KMedias: {
-                // Dezesseis tiros do Hugo caindo; as k-medias os juntam em quatro grupos - uma linha de
-                // cada tiro ate o centroide dele -, e cada grupo vira um tiro so, que segue caindo.
-                constexpr float kAgrupa = 1.2f, kJunta = 1.9f;
-                constexpr int kTiros = 16;
-                const std::vector<Ponto> agora = Chuva(t, kTiros);
-                std::vector<Vector2> naHora;
-                for (const Ponto& p : Chuva(std::min(t, kAgrupa), kTiros)) naHora.emplace_back(p.x, p.y);
-                std::vector<int> grupos;
-                const std::vector<Vector2> centros = KMedias(naHora, kGruposDasKMedias, grupos);
-                if (t < kJunta) {
-                    for (const Ponto& p : agora) q.pontos.push_back(p);
-                    if (t >= kAgrupa) {
-                        for (size_t k = 0; k < agora.size(); ++k) {
-                            const Vector2 c = centros[static_cast<size_t>(grupos[k])];
-                            const float desce = agora[k].y - naHora[k].y;
-                            q.tracos.push_back({Marca::Estrutura, agora[k].x, agora[k].y, c.x, c.y + desce});
-                        }
-                    }
-                } else {
-                    for (size_t g = 0; g < centros.size(); ++g) {
-                        // O centroide desce com o grupo dele.
-                        float desce = 0.0f;
-                        int n = 0;
-                        for (size_t k = 0; k < agora.size(); ++k) {
-                            if (grupos[k] != static_cast<int>(g)) continue;
-                            desce += agora[k].y - naHora[k].y;
-                            ++n;
-                        }
-                        q.pontos.push_back({Marca::TiroDoHugo, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f)});
-                        Anel(q, Marca::Estrutura, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f), 0.035f);
-                    }
-                }
-                q.legenda = t < kAgrupa ? "k-médias: 16 tiros"
-                                        : (t < kJunta ? "atribuição: cada tiro ao centróide"
-                                                      : "16 tiros viram 4, e de novo a cada 2 s");
-                break;
-            }
-            case Tipo::Converter: {
-                constexpr float kRejeita = 1.4f, kRaio = 0.17f;
-                const std::vector<Ponto> naHora = Chuva(std::min(t, kRejeita), 10);
-                const std::vector<Ponto> agora = Chuva(t, 10);
-                for (size_t k = 0; k < naHora.size(); ++k) {
-                    const float dx = naHora[k].x - kAlunoX, dy = (naHora[k].y - kAlunoY) / kAspecto;
-                    const bool perto = dx * dx + dy * dy <= kRaio * kRaio;
-                    if (t < kRejeita || !perto) {
-                        q.pontos.push_back(agora[k]);
-                        continue;
-                    }
-                    const float u = (t - kRejeita) / 0.9f;
-                    if (u <= 1.0f) q.pontos.push_back(Entre(Marca::TiroSeu, naHora[k].x, naHora[k].y, hugoX, kHugoY, u));
-                }
-                if (t >= kRejeita && t < kRejeita + 0.45f) {
-                    Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, kRaio * (t - kRejeita) / 0.45f);
-                }
-                q.legenda = t < kRejeita ? "o autômato lê os tiros em volta" : "rejeita: eles viram seus";
-                break;
-            }
-            case Tipo::Agentes: {
-                hugoX = 0.80f;
-                for (int k = 0; k < 3; ++k) {
-                    const float a = 2.0f * Math::Pi * (static_cast<float>(k) / 3.0f + 0.4f * t);
-                    q.pontos.push_back({Marca::Figura, kAlunoX + std::cos(a) * 0.07f,
-                                        kAlunoY - 0.03f + std::sin(a) * 0.07f * kAspecto * 0.6f});
-                }
-                for (int k = 0; k < 5; ++k) {
-                    const float u = Fracao01(t * 0.6f + static_cast<float>(k) / 5.0f);
-                    q.pontos.push_back(NaCurva(Marca::TiroSeu, kAlunoX, kAlunoY - 0.06f, kAlunoX, 0.30f, hugoX, kHugoY, u));
-                }
-                q.legenda = "os seus tiros caçam o alvo";
-                break;
-            }
-            case Tipo::BalaDePrata: {
-                constexpr float kSai = 1.4f, kQuebra = 2.4f;
-                const bool blindado = t < kQuebra;
-                if (blindado) Anel(q, Marca::Estrutura, hugoX, kHugoY + 0.02f, 0.075f);
-                Atirar(q, t, hugoX, kHugoY, blindado ? 0.78f : 1.0f);
-                if (t >= kSai && t < kQuebra) {
-                    q.pontos.push_back(NaCurva(Marca::Figura, 0.40f, 0.80f, 0.12f, 0.40f, hugoX, kHugoY,
-                                               (t - kSai) / (kQuebra - kSai)));
-                }
-                if (t < kSai) q.legenda = "o Hugo blindado: nada passa";
-                else if (t < kQuebra) q.legenda = "a bala de prata";
-                else q.legenda = "o escudo quebrou";
-                break;
-            }
-            case Tipo::PromiseAll: {
-                constexpr float kResolve = 1.2f, kChega = 2.2f, kVolta = 3.5f;
-                constexpr float kOrientadorX = 0.36f, kOrientadorY = 0.78f;
-                for (int k = 0; k < 12; ++k) {
-                    const float a = 2.0f * Math::Pi * static_cast<float>(k) / 12.0f;
-                    const float x = kOrientadorX + std::cos(a) * 0.06f, y = kOrientadorY + std::sin(a) * 0.06f * kAspecto;
-                    if (t < kResolve) q.pontos.push_back({Marca::Apagado, x, y});
-                    else if (t < kChega) q.pontos.push_back(Entre(Marca::TiroSeu, x, y, hugoX, kHugoY, (t - kResolve) / (kChega - kResolve)));
-                    else if (t < kVolta && k % 2 == 0) {
-                        q.pontos.push_back(Entre(Marca::Figura, hugoX, kHugoY, x, y, (t - kChega) / (kVolta - kChega)));
-                    }
-                }
-                q.pontos.push_back({Marca::Figura, kOrientadorX, kOrientadorY});
-                if (t < kResolve) q.legenda = "12 promessas, pendentes";
-                else if (t < kChega) q.legenda = "resolvem juntas, no Hugo";
-                else q.legenda = "e voltam, desfazendo tiros";
-                break;
-            }
-            case Tipo::Mutex: {
-                constexpr float kFecha = 0.5f, kAbre = 3.9f, kPorta = 0.52f;
-                const bool fechada = t >= kFecha && t < kAbre;
-                for (Ponto p : Chuva(t, 10)) {
-                    if (fechada && p.y > kPorta - 0.03f) p.y = kPorta - 0.03f;   // esperando na porta
-                    q.pontos.push_back(p);
-                }
-                if (fechada) {
-                    q.tracos.push_back({Marca::Estrutura, 0.02f, kPorta, 0.98f, kPorta});
-                    q.tracos.push_back({Marca::Estrutura, 0.02f, kPorta + 0.025f, 0.98f, kPorta + 0.025f});
-                    // Um de cada vez.
-                    const float volta = (t - kFecha) / 0.7f;
-                    const float x = 0.18f + 0.64f * Fracao01(std::floor(volta) * 0.37f);
-                    q.pontos.push_back({Marca::TiroDoHugo, x, kPorta + 0.03f + (1.0f - kPorta - 0.03f) * Fracao01(volta)});
-                }
-                if (t < kFecha) q.legenda = "sem trava: todos de uma vez";
-                else if (fechada) q.legenda = "P(s): fila na porta, passa um por vez";
-                else q.legenda = "V(s): quem esperava morreu";
-                break;
-            }
-            case Tipo::ModoDeus: {
-                // A chuva do Hugo; ligado, a borda do campo acende e, a cada passo, um raio sai do
-                // aluno e apaga a gota mais perto - que vira nota.
-                constexpr float kSai = 0.5f, kPasso = 0.25f, kAceso = 0.12f, kBorda = 0.02f;
-                const bool ligado = t >= kSai;
-                std::vector<Ponto> chuva = Chuva(t, 12);
-                if (ligado) {
-                    std::vector<Vector2> onde;
-                    for (const Ponto& p : chuva) onde.emplace_back(p.x, p.y);
-                    const int alvo = MaisPerto(onde, Vector2(kAlunoX, kAlunoY));
-                    const float noPasso = std::fmod(t - kSai, kPasso);
-                    if (alvo >= 0 && noPasso < kAceso) {
-                        Ponto& p = chuva[static_cast<size_t>(alvo)];
-                        q.tracos.push_back({Marca::Figura, kAlunoX, kAlunoY - 0.03f, p.x, p.y});
-                        p.marca = Marca::Apagado;
-                    }
-                    // A borda que brilha.
-                    const float a = kBorda, b = 1.0f - kBorda;
-                    q.tracos.push_back({Marca::Figura, a, a, b, a});
-                    q.tracos.push_back({Marca::Figura, b, a, b, b});
-                    q.tracos.push_back({Marca::Figura, b, b, a, b});
-                    q.tracos.push_back({Marca::Figura, a, b, a, a});
-                }
-                for (const Ponto& p : chuva) q.pontos.push_back(p);
-                q.legenda = !ligado ? "modo deus: os códigos do jogo"
-                                    : (t < kSai + 1.6f ? "godMode = true" : "cada tiro apagado vira nota");
-                break;
-            }
-            case Tipo::Helice: {
-                // A helice sobe do aluno, par a par, as duas fitas girando; o tiro do Hugo que encosta
-                // numa base da frente some.
-                constexpr float kSai = 0.3f, kDura = 2.6f, kPar = 0.15f, kSobe = 0.3f, kLargura = 0.06f;
-                std::vector<Ponto> frente;
-                for (int k = 0;; ++k) {
-                    const float nasce = kSai + static_cast<float>(k) * kPar;
-                    if (nasce > t || nasce > kSai + kDura) break;
-                    const float idade = t - nasce;
-                    const float y = kAlunoY - 0.05f - idade * kSobe;
-                    if (y < kHugoY + 0.03f) continue;
-                    const NaHelice a = Base(0, idade), b = Base(1, idade);
-                    const float xa = kAlunoX + a.dx / kRaioDaHelice * kLargura, xb = kAlunoX + b.dx / kRaioDaHelice * kLargura;
-                    q.pontos.push_back({Marca::TiroSeu, xa, y});
-                    q.pontos.push_back({Marca::TiroSeu, xb, y});
-                    q.tracos.push_back({Marca::Estrutura, xa, y, xb, y});
-                    frente.push_back({Marca::TiroSeu, a.frente > 0.0f ? xa : xb, y});
-                }
-                for (const Ponto& p : Chuva(t, 10)) {
-                    bool varrido = false;
-                    for (const Ponto& f : frente) varrido = varrido || std::hypot(p.x - f.x, p.y - f.y) < 0.045f;
-                    if (!varrido) q.pontos.push_back(p);
-                }
-                q.legenda = t < kSai + 0.9f ? "dupla hélice: A-T, C-G"
-                                            : (t < kSai + 2.0f ? "5' ATGGATTACA 3'" : "a fita da frente varre os tiros do Hugo");
-                break;
-            }
+            case Tipo::Matriz: PreviaDaMatriz(q, t); break;
+            case Tipo::Pilha: PreviaDaPilha(q, t, hugoX); break;
+            case Tipo::Congelar: PreviaDoCongelar(q, t, hugoX); break;
+            case Tipo::Transacao: PreviaDaTransacao(q, t); break;
+            case Tipo::TryCatch: PreviaDoTryCatch(q, t, hugoX); break;
+            case Tipo::BuscaBinaria: PreviaDaBuscaBinaria(q, t); break;
+            case Tipo::Rodizio: PreviaDoRodizio(q, t); break;
+            case Tipo::CameraEscura: PreviaDaCameraEscura(q, t, hugoX); break;
+            case Tipo::KMedias: PreviaDasKMedias(q, t); break;
+            case Tipo::Converter: PreviaDoConverter(q, t, hugoX); break;
+            case Tipo::Agentes: PreviaDosAgentes(q, t, hugoX); break;
+            case Tipo::BalaDePrata: PreviaDaBalaDePrata(q, t, hugoX); break;
+            case Tipo::PromiseAll: PreviaDoPromiseAll(q, t, hugoX); break;
+            case Tipo::Mutex: PreviaDoMutex(q, t); break;
+            case Tipo::ModoDeus: PreviaDoModoDeus(q, t); break;
+            case Tipo::Helice: PreviaDaHelice(q, t); break;
             case Tipo::Nenhum:
                 break;
         }

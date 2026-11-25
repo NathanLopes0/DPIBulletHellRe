@@ -108,9 +108,25 @@ private:
 
     void AtualizarConvolucao(float t, float deltaTime);
     void DesmontarConvolucao();
+    /// O gradiente: a seta de cada celula aponta para o aluno, e solta os tiros do fluxo.
+    void AtualizarGradiente(float t, Vector2 aluno);
+    /// Os tiros do gradiente seguem a seta da celula em que estao (e morrem com o tempo).
+    void GuiarOsFluxos(float t, float deltaTime);
+    /// A imagem que o aluno pinta com os tiros dele, e o mapa de ativacao que apaga sozinho.
+    void PintarAImagem(float deltaTime);
+    /// As ativacoes que passaram do limiar piscam, e disparam.
+    void DispararAsAtivacoes(float t);
+    /// A janela 3x3 do filtro gaussiano: um passo, e a resposta dele.
+    void PassoDaJanela(float t, float t1);
+    /// O segundo filtro, o de borda (o Dificil): vem de tras para a frente.
+    void PassoDaBorda(float t, float t1);
+    /// O pooling: o maximo de cada bloco, e no fim o vetor (dois aneis no Dificil).
+    void AtualizarPooling(float t, float t2);
     [[nodiscard]] Vector2 CentroDaCelula(int c, int l) const;
     [[nodiscard]] std::pair<int, int> CelulaEm(Vector2 p) const;
     [[nodiscard]] Vector2 TamanhoDaCelula() const;
+    /// Os cantos (de cima a esquerda e de baixo a direita) da celula, no campo.
+    [[nodiscard]] std::pair<Vector2, Vector2> CantosDaCelula(int col, int lin) const;
     Convolucao::Grade mBrilho;
     Convolucao::Grade mAtivacao;   ///< o mapa de ativacao, so para ver (apaga sozinho)
     std::vector<int> mBins;
@@ -157,6 +173,16 @@ private:
 
     void AtualizarRede(float t, float deltaTime);
     void DesmontarRede();
+    /// As ligacoes e os atalhos: as fortes levam pulso, e as de um neuronio fora se apagam.
+    void DesenharAsLigacoes(int etapa);
+    /// Os pulsos por vir: a ligacao acende ate o pulso sair, e os que ja podem sair saem.
+    void SoltarOsPulsos();
+    /// Os neuronios: no lugar, acesos quando disparam; o derrubado volta depois do dropout.
+    void AtualizarOsNeuronios();
+    /// Os sinais andam; quem chega soma no neuronio, e o que passou do limiar dispara.
+    void AndarOsSinais();
+    /// A retropropagacao: a saida em cima do aluno devia disparar, e as outras nao.
+    void TreinarARede(float t, int etapa);
     void MontarARede(int etapa);
     [[nodiscard]] Vector2 LugarDoNeuronio(int camada, int i) const;
     void Disparou(int camada, int i);
@@ -217,6 +243,20 @@ private:
     void AtualizarLaboratorio(float t, float deltaTime);
     void DesmontarLaboratorio();
     [[nodiscard]] Vector2 Normalizado(Vector2 noCampo) const;
+    /// O proximo passo do decoder: a mascara nova, e o atalho de cada aluno.
+    void SegmentarComODecoder(float t, int etapa, const SDL_FRect& c, const std::vector<Vector2>& alunos);
+    /// As mascaras no campo: enchem, viram pixels e somem.
+    void AtualizarMascaras(float t, const SDL_FRect& c);
+    /// A recorrente: o rastro, o fantasma da previsao e os tiros nele.
+    void AtualizarRecorrente(float t, float tEtapa, const SDL_FRect& c, const std::vector<Vector2>& alunos);
+    /// Os colegas do laboratorio: nascem, andam e atiram de mentira (o detector os ve).
+    void MoverOsColegas(float t, float deltaTime, const SDL_FRect& c, float topo, float chao);
+    /// A confianca do detector em cada aluno: o quanto ele anda e atira.
+    void MedirOsAlunos(float deltaTime);
+    /// As caixas de todos, a varredura, o NMS e o cerco de quem ficou.
+    void RodadaDoDetector(float t, float tEtapa, const SDL_FRect& c, float topo, float chao, const std::vector<Vector2>& alunos);
+    /// O rastreador: a caixa segue o aluno detectado, e os cantos atiram nele.
+    void Rastrear(const std::vector<Vector2>& alunos);
     // A segmentacao
     struct MascaraEmCampo {
         Laboratorio::Mascara m;

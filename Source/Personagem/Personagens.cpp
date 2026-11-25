@@ -294,97 +294,82 @@ namespace {
     }
 }
 
-Catalogo LerCatalogo(const std::string& textoJson) {
+namespace {
 
-    Catalogo cat;
+    /// As categorias: cada uma com as pecas e as cores dela.
+    void LerCategorias(const nlohmann::json& raiz, Catalogo& cat) {
+        std::set<std::string> idsVistos;
+        for (const auto& jc : raiz["categorias"]) {
 
-    nlohmann::json raiz;
-    try {
-        raiz = LerJsonDeDados(textoJson);
-    }
-    catch (const std::exception& e) {
-        cat.problemas.emplace_back(std::string("personagens.json nao e um JSON valido: ") + e.what());
-        return cat;
-    }
-
-    if (!raiz.is_object()) {
-        cat.problemas.emplace_back("personagens.json deveria ser um objeto");
-        return cat;
-    }
-
-    // ---- Categorias ----
-    if (!raiz.contains("categorias") || !raiz["categorias"].is_array()) {
-        cat.problemas.emplace_back("falta \"categorias\": sem elas nao ha o que escolher");
-        return cat;
-    }
-
-    std::set<std::string> idsVistos;
-    for (const auto& jc : raiz["categorias"]) {
-
-        if (!jc.is_object()) {
-            cat.problemas.emplace_back("ha uma categoria que nao e um objeto; descartada");
-            continue;
-        }
-
-        Categoria c;
-        c.id = Texto(jc, "id");
-        c.nome = Texto(jc, "nome", c.id);
-        c.ordem = Inteiro(jc, "ordem", 0);
-
-        if (!IdServe(c.id)) {
-            cat.problemas.emplace_back("categoria com \"id\" invalido (\"" + c.id +
-                                       "\"); descartada");
-            continue;
-        }
-        if (!idsVistos.insert(c.id).second) {
-            cat.problemas.emplace_back("a categoria \"" + c.id + "\" aparece duas vezes;"
-                                       " a segunda foi descartada");
-            continue;
-        }
-
-        const std::string onde = "categoria " + c.id + ": ";
-        LerPecas(jc, c, onde, cat.problemas);
-        LerCores(jc, c, onde, cat.problemas);
-
-        if (c.pecas.empty() || c.cores.empty()) {
-            cat.problemas.emplace_back(onde + "ficou sem peca ou sem cor; a categoria inteira"
-                                       " foi descartada");
-            continue;
-        }
-
-        cat.categorias.push_back(c);
-    }
-
-    // ---- Camadas fixas ----
-    if (raiz.contains("fixas") && raiz["fixas"].is_array()) {
-        for (const auto& jf : raiz["fixas"]) {
-            if (!jf.is_object()) continue;
-            CamadaFixa f;
-            f.arte = Texto(jf, "arte");
-            f.ordem = Inteiro(jf, "ordem", 0);
-            if (f.arte.empty()) {
-                cat.problemas.emplace_back("ha uma camada fixa sem \"arte\"; descartada");
+            if (!jc.is_object()) {
+                cat.problemas.emplace_back("ha uma categoria que nao e um objeto; descartada");
                 continue;
             }
-            cat.fixas.push_back(f);
+
+            Categoria c;
+            c.id = Texto(jc, "id");
+            c.nome = Texto(jc, "nome", c.id);
+            c.ordem = Inteiro(jc, "ordem", 0);
+
+            if (!IdServe(c.id)) {
+                cat.problemas.emplace_back("categoria com \"id\" invalido (\"" + c.id +
+                                           "\"); descartada");
+                continue;
+            }
+            if (!idsVistos.insert(c.id).second) {
+                cat.problemas.emplace_back("a categoria \"" + c.id + "\" aparece duas vezes;"
+                                           " a segunda foi descartada");
+                continue;
+            }
+
+            const std::string onde = "categoria " + c.id + ": ";
+            LerPecas(jc, c, onde, cat.problemas);
+            LerCores(jc, c, onde, cat.problemas);
+
+            if (c.pecas.empty() || c.cores.empty()) {
+                cat.problemas.emplace_back(onde + "ficou sem peca ou sem cor; a categoria inteira"
+                                           " foi descartada");
+                continue;
+            }
+
+            cat.categorias.push_back(c);
         }
     }
 
-    // ---- A formatura ----
-    if (raiz.contains("formatura")) {
-        const auto& jf = raiz["formatura"];
-        Formatura f;
-        if (jf.is_object()) {
-            f.materia = Texto(jf, "materia");
-            f.arte = Texto(jf, "arte");
-            f.ordem = Inteiro(jf, "ordem", 0);
+    /// As camadas fixas: o que todo personagem desenha.
+    void LerFixas(const nlohmann::json& raiz, Catalogo& cat) {
+        if (raiz.contains("fixas") && raiz["fixas"].is_array()) {
+            for (const auto& jf : raiz["fixas"]) {
+                if (!jf.is_object()) continue;
+                CamadaFixa f;
+                f.arte = Texto(jf, "arte");
+                f.ordem = Inteiro(jf, "ordem", 0);
+                if (f.arte.empty()) {
+                    cat.problemas.emplace_back("ha uma camada fixa sem \"arte\"; descartada");
+                    continue;
+                }
+                cat.fixas.push_back(f);
+            }
         }
-        if (f.Existe()) cat.formatura = f;
-        else cat.problemas.emplace_back("a \"formatura\" precisa de \"materia\" e de \"arte\"; ignorada");
     }
 
-    // ---- Ordens repetidas ----
-    {
+    /// A formatura: a camada de quem passou na materia dela.
+    void LerFormatura(const nlohmann::json& raiz, Catalogo& cat) {
+        if (raiz.contains("formatura")) {
+            const auto& jf = raiz["formatura"];
+            Formatura f;
+            if (jf.is_object()) {
+                f.materia = Texto(jf, "materia");
+                f.arte = Texto(jf, "arte");
+                f.ordem = Inteiro(jf, "ordem", 0);
+            }
+            if (f.Existe()) cat.formatura = f;
+            else cat.problemas.emplace_back("a \"formatura\" precisa de \"materia\" e de \"arte\"; ignorada");
+        }
+    }
+
+    /// Duas camadas na mesma ordem de desenho: uma tamparia a outra ao acaso.
+    void ConferirAsOrdens(Catalogo& cat) {
         std::map<int, std::string> porOrdem;
         for (const auto& c : cat.categorias) {
             const auto achado = porOrdem.find(c.ordem);
@@ -408,48 +393,79 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         }
     }
 
-    // ---- Combinacoes prontas ----
-    if (raiz.contains("predefinidas") && raiz["predefinidas"].is_array()) {
+    /// As combinacoes prontas, consertadas como um save seria.
+    void LerPredefinidas(const nlohmann::json& raiz, Catalogo& cat) {
+        if (raiz.contains("predefinidas") && raiz["predefinidas"].is_array()) {
 
-        std::set<std::string> vistos;
-        for (const auto& jp : raiz["predefinidas"]) {
+            std::set<std::string> vistos;
+            for (const auto& jp : raiz["predefinidas"]) {
 
-            if (!jp.is_object()) continue;
+                if (!jp.is_object()) continue;
 
-            Predefinida p;
-            p.id = Texto(jp, "id");
-            p.nome = Texto(jp, "nome", p.id);
+                Predefinida p;
+                p.id = Texto(jp, "id");
+                p.nome = Texto(jp, "nome", p.id);
 
-            if (!IdServe(p.id)) {
-                cat.problemas.emplace_back("combinacao com \"id\" invalido (\"" + p.id +
-                                           "\"); descartada");
-                continue;
-            }
-            if (!vistos.insert(p.id).second) {
-                cat.problemas.emplace_back("a combinacao \"" + p.id + "\" aparece duas vezes;"
-                                           " a segunda foi descartada");
-                continue;
-            }
-
-            if (jp.contains("escolhas") && jp["escolhas"].is_object()) {
-                for (auto it = jp["escolhas"].begin(); it != jp["escolhas"].end(); ++it) {
-                    if (!it.value().is_object()) continue;
-                    p.aparencia.Definir(it.key(), Escolha{Texto(it.value(), "peca"),
-                                                          Texto(it.value(), "cor")});
+                if (!IdServe(p.id)) {
+                    cat.problemas.emplace_back("combinacao com \"id\" invalido (\"" + p.id +
+                                               "\"); descartada");
+                    continue;
                 }
-            }
+                if (!vistos.insert(p.id).second) {
+                    cat.problemas.emplace_back("a combinacao \"" + p.id + "\" aparece duas vezes;"
+                                               " a segunda foi descartada");
+                    continue;
+                }
 
-            // Passa pelo mesmo conserto que um save sofreria.
-            std::vector<std::string> trocas;
-            p.aparencia = cat.Resolver(p.aparencia, &trocas);
-            for (const auto& t : trocas) {
-                cat.problemas.emplace_back("combinacao " + p.id + ": " + t);
-            }
+                if (jp.contains("escolhas") && jp["escolhas"].is_object()) {
+                    for (auto it = jp["escolhas"].begin(); it != jp["escolhas"].end(); ++it) {
+                        if (!it.value().is_object()) continue;
+                        p.aparencia.Definir(it.key(), Escolha{Texto(it.value(), "peca"),
+                                                              Texto(it.value(), "cor")});
+                    }
+                }
 
-            cat.predefinidas.push_back(p);
+                // Passa pelo mesmo conserto que um save sofreria.
+                std::vector<std::string> trocas;
+                p.aparencia = cat.Resolver(p.aparencia, &trocas);
+                for (const auto& t : trocas) {
+                    cat.problemas.emplace_back("combinacao " + p.id + ": " + t);
+                }
+
+                cat.predefinidas.push_back(p);
+            }
         }
     }
+}
 
+Catalogo LerCatalogo(const std::string& textoJson) {
+
+    Catalogo cat;
+
+    nlohmann::json raiz;
+    try {
+        raiz = LerJsonDeDados(textoJson);
+    }
+    catch (const std::exception& e) {
+        cat.problemas.emplace_back(std::string("personagens.json nao e um JSON valido: ") + e.what());
+        return cat;
+    }
+
+    if (!raiz.is_object()) {
+        cat.problemas.emplace_back("personagens.json deveria ser um objeto");
+        return cat;
+    }
+
+    if (!raiz.contains("categorias") || !raiz["categorias"].is_array()) {
+        cat.problemas.emplace_back("falta \"categorias\": sem elas nao ha o que escolher");
+        return cat;
+    }
+
+    LerCategorias(raiz, cat);
+    LerFixas(raiz, cat);
+    LerFormatura(raiz, cat);
+    ConferirAsOrdens(cat);
+    LerPredefinidas(raiz, cat);
     return cat;
 }
 
