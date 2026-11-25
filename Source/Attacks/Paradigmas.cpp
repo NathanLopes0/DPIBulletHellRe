@@ -51,16 +51,6 @@ namespace Paradigmas {
         return menor[static_cast<size_t>(t.valor)] == INT_MAX ? -1 : menor[static_cast<size_t>(t.valor)];
     }
 
-    std::string PlacarDoTroco(const Troco& t) {
-        const std::vector<int> dadas = Guloso(t);
-        std::string s = "Troco de " + std::to_string(t.valor) + ": ";
-        for (size_t i = 0; i < dadas.size(); ++i) s += (i ? "+" : "") + std::to_string(dadas[i]);
-        const int otimo = Otimo(t);
-        if (otimo < static_cast<int>(dadas.size())) s += "  (ótimo: " + std::to_string(otimo) + " moedas)";
-        else s += "  (ótimo!)";
-        return s;
-    }
-
     std::string CaraDaMoeda(const int valor) {
         return "M" + std::to_string(valor);
     }

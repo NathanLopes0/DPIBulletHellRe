@@ -149,11 +149,6 @@ private:
     std::vector<EtiquetaDeCodigo*> mEtiquetasDosCreditos;
     static constexpr int kOrdemDasEtiquetas = 98;
 
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
-    void Avisar(const std::string& texto, float duracao = 1.6f);
-    void Placar(const std::string& fase, size_t etapa, const std::string& texto);
-    std::string mAviso;
-    float mAvisoAte = -1.0f;
     float mRelogio = 0.0f;
     std::optional<Vector2> mAlvo;
     /// O professor varre o alto: 'periodo' segundos de um lado ao outro e de volta.
@@ -256,23 +251,23 @@ private:
     void QuebrarABarra();
     void AtualizarQuebra(float deltaTime);
     /// O inimigo gigante (IaDoInimigo): a maquina de estados decide, e aqui o corpo anda. Na fase 1 ele
-    /// tem o power-up e o placar dele; nas regras, nao - a inversao o assusta, e no FPS ele anda sem
+    /// tem o power-up e os leques do professor; nas regras, nao - a inversao o assusta, e no FPS ele anda sem
     /// deltaTime.
     struct ComoOInimigo {
-        bool fase1 = true;      ///< o power-up, os leques do professor e o placar sao dele
+        bool fase1 = true;      ///< o power-up e os leques do professor sao dele
         float passo = 1.0f;     ///< o quanto ele anda por segundo de deltaTime (o FPS)
         float susto = 0.0f;     ///< > 0: um susto de fora, agora, deste tamanho (a inversao)
     };
     void AtualizarInimigo(float te, float deltaTime, const ComoOInimigo& como);
     /// Os passos dele, na ordem: o power-up (se alguem o pegou), o corpo que acertou o aluno, o andar
     /// (a ronda, a perseguicao, a fuga), o corpo e os olhos no lugar (e os blocos que viram nota), a IA a
-    /// mostra e o placar da fase 1.
+    /// mostra e os leques do professor na fase 1.
     bool PegarOPoderDoInimigo(float te, const ComoOInimigo& como);
     bool CorpoDoInimigoAcertou();
     void AndarOInimigo(Vector2 alvoDaIa, float deltaTime, const ComoOInimigo& como);
     void PorOInimigoNoLugar(Vector2 ondeAluno);
     void MostrarAIaDoInimigo(float te, const Player* alvo, Vector2 ondeAluno, Vector2 alvoDaIa);
-    void PlacarDoInimigo(float te, const ComoOInimigo& como);
+    void LequesDoInimigo(float te, const ComoOInimigo& como);
     /// O hot reload (IaDoInimigo::kRecargas): a IA muda com o jogo rodando, e o painel de codigo
     /// escreve, letra por letra, o que mudou.
     void AoRecarregarAIa(int versao);

@@ -70,8 +70,6 @@ namespace Scrum {
     /// Quantas dailies a historia leva para ser entregue: duas para chegar a FEITO, a terceira a solta.
     constexpr int kDailiesAteAEntrega = 3;
 
-    /// O placar da sprint: "Sprint 3 · daily 2 · faltam 5 pontos".
-    std::string Placar(int sprint, int dailies, int faltam);
 
     /// Os titulos das colunas, para as caras em projeteis.json.
     constexpr std::array<const char*, kColunas> kTitulos = {"AFazer", "Fazendo", "Feito"};

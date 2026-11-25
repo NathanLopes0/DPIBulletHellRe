@@ -74,11 +74,6 @@ namespace Observer {
         return Vector2(aluno.x + Math::Cos(a) * raio, aluno.y - kAcimaDoAluno - std::fabs(Math::Sin(a)) * raio * kAchatamento);
     }
 
-    std::string PlacarDoObserver(const int inscritos) {
-        return "Observer: " + std::to_string(inscritos) + (inscritos == 1 ? " olho assina" : " olhos assinam") +
-               " você  ·  virou, é notifyAll()";
-    }
-
     std::string PlacarDaNotificacao(const Estado& antes, const Estado& agora, const int inscritos) {
         std::string para = "de direção";
         if (agora.x != antes.x) para = agora.x < 0 ? "para a esquerda" : "para a direita";

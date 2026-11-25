@@ -111,21 +111,6 @@ TEST_CASE("Escalonador: cada processo chove na faixa dele, e o de tres threads e
 
 // ---- A paginacao ----
 
-TEST_CASE("Paginacao: a MMU parte o endereco em pagina e deslocamento") {
-    using namespace Paginacao;
-    const Endereco e = Traduzir(0x3A7F);
-    CHECK(e.pagina == 3);
-    CHECK(e.deslocamento == 0xA7F);
-    CHECK(Montar(5, 0xA07) == 0x5A07u);
-    CHECK(Hexa(0x3A7F, 4) == "0x3A7F");
-    CHECK(PlacarDoAcerto(0x3A7F, 2) == "0x3A7F = página 3 + 0xA7F  ·  acerto na moldura 2");
-    CHECK(PlacarDaFalta(0x5A07, 3, 1) == "0x5A07 = página 5 + 0xA07  ·  falta! sai a página 3");
-    CHECK(PlacarDaFalta(0x5A07, -1, 1).find("vai para a moldura 1") != std::string::npos);
-    CHECK(PlacarDoThrashing(8, 10) == "Thrashing: 8 faltas nas últimas 10 referências");
-    // O maior endereco ainda cabe em quatro algarismos.
-    CHECK(Montar(kPaginas - 1, (1 << kBitsDoDeslocamento) - 1) <= 0xFFFFu);
-}
-
 TEST_CASE("Paginacao: o relogio da a segunda chance a quem tem R, e despeja o primeiro sem") {
     using namespace Paginacao;
     Relogio r(3);
@@ -226,9 +211,6 @@ TEST_CASE("Paginacao: o professor le as paginas dele, e a do aluno, com o R aces
 TEST_CASE("Disco: os tres algoritmos no exemplo do livro (cabeca em 53)") {
     using namespace Disco;
     const std::vector<int> pedidos = {98, 183, 37, 122, 14, 124, 65, 67};
-    CHECK(Movimento(53, pedidos, Algoritmo::FCFS) == 640);
-    CHECK(Movimento(53, pedidos, Algoritmo::SSTF) == 236);
-    CHECK(Movimento(53, pedidos, Algoritmo::SCAN, -1) == 236);   // para o 0, e volta ate o 183
     int sentido = -1;
     CHECK(Alvo(53, pedidos, Algoritmo::FCFS, sentido) == 98);
     CHECK(Alvo(53, pedidos, Algoritmo::SSTF, sentido) == 65);
@@ -241,7 +223,7 @@ TEST_CASE("Disco: os tres algoritmos no exemplo do livro (cabeca em 53)") {
     CHECK(Alvo(5, {}, Algoritmo::SSTF, sentido) == -1);
 }
 
-TEST_CASE("Disco: a trilha, as etapas e o placar") {
+TEST_CASE("Disco: a trilha e as etapas") {
     using namespace Disco;
     CHECK(XDoCilindro(0, 100.0f, 990.0f) == doctest::Approx(100.0f));
     CHECK(XDoCilindro(kCilindros - 1, 100.0f, 990.0f) == doctest::Approx(1090.0f));
@@ -249,8 +231,6 @@ TEST_CASE("Disco: a trilha, as etapas e o placar") {
     CHECK(EtapaNoTempo(0.0f) == 0);
     CHECK(EtapaNoTempo(kDuracoes[0] + 0.1f) == 1);
     CHECK(kDuracoes[0] + kDuracoes[1] + kDuracoes[2] == doctest::Approx(Fase::kDuracao));
-    CHECK(Placar(Algoritmo::FCFS, 640, 8, 640) == "FCFS: o braço andou 640 cilindros em 8 pedidos");
-    CHECK(Placar(Algoritmo::SCAN, 236, 8, 640) == "SCAN: 236 cilindros em 8 pedidos  ·  em FCFS seriam 640");
     CHECK(DegrauDo(Dificuldade::Nivel::Dificil).entrePedidos < DegrauDo(Dificuldade::Nivel::Normal).entrePedidos);
     CHECK(DegrauDo(Dificuldade::Nivel::Dificil).queda > DegrauDo(Dificuldade::Nivel::Normal).queda);
 }
@@ -283,7 +263,6 @@ TEST_CASE("Virtualizacao: os hosts, a elasticidade e a migracao") {
     CHECK(NaMigracao(a, b, 0.1f).x < 10.0f);   // devagar no comeco
     CHECK(PlacarDaMigracao(2, 0, 4) == "Migração ao vivo: VM 2, do host A para o E");
     CHECK(PlacarDaEscala(3, 4) == "Carga subindo: 3 → 4 VMs");
-    CHECK(Placar(3) == "Hipervisor: 3 VMs em 6 hosts");
     CHECK(kVooDoTrap < kEntreTraps);
     CHECK(kMigracao < kEntreMigracoes);
     // O tiro do kernel quica dentro da caixa: volta para dentro, e a velocidade vira.

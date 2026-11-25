@@ -62,13 +62,6 @@ void Goulart::Faixa(const float de, const float ate, const float y, const int li
     for (int i = 0; i < linhas; ++i) Linha(Vector2(de, y + 1.5f * static_cast<float>(i)), Vector2(ate, y + 1.5f * static_cast<float>(i)), cor);
 }
 
-void Goulart::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
-    auto etapas = EtapasDa(fase);
-    if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
-    etapas[etapa].second = texto;
-    ReescreverEtapas(fase, etapas);
-}
-
 void Goulart::PlacarDaFase(const std::string& fase, const std::string& texto) {
     if (AnuncioDaFase(fase) != texto) RegistrarAnuncio(fase, texto);
 }
@@ -360,10 +353,8 @@ void Goulart::DesmontarPaginacao() {
     mEtapaDaPaginacao = -1;
     mPaginaDoAluno = -1;
     mPaginaDoProfessor = -1;
-    mUltimasFaltas.clear();
     mVarredura.reset();
     mCortinas.clear();
-    mUltimaReferencia.clear();
 }
 
 void Goulart::TrazerPagina(const int p, const int m) {
@@ -404,14 +395,11 @@ void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
     if (pagina != mPaginaDoAluno || t >= mProximaLeitura) {
         mPaginaDoAluno = pagina;
         mProximaLeitura = t + kEntreLeituras;
-        const std::uint32_t endereco = Montar(pagina, mSorteio.Inteiro(0, (1 << kBitsDoDeslocamento) - 1));
+        // O deslocamento do endereco so ia para o texto da etapa; o sorteio dele fica, para a
+        // sequencia da luta nao mudar.
+        (void)mSorteio.Inteiro(0, (1 << kBitsDoDeslocamento) - 1);
         const Referencia r = mMemoria->Referenciar(pagina);
-        mUltimasFaltas.push_back(!r.acerto);
-        while (static_cast<int>(mUltimasFaltas.size()) > kJanelaDoThrashing) mUltimasFaltas.pop_front();
-        if (r.acerto) {
-            mUltimaReferencia = PlacarDoAcerto(endereco, r.moldura);
-        } else {
-            mUltimaReferencia = PlacarDaFalta(endereco, r.vitima, r.moldura);
+        if (!r.acerto) {
             mFaltouEm = t;
             mVarredura = Varredura{r.segundaChance, r.moldura, t};
             // A vitima desaba quando o ponteiro chega nela: ate la, a coluna dela fica marcada.
@@ -522,13 +510,6 @@ void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
     }
     if (apontada >= 0 && apontada < n) Linha(CentroDoRelogio(), LugarDaMoldura(apontada), kPonteiro);
 
-    std::string placar = mUltimaReferencia;
-    if (etapa == 2 && !mUltimasFaltas.empty()) {
-        const int faltas = static_cast<int>(std::count(mUltimasFaltas.begin(), mUltimasFaltas.end(), true));
-        placar = PlacarDoThrashing(faltas, static_cast<int>(mUltimasFaltas.size()));
-    }
-    if (mRelogio < mAvisoAte) placar = mAviso;
-    if (!placar.empty()) PlacarDaEtapa(kFase, static_cast<size_t>(etapa), placar);
     mAlvo = Vector2(campo.x + campo.w * (0.5f + 0.24f * Math::Sin(Math::TwoPi * t / 8.0f)), campo.y + 62.0f);
 }
 
@@ -553,8 +534,6 @@ void Goulart::DesmontarDisco() {
     mAlvoDoBraco = -1;
     mEtapaDoBraco = -1;
     mEtapaDoDisco = -1;
-    mUltimoCilindro = -1;
-    mAtendidos.clear();
     mLeituras.clear();
     mSentido = -1;
 }
@@ -568,10 +547,6 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
     const int cabeca = CilindroDoX(GetPosition().x, XDaTrilha(), LarguraDaTrilha());
     if (etapa != mEtapaDoDisco) {
         mEtapaDoDisco = etapa;
-        mAndou = 0;
-        mCabecaNoInicio = cabeca;
-        mAtendidos.clear();
-        mUltimoCilindro = cabeca;
     }
 
     // Os pedidos caem na trilha, cada um num cilindro.
@@ -617,9 +592,6 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
         const bool faminto = t - it->chegou >= kFome;
         mLeituras.push_back(Leitura{x, faminto ? 30.0f : 18.0f, t + (faminto ? 1.0f : 0.55f), t});
         SomDoDisparo();   // os blocos sao calados: o som e o da coluna lida
-        mAndou += std::abs(it->cilindro - mUltimoCilindro);
-        mUltimoCilindro = it->cilindro;
-        mAtendidos.emplace_back(it->chegou, it->cilindro);
         if (faminto) Avisar("o pedido faminto enfim foi lido: o bloco dele vem largo", 1.0f);
         Matar(it->p);
         it = mPedidos.erase(it);
@@ -655,15 +627,6 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
             Linha(Vector2(lugar.x, y), Vector2(lugar.x, std::min(campo.y + campo.h, y + 11.0f)), kProxima);
         }
     }
-
-    // O placar: o quanto o braco andou, e o quanto o FCFS andaria com os mesmos pedidos.
-    std::vector<std::pair<float, int>> ordem = mAtendidos;
-    std::sort(ordem.begin(), ordem.end());
-    std::vector<int> naChegada;
-    for (const auto& [quando, c] : ordem) naChegada.push_back(c);
-    const int fcfs = Movimento(mCabecaNoInicio, naChegada, Algoritmo::FCFS);
-    PlacarDaEtapa(kFase, static_cast<size_t>(etapa),
-                  mRelogio < mAvisoAte ? mAviso : Placar(algoritmo, mAndou, static_cast<int>(mAtendidos.size()), fcfs));
 
     if (alvo >= 0) mAlvo = Vector2(XDoCilindro(alvo, XDaTrilha(), LarguraDaTrilha()), campo.y + 62.0f);
     else if (!mAlvo) mAlvo = Vector2(GetPosition().x, campo.y + 62.0f);
@@ -802,6 +765,5 @@ void Goulart::AtualizarNuvem(const float t, const float deltaTime) {
     }
     mTraps.erase(std::remove_if(mTraps.begin(), mTraps.end(), [](const Trap& tr) { return !tr.p; }), mTraps.end());
 
-    PlacarDaEtapa(kFase, static_cast<size_t>(etapa), mRelogio < mAvisoAte ? mAviso : Placar(static_cast<int>(mVms.size())));
     mAlvo.reset();
 }

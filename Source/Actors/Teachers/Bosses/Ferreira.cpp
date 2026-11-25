@@ -356,7 +356,6 @@ void Ferreira::Desmontar() {
     if (mLinhasDoContador) mLinhasDoContador->Limpar();
     if (mLinhasDoMenu) mLinhasDoMenu->Limpar();
     mAlvo.reset();
-    mAvisoAte = -1.0f;
     mEtapaAnterior = -1;
     mClarao = 0.0f;
 }
@@ -417,23 +416,6 @@ void Ferreira::Esconder(std::vector<EtiquetaDeCodigo*>& grupo) {
     for (EtiquetaDeCodigo* e : grupo) {
         if (e) e->Mostrar(false);
     }
-}
-
-void Ferreira::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
-    auto etapas = EtapasDa(fase);
-    if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
-    etapas[etapa].second = texto;
-    ReescreverEtapas(fase, etapas);
-}
-
-void Ferreira::Avisar(const std::string& texto, const float duracao) {
-    mAviso = texto;
-    mAvisoAte = mRelogio + duracao;
-}
-
-void Ferreira::Placar(const std::string& fase, const size_t etapa, const std::string& texto) {
-    const std::string& vale = mRelogio < mAvisoAte ? mAviso : texto;
-    if (!vale.empty()) PlacarDaEtapa(fase, etapa, vale);
 }
 
 std::optional<Vector2> Ferreira::AlvoDoMovimento() const {

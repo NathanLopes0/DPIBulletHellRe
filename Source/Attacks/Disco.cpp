@@ -64,27 +64,6 @@ namespace Disco {
         return -1;
     }
 
-    int Movimento(int cabeca, std::vector<int> pedidos, const Algoritmo a, int sentido) {
-        int total = 0;
-        while (!pedidos.empty()) {
-            const int alvo = Alvo(cabeca, pedidos, a, sentido);
-            if (alvo < 0) break;
-            total += std::abs(alvo - cabeca);
-            cabeca = alvo;
-            if (const auto it = std::find(pedidos.begin(), pedidos.end(), alvo); it != pedidos.end()) pedidos.erase(it);
-        }
-        return total;
-    }
-
-    std::string Placar(const Algoritmo a, const int andou, const int atendidos, const int fcfsSeria) {
-        const std::string pedidos = std::to_string(atendidos) + (atendidos == 1 ? " pedido" : " pedidos");
-        if (a == Algoritmo::FCFS) {
-            return std::string("FCFS: o braço andou ") + std::to_string(andou) + " cilindros em " + pedidos;
-        }
-        return std::string(Nome(a)) + ": " + std::to_string(andou) + " cilindros em " + pedidos +
-               "  ·  em FCFS seriam " + std::to_string(fcfsSeria);
-    }
-
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;

@@ -80,7 +80,6 @@ void Ferreira::AtualizarHitbox(const float te) {
     // O modo debug mostra todo colisor: o do aluno e o do professor tambem.
     for (const Player* a : Jogadores()) Circulo(a->GetPosition(), RaioDe(a) + 1.0f, kDebug, 10);
     Circulo(GetPosition(), 56.0f, kDebugFraco, 20);
-    Placar(kFase, 0, "debug: a hitbox DESCOLOU. Desvie do círculo verde");
 }
 
 void Ferreira::Travar(const int k) {
@@ -124,7 +123,6 @@ void Ferreira::Destravar(const Lancamento::Escolha escolha) {
             for (BossProjectile* f : cacos) Cara(f, "Fragmento");
             t.p->Kill();
         }
-        Avisar("Fechou o programa: os tiros estilhaçaram!", 1.8f);
         mClarao = 0.25f;
         mCorDoClarao = kSave;
     } else {
@@ -134,9 +132,7 @@ void Ferreira::Destravar(const Lancamento::Escolha escolha) {
         }
         if (escolha == Escolha::Esperar) {
             if (b) b->Conquistar(kPremioPorEsperar);
-            Avisar("Esperou: o jogo voltou de onde parou", 1.6f);
         } else {
-            Avisar("Sem resposta: recuperando os quadros perdidos!", 1.8f);
         }
     }
     mTravados.clear();
@@ -165,7 +161,6 @@ void Ferreira::AtualizarCrash(const float te) {
         // O tempo que resta para escolher.
         const float resta = std::clamp(1.0f - (te - kTravadas[static_cast<size_t>(mTravadaAberta)]) / kEspera, 0.0f, 1.0f);
         Preencher(Vector2(meio.x - 200.0f, meio.y - 2.0f), Vector2(meio.x - 200.0f + 400.0f * resta, meio.y + 4.0f), kPerigo);
-        Placar(kFase, 1, "O jogo travou: atire em ESPERAR (ou em FECHAR...)");
         return;
     }
 
@@ -178,7 +173,6 @@ void Ferreira::AtualizarCrash(const float te) {
         mProximoLeque = te + g.entreAneis * 1.7f;
         for (BossProjectile* p : Leque(kGatilhoDoTiro, 3, 26.0f, g.velocidade + 45.0f, "Tiro")) mTiros.push_back(p);
     }
-    Placar(kFase, 1, "Build de lançamento: nada pode dar errado");
 }
 
 void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
@@ -191,7 +185,6 @@ void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
     const int total = kFileiras * kColunasDaFrota;
     const auto indice = [](const int fileira, const int coluna) { return static_cast<size_t>(fileira * kColunasDaFrota + coluna); };
     const Vector2 eu = GetPosition();
-    const std::string onda = std::to_string(mOndaDaFrota + 1);
 
     // A chegada de uma onda: os lugares piscam e os bugs aparecem - ja com o god mode ligado.
     if (!mFrotaMontada && !mJanelaAberta) {
@@ -212,11 +205,8 @@ void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
                     mFrota[indice(f, col)] = Peca(kGatilhoDoBug, LugarNaFrota(f, col, topo, Marcha{}), "Bug");
                 }
             }
-            if (mOndaDaFrota > 0) Avisar("new Wave(" + onda + "): mais rápida, e o god mode de volta", 1.6f);
             SomDoDisparo();
         }
-        Placar(kFase, 2, mOndaDaFrota == 0 ? "genero = nave: os bugs do lançamento chegaram"
-                                           : "onda " + onda + " a caminho");
         return;
     }
 
@@ -300,7 +290,6 @@ void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
         if (b) b->Conquistar(kPremioDaFrotaLimpa);
         mClarao = 0.2f;
         mCorDoClarao = kOuro;
-        Avisar("0 bugs: godMode = false - ATIRE NELE, cada acerto vale o dobro!", 1.8f);
         SomDoDisparo();
     }
     if (mJanelaAberta) {
@@ -326,10 +315,8 @@ void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
             ++mOndaDaFrota;
             mGodMode = true;
         }
-        Placar(kFase, 2, "godMode = false: ATIRE NO PROFESSOR (x2)!");
         return;
     }
-    Placar(kFase, 2, "godMode = true enquanto houver bug: faltam " + std::to_string(vivos) + " (onda " + onda + ")");
 }
 
 void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
@@ -390,5 +377,4 @@ void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
         mProximoLeque = te + 1.5f;
         Leque(kGatilhoDoTiro, 1, 0.0f, g.velocidade, "Tiro");
     }
-    Placar(kFase, 3, "Créditos: passe pelos vãos. Obrigado por jogar!");
 }

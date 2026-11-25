@@ -27,16 +27,6 @@ namespace FerreiraComum {
         return static_cast<int>(std::floor(t / periodo)) % 2 == 0;
     }
 
-    inline std::string NomeDoLado(const Lado l) {
-        switch (l) {
-            case Lado::Baixo:    return "CHÃO";
-            case Lado::Esquerda: return "ESQUERDA";
-            case Lado::Cima:     return "TETO";
-            case Lado::Direita:  return "DIREITA";
-        }
-        return "";
-    }
-
     /// O que o placar diz num lado: para onde a gravidade puxa, e o que fazer nele.
     inline std::string AnuncioDoLado(const Lado l) {
         switch (Gravidade::DesafioDo(l)) {

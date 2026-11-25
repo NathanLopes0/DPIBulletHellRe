@@ -190,23 +190,6 @@ void Sabrina::Termometro(const float agora, const float minima, const float maxi
     }
 }
 
-void Sabrina::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
-    auto etapas = EtapasDa(fase);
-    if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
-    etapas[etapa].second = texto;
-    ReescreverEtapas(fase, etapas);
-}
-
-void Sabrina::Avisar(const std::string& texto, const float duracao) {
-    mAviso = texto;
-    mAvisoAte = mRelogio + duracao;
-}
-
-void Sabrina::Placar(const std::string& fase, const size_t etapa, const std::string& texto) {
-    const std::string& vale = mRelogio < mAvisoAte ? mAviso : texto;
-    if (!vale.empty()) PlacarDaEtapa(fase, etapa, vale);
-}
-
 std::optional<Vector2> Sabrina::AlvoDoMovimento() const {
     return mAlvo;
 }
@@ -256,7 +239,6 @@ void Sabrina::Desmontar() {
     DesmontarSequenciamento();
     if (mLinhas) mLinhas->Limpar();
     mAlvo.reset();
-    mAvisoAte = -1.0f;
     mEtapaAnterior = -1;
 }
 
@@ -340,7 +322,6 @@ void Sabrina::OnDerrubou(BossProjectile* qual) {
                 }
                 ++mEdicoes;
                 if (Battle* b = Batalha()) b->Conquistar(2.0f);
-                Avisar("Corte no alvo! A Cas9 abriu a fita  ·  +2", 1.4f);
                 Matar(mTesoura);
                 mTesoura = Enfeite(Sequenciamento::kGatilhoDaTesoura, onde, "Tesoura");
                 mTesouraAte = mRelogio + 0.6f;
@@ -353,7 +334,6 @@ void Sabrina::OnDerrubou(BossProjectile* qual) {
                 }
                 f.contas[k] = p;
                 // Uma vez por fita: o placar e onde o guia esta escrito.
-                if (!f.avisou) Avisar("Sem o guia, a Cas9 não corta", 0.9f);
                 f.avisou = true;
             }
             return;
@@ -491,10 +471,7 @@ void Sabrina::AtualizarHelice(const float t, const float deltaTime) {
                           g.velocidadeDaBase, false);
                 }
             }
-            Placar(kFase, 0, "Dupla hélice: só a frente machuca — passe pelo fundo");
         } else {
-            Placar(kFase, 2, "Desnaturação: " + Graus(temperatura) + "  ·  " + std::to_string(mSoltos) + " de " +
-                                 std::to_string(pares) + " pares soltos");
         }
         return;
     }
@@ -527,8 +504,6 @@ void Sabrina::AtualizarHelice(const float t, const float deltaTime) {
         const Base b = Pareamento::kDna[static_cast<size_t>(mSorteio.Inteiro(0, 3))];
         Bases(kGatilhoDoLeque, de, b, g.tirosDoLeque, AnguloAteOAluno(de), 24.0f, g.velocidadeDoLeque, false);
     }
-    const float voltas = torcao * static_cast<float>(pares - 1) / Math::TwoPi;
-    Placar(kFase, 1, "Torção: " + Decimal(voltas, 1) + " voltas  ·  atravesse pela fita de trás");
 }
 
 // ---- Fase 2: o codigo ----
@@ -701,8 +676,6 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
             SomDoDisparo();
             mDominante = Outra(mSorteio, mDominante, false);
         }
-        Placar(kFase, 0, "Pareamento: a próxima onda é de " + LetraDa(mDominante) + ", que pareia com " +
-                             LetraDa(Complementar(mDominante, false)));
         return;
     }
 
@@ -713,7 +686,6 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
         if (mFitaMolde.empty()) {
             mFitaMolde = Molde(Sequencia(mSorteio, n, g.repetir, true));
             mLidas = 0;
-            Avisar("No RNA, T vira U: o seu selo de T virou U", 1.8f);
         }
         mLetrasDoMolde.resize(static_cast<size_t>(n), nullptr);
         for (int k = 0; k < n; ++k) {
@@ -742,10 +714,7 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
             const int ate = std::min(n - 1, lendo + 4);
             Retangulo(Vector2(de + passo * static_cast<float>(lendo + 1) - 13.0f, fitaY - 13.0f),
                       Vector2(de + passo * static_cast<float>(ate) + 13.0f, fitaY + 13.0f), kOuro);
-            Placar(kFase, 1, "Transcrição: vem " + Letras(mFitaMolde, static_cast<size_t>(lendo + 1), 4) +
-                                 "  ·  pegue a base do molde (T vira U)");
         } else {
-            Placar(kFase, 1, "Transcrição: o RNA está pronto");
         }
         return;
     }
@@ -831,7 +800,6 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
                 }
                 mPolipeptideo.clear();
                 mOndeDoPolipeptideo.clear();
-                Avisar("Códon de parada: a cadeia se solta!", 1.2f);
                 break;
         }
         if (fam != Familia::Parada) {
@@ -879,8 +847,6 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
 
     const Base* codon = &mMensageiro[static_cast<size_t>(3 * lendo)];
     const char aa = Traduzir(codon[0], codon[1], codon[2]);
-    Placar(kFase, 2, "Tradução: " + Letras(mMensageiro, static_cast<size_t>(3 * lendo), 3) + " → " + NomeDo(aa) + " (" +
-                         NomeDa(FamiliaDe(aa)) + ")");
 }
 
 // ---- Fase 3: a proteina ----
@@ -1035,7 +1001,6 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
                 Cara(p, CaraDaFamilia(FamiliaQualquer(mSorteio)));
             }
         }
-        Placar(kFase, 0, "Cadeia: " + std::to_string(mCadeia.size()) + " resíduos  ·  o seu tiro é a protease");
         return;
     }
 
@@ -1081,7 +1046,6 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
             mCentroDoGlobulo = Quicar(mCentroDoGlobulo, mVelocidadeDoGlobulo, deltaTime, g.raioDoGlobulo,
                                       Vector2(c.x, c.y + 110.0f), Vector2(c.x + c.w, c.y + c.h));
         }
-        int escondidos = 0;
         for (size_t k = 0; k < mAtomos.size(); ++k) {
             const Helice::Ponto3& m = mDobrado[k];
             Helice::Ponto3 p{m.x * g.raioDoGlobulo, m.y * g.raioDoGlobulo, m.z * g.raioDoGlobulo};
@@ -1090,7 +1054,6 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
             Helice::NaTela tela = Helice::Projetar(p, mCentroDoGlobulo, kDistanciaDaCamera);
             if (u < 1.0f) tela.onde = mDeOnde[k] + (tela.onde - mDeOnde[k]) * Suave(u);
             const bool frente = Helice::NaFrente(p.z, g.raioDoGlobulo, g.limiar);
-            if (mFamilias[k] == Familia::Hidrofobico) ++escondidos;
             Posicionar(mAtomos[k], tela, frente, kGatilhoDoAtomo, CaraDaFamilia(mFamilias[k]), deltaTime,
                        CorDaFamilia(mFamilias[k], 90));
         }
@@ -1110,7 +1073,6 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
             }
             SomDoDisparo();
         }
-        Placar(kFase, 1, "Dobramento: " + std::to_string(escondidos) + " hidrofóbicos no núcleo");
         return;
     }
 
@@ -1201,8 +1163,6 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
         }
     }
     mSitioOcupado = algum;
-    Placar(kFase, 2, algum ? "Encaixe: ΔG = −" + Decimal(-DeltaG(mEncaixado), 1) + " kcal/mol  ·  o tiro só sai pela boca"
-                           : std::string("Encaixe: entre no sítio ativo pela boca"));
 }
 
 // ---- A repescagem: o sequenciamento ----
@@ -1334,8 +1294,6 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
         }
         mCopias.erase(std::remove_if(mCopias.begin(), mCopias.end(), [](const Copia& cp) { return cp.p == nullptr; }), mCopias.end());
         Termometro(ciclo.temperatura, 40.0f, 100.0f);
-        Placar(kFase, 0, "PCR ciclo " + std::to_string(ciclo.numero + 1) + " (" + Graus(ciclo.temperatura) + "): " +
-                             std::to_string(mCopias.size()) + " cópias  ·  derrube os primers");
         return;
     }
 
@@ -1410,7 +1368,6 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
             MontarOContig();
         }
         mReads.erase(std::remove(mReads.begin(), mReads.end(), nullptr), mReads.end());
-        Placar(kFase, 1, "Shotgun: contig de " + std::to_string(mAtras + mFrente + 1) + " kb  ·  apare as pontas");
         return;
     }
 
@@ -1505,5 +1462,4 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
     }
     mGenomas.erase(std::remove_if(mGenomas.begin(), mGenomas.end(), [](const FitaDoGenoma& f) { return f.contas.empty(); }),
                    mGenomas.end());
-    Placar(kFase, 2, "CRISPR: guia " + Letras(mGuia, 0, mGuia.size()) + " + NGG  ·  corte só no alvo");
 }

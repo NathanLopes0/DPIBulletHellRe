@@ -67,13 +67,6 @@ namespace Tempera {
     /// temperatura cai.
     float Nivel(float temperatura);
 
-    /// O placar: "Quente, T = 820: aceita passo pior (61%)", "Esfriando, T = 180: ...", "Fria, T =
-    /// 25: só aceita o que melhora".
-    std::string Placar(float temperatura);
-
-    /// O aviso de quando o frio prende solucoes num vale raso: "Ótimo local: 4 soluções presas num
-    /// vale raso".
-    std::string PlacarDoOtimoLocal(int presas);
 
     /// As etapas da fase em fases.json: uma por esfriamento. Nos primeiros kTempoDoAnuncio segundos
     /// de cada uma, o placar mostra o anuncio dela; depois, o estagio.

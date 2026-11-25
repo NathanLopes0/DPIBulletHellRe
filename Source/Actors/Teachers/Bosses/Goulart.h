@@ -5,7 +5,6 @@
 #pragma once
 
 #include <array>
-#include <deque>
 #include <map>
 #include <optional>
 #include <string>
@@ -73,7 +72,6 @@ private:
     /// Uma faixa grossa: 'linhas' linhas lado a lado, de 'de' a 'ate' em x, na altura 'y'.
     void Faixa(float de, float ate, float y, int linhas, SDL_Color cor);
 
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
     void PlacarDaFase(const std::string& fase, const std::string& texto);
     /// Um texto no placar por um instante: fork, kill -9, falta de pagina...
     void Avisar(const std::string& texto, float duracao = 1.1f);
@@ -132,8 +130,6 @@ private:
     float mProfessorLeuEm = -1.0f;
     /// A pagina 'p' vem do disco para a moldura 'm': o cartao voa do professor ate ela.
     void TrazerPagina(int p, int m);
-    std::deque<bool> mUltimasFaltas;   ///< a janela do thrashing: true e falta
-    std::string mUltimaReferencia;
     float mFaltouEm = -1.0f;
     /// A varredura do ponteiro na falta de pagina, que a tela mostra passo a passo.
     struct Varredura {
@@ -172,11 +168,6 @@ private:
     int mEtapaDoBraco = -1;
     int mSentido = -1;
     int mEtapaDoDisco = -1;
-    int mAndou = 0;
-    int mUltimoCilindro = -1;
-    int mCabecaNoInicio = 0;
-    /// Os atendidos da etapa, com a hora de chegada: o placar compara com o FCFS deles.
-    std::vector<std::pair<float, int>> mAtendidos;
     /// O bloco lido cai na coluna do pedido: uma cortina estreita, mais larga e longa no faminto.
     struct Leitura {
         float x = 0.0f;

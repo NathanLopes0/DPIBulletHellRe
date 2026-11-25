@@ -180,9 +180,6 @@ public:
     /// Anota as etapas da fase: onde cada uma acaba, em segundos desde o comeco da fase, e o que o
     /// placar diz durante ela.
     void RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);
-    /// Reescreve o que as etapas dizem durante a luta (o placar de cada coisa que acontece), sem mudar o
-    /// titulo de cada uma - o que o quadro mostra (TituloDaFase) continua o de RegistrarEtapas.
-    void ReescreverEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);
 
     /// As etapas registradas da fase (onde cada uma acaba e o texto dela), ou vazia.
     [[nodiscard]] std::vector<std::pair<float, std::string>> EtapasDa(const std::string& fase) const;

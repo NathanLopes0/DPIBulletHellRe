@@ -107,10 +107,8 @@ TEST_CASE("Paradigmas: o troco guloso acerta no real e erra nos sistemas ruins")
     CHECK(Otimo(t[1]) == 4);
     CHECK(Guloso(t[2]) == std::vector<int>{9, 1, 1, 1});
     CHECK(Otimo(t[2]) == 2);
-    CHECK(PlacarDoTroco(t[1]) == "Troco de 31: 25+1+1+1+1+1+1  (ótimo: 4 moedas)");
     // As moedas de um troco cabem no tempo dele.
     for (const auto& troco : t) CHECK(0.25f + kEntreMoedas * static_cast<float>(Guloso(troco).size()) < kDuracaoDoTroco);
-    CHECK(PlacarDoTroco(t[0]).find("ótimo!") != std::string::npos);
     CHECK(EscalaDaMoeda(100) > EscalaDaMoeda(1));
     CHECK(CaraDaMoeda(25) == "M25");
     // Os tres trocos cabem na etapa.
@@ -185,9 +183,6 @@ TEST_CASE("Intratavel: a rede ordena todas as permutacoes de 6, com 12 comparado
         }
     }
     CHECK(XDoFio(0, 0.0f, 600.0f) < XDoFio(5, 0.0f, 600.0f));
-    // log2 720 = 9,49...: arredonda para 10. Sem o sinal de teto, que a fonte do quadro nao tem.
-    CHECK(PlacarDaRede() == "Ω(n log n): log₂ 6! ≈ 9,5 → 10  ·  a rede usa 12");
-    CHECK(PlacarDaRede().find("⌈") == std::string::npos);
 }
 
 TEST_CASE("Intratavel: o caixeiro conta as rotas e anda na rota") {
@@ -214,7 +209,6 @@ TEST_CASE("Intratavel: o caixeiro conta as rotas e anda na rota") {
     const std::vector<Vector2> q = {Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)};
     CHECK(Comprimento(q, {0, 1, 2, 3}) == doctest::Approx(4.0f));
     CHECK(Comprimento(q, {0, 2, 1, 3}) > 4.0f);
-    CHECK(PlacarDoCaixeiro(6, 3, 1840.4f) == "n = 6  ·  60 rotas  ·  tentativa 3  ·  melhor 1840");
     CHECK(kFimDaRede + kDuracaoDaRodada * 3.0f == doctest::Approx(Fase::kDuracao));
 }
 
@@ -231,15 +225,8 @@ TEST_CASE("Tempera: esfria, reaquece, e o Metropolis aceita pior so quando quent
     CHECK_FALSE(Aceita(40.0f, kFrio, 0.01f));          // frio, nao
     CHECK(ChanceDePior(40.0f, kQuente) > 0.6f);
     CHECK(ChanceDePior(40.0f, kFrio) < 0.01f);
-    // O placar conta o estagio: quente aceita pior, fria so o que melhora.
-    CHECK(Placar(kQuente) == "Quente, T = 1000: aceita passo pior (72%)");
-    CHECK(Placar(100.0f) == "Esfriando, T = 100: aceita pior 4% das vezes");
-    CHECK(Placar(60.0f).rfind("Fria", 0) == 0);   // abaixo de 1%, fria: nunca "aceita pior 0%"
-    CHECK(Placar(10.0f) == "Fria, T = 10: só aceita o que melhora");
     CHECK(EstagioDe(kQuente) == Estagio::Quente);
     CHECK(EstagioDe(kFrio) == Estagio::Frio);
-    CHECK(PlacarDoOtimoLocal(1) == "Ótimo local: 1 solução presa num vale raso");
-    CHECK(PlacarDoOtimoLocal(4).find("4 solu") != std::string::npos);
     // O termometro: cheio no quente, vazio no frio, e no meio na media geometrica.
     CHECK(Nivel(kQuente) == doctest::Approx(1.0f));
     CHECK(Nivel(kFrio) == doctest::Approx(0.0f));

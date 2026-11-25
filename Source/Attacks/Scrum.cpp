@@ -44,12 +44,6 @@ namespace Scrum {
         return 1 + std::max(0, pontos) / 3;
     }
 
-    std::string Placar(const int sprint, const int dailies, const int faltam) {
-        std::string s = "Sprint " + std::to_string(sprint + 1);
-        if (dailies > 0) s += "  ·  daily " + std::to_string(dailies);
-        return s + "  ·  faltam " + std::to_string(faltam) + (faltam == 1 ? " ponto" : " pontos");
-    }
-
     std::string Cara(const int pontos) {
         return "P" + std::to_string(pontos);
     }

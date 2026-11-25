@@ -59,14 +59,6 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
         mProximoLeque = te + g.entreLeques;
         Leque(kGatilhoDoLeque, g.tirosDoLeque, 26.0f, g.velocidade, "Tiro");
     }
-    const FaixaDaNota* faixa = Faixa();
-    const float nota = std::clamp(faixa ? faixa->Mostrada() : Nota(), 0.0f, 100.0f);
-    const std::string cheia = ::Nota::ECheia(nota) ? "100% cheia: NÃO há vazio!" : Inteiro(nota) + "% cheia: passe pelo VAZIO";
-    if (arrancada) {
-        Placar(kFase, static_cast<size_t>(etapa), "hud.nota.soltar(): a barra da sua nota saiu da HUD!");
-    } else {
-        Placar(kFase, static_cast<size_t>(etapa), (etapa == kEtapaDaBarraDeitada ? "A barra é a sua nota, " : "Agora ela vem de lado, ") + cheia);
-    }
 }
 
 void Ferreira::TocarSom(const char* som) {
@@ -109,19 +101,6 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
     else mVelocidadeDaCamera = Vector2::Zero;
     DesenharACamera(te, momento);
     if (momento != Camera::Menu) AtirarNaCamera(te, momento);
-
-    // O quadro so diz o que o codigo faz, e nao o que fazer.
-    switch (momento) {
-        case Camera::Aviso:     Placar(kFase, kEtapaDaCamera, "camera.ligar()"); break;
-        case Camera::Livre:     Placar(kFase, kEtapaDaCamera, "camera.ligar(): REC"); break;
-        case Camera::Menu:      Placar(kFase, kEtapaDaCamera, "jogo.pausar(): o professor foi às opções"); break;
-        case Camera::Invertida: Placar(kFase, kEtapaDaCamera, "opcoes.camera.inverterEixos = true"); break;
-        case Camera::Suave:
-            Placar(kFase, kEtapaDaCamera, mOpcoesDaCamera.inverter ? "camera.suavizar(0.9) · camera.tremer() · eixos invertidos"
-                                                                   : "camera.suavizar(0.9) · camera.tremer()");
-            break;
-        case Camera::Volta:     Placar(kFase, kEtapaDaCamera, "camera.desligar()"); break;
-    }
 }
 
 void Ferreira::PausarOCampo() {
@@ -509,7 +488,6 @@ void Ferreira::AtualizarAbertura(const float te) {
     // Uma vez por luta: se a fase 1 voltar (o ciclo das fases), a nota ja foi reescrita.
     if (mNotaEditada) {
         if (faixa) faixa->EsconderNumero(false);
-        Placar(kFase, kEtapaDaAbertura, "nota = 15: agora a luta e de verdade");
         return;
     }
     if (mNotaAntesDaEdicao < 0.0f) mNotaAntesDaEdicao = Nota();
@@ -525,7 +503,6 @@ void Ferreira::AtualizarAbertura(const float te) {
         if (faixa) faixa->EsconderNumero(false);
         mClarao = 0.2f;
         mCorDoClarao = kMagenta;
-        Avisar("hud.nota = 15. Agora sim: bem-vindo a INF 216", 1.8f);
         SomDoDisparo();
         return;
     }
@@ -558,13 +535,6 @@ void Ferreira::AtualizarAbertura(const float te) {
     // O fio: o professor puxa o numero da HUD ate ele, e o empurra de volta.
     if (n.momento == Momento::Indo || n.momento == Momento::Voltando || n.momento == Momento::NaPlaca) {
         Tracejada(GetPosition() + Vector2(0.0f, 40.0f), n.onde, kMagenta, 10.0f);
-    }
-    switch (n.momento) {
-        case Momento::NaPlaca:      Placar(kFase, kEtapaDaAbertura, "hud.nota: este número é meu"); break;
-        case Momento::Indo:         Placar(kFase, kEtapaDaAbertura, "hud.nota.pegar()"); break;
-        case Momento::Reescrevendo: Placar(kFase, kEtapaDaAbertura, "nota = " + Inteiro(mNotaAntesDaEdicao) + " -> nota = " + Inteiro(n.valor)); break;
-        case Momento::Voltando:     Placar(kFase, kEtapaDaAbertura, "hud.nota.devolver(15)"); break;
-        case Momento::Devolvido:    break;
     }
 }
 
@@ -660,7 +630,6 @@ void Ferreira::QuebrarABarra() {
     }
     mClarao = 0.3f;
     mCorDoClarao = SDL_Color{255, 40, 60, 255};
-    Avisar("hud.nota.destruir(): você quebrou a sua própria nota!", kQuebraDaBarra + 1.0f);
     SomDoDisparo();
 }
 
@@ -682,7 +651,6 @@ void Ferreira::AtualizarQuebra(const float deltaTime) {
         Linha(centro - u + v, centro - u - v, cor);
         Linha(centro - u - v, centro + u + v, cor);
     }
-    Placar(kFase, static_cast<size_t>(std::max(0, mEtapaAnterior)), "hud.nota = null");
     Battle* b = Batalha();
     if (!b || !b->EmCombate()) return;
     if (QuebraAcabou(mQuebrada)) {
@@ -779,9 +747,6 @@ void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo:
     if (para == Estado::Fugindo) {
         mClarao = 0.15f;
         mCorDoClarao = SDL_Color{255, 214, 90, 255};
-        Avisar(mFase == RegrasTrocadas::kFase ? "regras.inverter(): o fantasma virou moeda - pegue!"
-                                               : "powerUp.usar(): agora ELE foge de você!",
-               1.3f);
         SomDoDisparo();
     }
     if (de == Estado::Fugindo) {
@@ -800,7 +765,6 @@ void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo:
         mCorpoMontado = false;
         mClarao = 0.25f;
         mCorDoClarao = SDL_Color{255, 214, 90, 255};
-        Avisar("inimigo.destruir(): + " + Inteiro(kPremioPorDerrotar) + " de bônus", 1.6f);
         SomDoDisparo();
     }
 }
@@ -878,11 +842,11 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
         }
     }
 
-    // Ele anda, o corpo vai para o lugar, a IA aparece, e o placar diz o estado.
+    // Ele anda, o corpo vai para o lugar, a IA aparece, e o professor atira os leques dele.
     AndarOInimigo(alvoDaIa, deltaTime, como);
     PorOInimigoNoLugar(ondeAluno);
     MostrarAIaDoInimigo(te, alvo, ondeAluno, alvoDaIa);
-    PlacarDoInimigo(te, como);
+    LequesDoInimigo(te, como);
 }
 
 bool Ferreira::PegarOPoderDoInimigo(const float te, const ComoOInimigo& como) {
@@ -1115,39 +1079,14 @@ void Ferreira::MostrarAIaDoInimigo(const float te, const Player* alvo, const Vec
     }
 }
 
-void Ferreira::PlacarDoInimigo(const float te, const ComoOInimigo& como) {
-    using namespace IaDoInimigo;
-    const bool pisca = Pisca(mIa, mRelogio);
-    // Na fase 1, o professor continua: os leques, menos que no resto da prova. Nas regras, a etapa
-    // e quem atira, e o placar e dela.
+void Ferreira::LequesDoInimigo(const float te, const ComoOInimigo& como) {
+    // Na fase 1, o professor continua: os leques, menos que no resto da prova. Nas regras, quem atira
+    // e a etapa.
     if (!como.fase1) return;
     if (te >= 1.0f && te >= mProximoLeque) {
         mProximoLeque = te + mDegrauDoHud.entreLeques * 1.4f;
         Leque(HudHostil::kGatilhoDoLeque, mDegrauDoHud.tirosDoLeque, 26.0f, mDegrauDoHud.velocidade, "Tiro");
     }
-
-    std::string texto;
-    switch (mIa.estado) {
-        case Estado::Nascendo:  texto = "new Inimigo(): a IA dele é uma máquina de estados"; break;
-        case Estado::Patrulha:  texto = "PATRULHA: fique fora do raio de visão dele"; break;
-        case Estado::Alerta:    texto = "ALERTA (!): ele te viu - CORRA!"; break;
-        case Estado::Persegue:
-            texto = Vivo(mPoder) ? "PERSEGUE: pegue o POWER-UP!"
-                                 : (mIa.versao >= 2 ? "PERSEGUE: ele mira onde você VAI estar - mude de rumo!"
-                                                    : "PERSEGUE: atire no OLHO dele, o ponto fraco");
-            break;
-        case Estado::Mira:      texto = "MIRA: ele vai avançar em linha reta - saia da linha!"; break;
-        case Estado::Investida: texto = "INVESTIDA: se ele bater na parede, fica tonto"; break;
-        case Estado::Atordoado: texto = "ATORDOADO: o olho é o ponto fraco - atire!"; break;
-        case Estado::Fugindo:
-            texto = pisca || mIa.susto <= kPiscaNoFim ? "FUGINDO... o power-up está acabando!"
-                                                      : "FUGINDO: encoste nos blocos - cada um é nota!";
-            break;
-        case Estado::Derrotado:
-            texto = "inimigo.destruir(): respawn em " + std::to_string(static_cast<int>(std::ceil(kRespawn - mIa.noEstado)));
-            break;
-    }
-    Placar(HudHostil::kFase, HudHostil::kEtapaDoInimigo, texto);
 }
 
 void Ferreira::AoRecarregarAIa(const int versao) {
@@ -1157,7 +1096,6 @@ void Ferreira::AoRecarregarAIa(const int versao) {
     mMarca = "v" + std::to_string(versao);
     mMarcaAte = mRelogio + 1.2f;
     TocarSom("toque.wav");
-    Avisar(versao >= 2 ? "hot reload: o inimigo prevê onde você vai estar" : "hot reload: o inimigo aprendeu a investida", 1.6f);
 }
 
 void Ferreira::MostrarARecarga(const float te) {

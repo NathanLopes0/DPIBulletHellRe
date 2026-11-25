@@ -74,7 +74,6 @@ private:
     /// Os circulos dela sao mais redondos que o padrao (Boss::Circulo).
     void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 40) { Boss::Circulo(centro, raio, cor, lados); }
 
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
     void PlacarDaFase(const std::string& fase, const std::string& texto);
     /// Um texto no placar por um instante, e depois volta ao da etapa.
     std::string mAvisoNoPlacar;

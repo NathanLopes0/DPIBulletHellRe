@@ -659,13 +659,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   uma linha, e quando você vira (muda de direção) é `notifyAll()`: uma onda
   sai de você e todos atiram. Se você passa um tempo sem virar, eles fazem
   polling — a linha fica âmbar, cada um pergunta `getEstado()` e atira assim
-  mesmo; o placar conta a regra e o que acabou de acontecer, e o olho
-  derrubado cancela a inscrição. Depois, o Decorator: a bala nasce ao lado
+  mesmo —, e o olho derrubado cancela a inscrição. Depois, o Decorator: a bala nasce ao lado
   dela, sai para fora e ganha camadas no caminho — Rápida (anel amarelo),
   Dividida (azul) e Teleguiada (vermelho), que persegue você por 2,2 s com a
-  linha de mira à vista —, com a composição no placar (`new Teleguiada(new
-  Dividida(new Rápida(bala)))`) e, da primeira vez, o que cada decorador faz.
-  Cada tiro seu tira o decorador de fora, e o placar diz o que saiu. No
+  linha de mira à vista. Cada tiro seu tira o decorador de fora. No
   exame, a frase dela: **não há bala de prata**. O lobisomem de Brooks — o
   projeto de software — persegue você e uiva, blindado; ela atira as
   promessas (IA, UML, low-code...), e elas perseguem você, fazendo a curva. A
@@ -719,8 +716,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   primeiro. O nó é derrubável, e o que cai leva a subárvore junto: dá para
   **podar a árvore**. Nos **paradigmas**, três problemas de sala: o troco
   **guloso** (as moedas saem da maior para a menor e perseguem você; nos
-  sistemas ruins o guloso erra, e erra com moeda a mais — "Troco de 31:
-  25+1+1+1+1+1+1 (ótimo: 4 moedas)"), a tabela da **programação dinâmica**
+  sistemas ruins o guloso erra, e erra com moeda a mais — o troco de 31 sai
+  25+1+1+1+1+1+1, e o ótimo são 4 moedas), a tabela da **programação dinâmica**
   (a maior subsequência comum de ALGORITMO e LOGARITMO, preenchida em ondas
   diagonais — cada casa calculada chove, a que casa letra com letra chove em
   leque) e o **backtracking** das seis rainhas (colocadas linha a linha e tiradas
@@ -728,8 +725,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   com o que ela ataca desenhado no tabuleiro; achada a solução, as seis atacam
   nas oito direções). Nos **limites**, a rede de ordenação — seis fios descem o
   campo, e em cada comparador os dois valores fora de ordem trocam de fio na
-  diagonal; embaixo saem ordenados, e o placar lembra que ordenar por comparação
-  pede ⌈log₂ 6!⌉ = 10 comparações —, e depois o **caixeiro viajante**, com
+  diagonal; embaixo saem ordenados —, e depois o **caixeiro viajante**, com
   5, 6 e 7 cidades: o número de rotas explode (12, 60, 360), o caixeiro tenta
   rota atrás de rota, cada cidade em que ele passa atira, e a melhor rota fica
   desenhada em ouro. A final é a **aproximação**: a têmpera simulada. Um enxame
@@ -788,9 +784,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   o elevador. O bloco lido desce na **coluna do pedido**, e a linha do braço
   até o próximo pedido mostra onde vai cair; o pedido esquecido pelo SSTF
   passa fome, fica vermelho e, quando enfim é lido, cai largo — e um pedido
-  derrubado a tiros é E/S cancelada. O placar compara o quanto o braço andou
-  com o que o FCFS andaria (`SSTF: 150 cilindros em 7 pedidos · em FCFS seriam
-  314`). O exame é a **nuvem** (`Virtualizacao.h`): ele é o hipervisor, e as
+  derrubado a tiros é E/S cancelada. O exame é a **nuvem** (`Virtualizacao.h`): ele é o hipervisor, e as
   VMs são caixas que andam pelo campo com os tiros do kernel **presos dentro**,
   quicando nas paredes — a VM isola, e o que você evita são as caixas. Só a
   instrução privilegiada sai: vira um trap que voa até ele, e ele a emula

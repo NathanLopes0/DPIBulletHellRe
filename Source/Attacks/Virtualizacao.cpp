@@ -62,10 +62,6 @@ namespace Virtualizacao {
         return de + (para - de) * suave;
     }
 
-    std::string Placar(const int vms) {
-        return "Hipervisor: " + std::to_string(vms) + (vms == 1 ? " VM" : " VMs") + " em " + std::to_string(kHosts) + " hosts";
-    }
-
     std::string PlacarDoTrap(const int vm) {
         return "VM " + std::to_string(vm) + ": instrução privilegiada → trap no hipervisor";
     }

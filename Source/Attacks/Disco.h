@@ -48,13 +48,6 @@ namespace Disco {
     /// sem pedido adiante, o alvo e a ponta, e la o sentido vira. Sem pedido nenhum, -1.
     int Alvo(int cabeca, const std::vector<int>& pedidos, Algoritmo a, int& sentido);
 
-    /// O quanto o braco anda, em cilindros, atendendo 'pedidos' (na ordem de chegada) a partir de
-    /// 'cabeca'. No SCAN ele comeca no 'sentido' e vai ate a ponta antes de voltar.
-    int Movimento(int cabeca, std::vector<int> pedidos, Algoritmo a, int sentido = -1);
-
-    /// O placar: "SSTF: 236 cilindros em 9 pedidos  ·  em FCFS seriam 640" (no FCFS, sem a
-    /// comparacao).
-    std::string Placar(Algoritmo a, int andou, int atendidos, int fcfsSeria);
 
     /// O pedido que espera mais que isto passa fome: fica vermelho, e o bloco dele desce largo.
     constexpr float kFome = 2.6f;

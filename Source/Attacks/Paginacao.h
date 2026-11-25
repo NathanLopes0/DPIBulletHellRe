@@ -5,8 +5,6 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
-#include <string>
 #include <vector>
 
 #include "../Regras/Dificuldade.h"
@@ -44,23 +42,6 @@ namespace Paginacao {
     constexpr int kBitsDoDeslocamento = 12;
     constexpr int kPaginas = 8;
 
-    struct Endereco {
-        int pagina = 0;
-        int deslocamento = 0;
-    };
-    Endereco Traduzir(std::uint32_t virtual_);
-    std::uint32_t Montar(int pagina, int deslocamento);
-
-    /// O numero em hexadecimal, com 'digitos' algarismos: Hexa(0x3A7F, 4) e "0x3A7F".
-    std::string Hexa(std::uint32_t valor, int digitos);
-
-    /// O placar de cada referencia: "0x3A7F = página 3 + 0xA7F  ·  acerto na moldura 2",
-    /// "0x5A07 = página 5 + 0xA07  ·  falta! sai a página 3" (ou "vai para a moldura 1", livre).
-    std::string PlacarDoAcerto(std::uint32_t endereco, int moldura);
-    std::string PlacarDaFalta(std::uint32_t endereco, int vitima, int moldura);
-
-    /// O placar do thrashing: "Thrashing: 8 faltas nas últimas 10 referências".
-    std::string PlacarDoThrashing(int faltas, int referencias);
 
     // ---- O relogio (a segunda chance) ----
 
@@ -115,9 +96,6 @@ namespace Paginacao {
 
     /// As molduras da memoria em cada etapa: ela encolhe.
     int MoldurasNaEtapa(int etapa, Dificuldade::Nivel n);
-
-    /// Quantas referencias o placar do thrashing conta.
-    constexpr int kJanelaDoThrashing = 10;
 
     /// O professor tambem usa a memoria:
     ///   - le a pagina do aluno com um leque de tres, mirado, de tanto em tanto - que o tira do lugar (o

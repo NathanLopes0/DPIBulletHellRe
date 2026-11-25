@@ -75,13 +75,6 @@ private:
     void Retangulo(Vector2 de, Vector2 ate, SDL_Color cor, bool tracejado = false);
     void Preencher(Vector2 de, Vector2 ate, SDL_Color cor);
 
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
-    /// Um texto no placar por um instante, por cima do da etapa.
-    void Avisar(const std::string& texto, float duracao = 1.6f);
-    /// O placar da etapa, ou o aviso enquanto ele vale.
-    void Placar(const std::string& fase, size_t etapa, const std::string& texto);
-    std::string mAviso;
-    float mAvisoAte = -1.0f;
     float mRelogio = 0.0f;
     int mEtapaAnterior = -1;
 

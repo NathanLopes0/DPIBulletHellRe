@@ -63,17 +63,6 @@ float Arroyo::AnguloAteOAluno(const Vector2 de) const {
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
 }
 
-void Arroyo::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
-    auto etapas = EtapasDa(fase);
-    if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
-    etapas[etapa].second = texto;
-    ReescreverEtapas(fase, etapas);
-}
-
-void Arroyo::PlacarDaFase(const std::string& fase, const std::string& texto) {
-    if (AnuncioDaFase(fase) != texto) RegistrarAnuncio(fase, texto);
-}
-
 std::optional<Vector2> Arroyo::AlvoDoMovimento() const {
     return mAlvo;
 }
@@ -186,7 +175,6 @@ void Arroyo::AtualizarArvore(const float t) {
     // Toda a arvore resolvida (ou podada): o Teorema Mestre entra no placar.
     if (mRaizSaiu && mNos.empty() && !mArvorePronta) {
         mArvorePronta = true;
-        PlacarDaEtapa(kFase, static_cast<size_t>(rodada), Placar(caso, true));
     }
 }
 
@@ -240,7 +228,6 @@ void Arroyo::AtualizarParadigmas(const float t) {
             mMoedas = Guloso(Trocos()[static_cast<size_t>(troco)]);
             mMoedaDaVez = 0;
             mProximaMoeda = static_cast<float>(troco) * kDuracaoDoTroco + 0.25f;
-            PlacarDaEtapa(kFase, 0, PlacarDoTroco(Trocos()[static_cast<size_t>(troco)]));
         }
         const float lado = (mTrocoDaVez % 2 == 0) ? -1.0f : 1.0f;
         mAlvo = Vector2(campo.x + campo.w / 2.0f + lado * campo.w * 0.22f, campo.y + 70.0f);
@@ -284,8 +271,6 @@ void Arroyo::AtualizarParadigmas(const float t) {
         }
         if (mOndaDaVez >= mOndas.size() && !mTabelaPronta) {
             mTabelaPronta = true;
-            PlacarDaEtapa(kFase, 1, "LCS(" + std::string(kPalavraA) + ", " + kPalavraB + ") = " +
-                                     std::to_string(mTabela.back().back()));
         }
         // Ao lado da tabela, e nao em cima da chuva dela: quem atira na professora nao precisa
         // ficar embaixo da onda.
@@ -319,10 +304,6 @@ void Arroyo::AtualizarParadigmas(const float t) {
             if (deP[static_cast<size_t>(l)] < 0) continue;
             DispararEm(kGatilhoDaSolucao, LugarNoTabuleiro(l, deP[static_cast<size_t>(l)], kRainhas, centro));
         }
-        int voltas = 0;
-        for (const Passo& p : mBusca) if (!p.coloca) ++voltas;
-        PlacarDaEtapa(kFase, 2, "Solução! " + std::to_string(mBusca.size()) + " passos, " +
-                                 std::to_string(voltas) + " voltas atrás");
     }
     // O tabuleiro, e o que cada rainha de pe ataca (a linha, a coluna e as diagonais).
     const float meia = kCasaDoTabuleiro * static_cast<float>(kRainhas) / 2.0f;
@@ -392,7 +373,6 @@ void Arroyo::AtualizarIntratavel(const float t) {
                 Linha(Vector2(XDoFio(i), YDaCamada(k)), Vector2(XDoFio(j), YDaCamada(k)), kComparador);
             }
         }
-        PlacarDaEtapa(kFase, 0, PlacarDaRede());
         mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + 55.0f);
 
         if (t >= mProximaLeva && t < kFimDaRede - 2.5f) {
@@ -515,7 +495,6 @@ void Arroyo::AtualizarIntratavel(const float t) {
     if (!mMelhor.empty()) desenhar(mMelhor, kMelhorRota);
     desenhar(mRota, kRotaDaVez);
     const int n = static_cast<int>(mOndeCidades.size());
-    PlacarDaEtapa(kFase, 1, PlacarDoCaixeiro(n, mTentativa, mMelhor.empty() ? 0.0f : mMelhorComprimento));
     // O professor confere as rotas andando de um lado ao outro, por cima do mapa.
     const float onda = Math::Sin(Math::TwoPi * (t - kFimDaRede) / kVaiVemDoCaixeiro);
     mAlvo = Vector2(campo.x + campo.w * (0.5f + 0.25f * onda), campo.y + 55.0f);
@@ -531,7 +510,6 @@ void Arroyo::DesmontarTempera() {
     mOndeVales.clear();
     mMetadeCongelada = -1;
     mSaltos.clear();
-    mAvisoDaTemperaAte = -1.0f;
 }
 
 void Arroyo::Termometro(const float temperatura) {
@@ -624,22 +602,13 @@ void Arroyo::AtualizarTempera(const float t, const float deltaTime) {
     const float fimDaMetade = inicioDaMetade + kReaquecimento - kAntesDoReaquecimento;
     if (t >= fimDaMetade && mMetadeCongelada < metade) {
         mMetadeCongelada = metade;
-        int presas = 0;
         for (const Solucao& s : mSolucoes) {
             for (const Vector2& v : mOndeVales) {
                 if ((s.p->GetPosition() - v).Length() < kPresa) {
                     DispararEm(kGatilhoDoCongelado, s.p->GetPosition());
-                    ++presas;
                     break;
                 }
             }
         }
-        if (presas > 0) {
-            mAvisoDaTempera = PlacarDoOtimoLocal(presas);
-            mAvisoDaTemperaAte = inicioDaMetade + kReaquecimento;
-        }
     }
-    // O placar: o anuncio da etapa no comeco dela, o aviso do otimo local no fim, e no resto o estagio.
-    if (t < mAvisoDaTemperaAte) PlacarDaEtapa(kFase, static_cast<size_t>(metade), mAvisoDaTempera);
-    else if (t - inicioDaMetade >= kTempoDoAnuncio) PlacarDaEtapa(kFase, static_cast<size_t>(metade), Placar(temperatura));
 }

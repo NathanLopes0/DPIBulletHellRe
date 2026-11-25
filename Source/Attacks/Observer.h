@@ -92,10 +92,8 @@ namespace Observer {
     constexpr float kRaioFinal = 190.0f;
     float Raio(float t);
 
-    /// Os placares do Observer, que contam a regra: "Observer: 4 olhos assinam você · virou, é
-    /// notifyAll()", "notifyAll(): você virou para a esquerda · 4 avisos", "polling: 2 s sem aviso ·
-    /// 4 olhos perguntam getEstado()".
-    std::string PlacarDoObserver(int inscritos);
+    /// Os avisos do Observer, que contam a regra: "notifyAll(): você virou para a esquerda · 4 avisos",
+    /// "polling: 2 s sem aviso · 4 olhos perguntam getEstado()".
     std::string PlacarDaNotificacao(const Estado& antes, const Estado& agora, int inscritos);
     std::string PlacarDaConsulta(float segundos, int inscritos);
 

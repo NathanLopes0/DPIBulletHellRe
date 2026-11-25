@@ -72,10 +72,6 @@ private:
     /// Os circulos dele sao mais redondos que o padrao (Boss::Circulo).
     void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 36) { Boss::Circulo(centro, raio, cor, lados); }
 
-    /// O placar de uma etapa da fase, so quando muda.
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
-    void PlacarDaFase(const std::string& fase, const std::string& texto);
-
     std::optional<Vector2> mAlvo;
 
     // ---- Fase 1: a arvore de recursao ----
@@ -175,8 +171,6 @@ private:
     };
     std::vector<Salto> mSaltos;
     static constexpr float kDuracaoDoSalto = 0.45f;
-    std::string mAvisoDaTempera;
-    float mAvisoDaTemperaAte = -1.0f;
     void Termometro(float temperatura);
 
     static constexpr SDL_Color kAresta = {150, 220, 200, 120};

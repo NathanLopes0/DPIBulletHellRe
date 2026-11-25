@@ -53,22 +53,6 @@ namespace Tempera {
         return std::log(t / kFrio) / std::log(kQuente / kFrio);
     }
 
-    std::string Placar(const float temperatura) {
-        const std::string t = "T = " + std::to_string(static_cast<int>(std::lround(temperatura)));
-        const int pior = static_cast<int>(std::lround(100.0f * ChanceDePior(kPiorDeReferencia, temperatura)));
-        switch (EstagioDe(temperatura)) {
-            case Estagio::Quente:    return "Quente, " + t + ": aceita passo pior (" + std::to_string(pior) + "%)";
-            case Estagio::Esfriando: return "Esfriando, " + t + ": aceita pior " + std::to_string(pior) + "% das vezes";
-            case Estagio::Frio:      break;
-        }
-        return "Fria, " + t + ": só aceita o que melhora";
-    }
-
-    std::string PlacarDoOtimoLocal(const int presas) {
-        if (presas == 1) return "Ótimo local: 1 solução presa num vale raso";
-        return "Ótimo local: " + std::to_string(presas) + " soluções presas num vale raso";
-    }
-
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;

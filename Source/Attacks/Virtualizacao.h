@@ -73,9 +73,8 @@ namespace Virtualizacao {
     constexpr float kVooDoTrap = 0.45f;        ///< o trap leva isto ate o hipervisor
     constexpr float kReposicao = 1.4f;         ///< a VM derrubada volta depois disto
 
-    /// Os placares: "Hipervisor: 3 VMs em 6 hosts", "VM 2: instrução privilegiada → trap",
-    /// "Migração ao vivo: VM 2, do host A para o E", "Carga subindo: 3 → 4 VMs".
-    std::string Placar(int vms);
+    /// Os avisos: "VM 2: instrução privilegiada → trap", "Migração ao vivo: VM 2, do host A para o E",
+    /// "Carga subindo: 3 → 4 VMs".
     std::string PlacarDoTrap(int vm);
     std::string PlacarDaMigracao(int vm, int de, int para);
     std::string PlacarDaEscala(int de, int para);

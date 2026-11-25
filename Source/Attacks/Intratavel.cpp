@@ -54,17 +54,6 @@ namespace Intratavel {
         return topo + (fundo - topo) * (static_cast<float>(c) + 0.5f) / static_cast<float>(n);
     }
 
-    std::string PlacarDaRede() {
-        // log2 n! com uma casa, e o arredondamento para cima pela seta: o sinal de teto nao existe
-        // na fonte do quadro.
-        double bits = 0.0;
-        for (int i = 2; i <= kFios; ++i) bits += std::log2(static_cast<double>(i));
-        const long decimos = std::lround(bits * 10.0);
-        return "Ω(n log n): log₂ " + std::to_string(kFios) + "! ≈ " +
-               std::to_string(decimos / 10) + "," + std::to_string(decimos % 10) + " → " +
-               std::to_string(LimiteInferior(kFios)) + "  ·  a rede usa " + std::to_string(Comparadores());
-    }
-
     long long Rotas(const int n) {
         if (n < 3) return 1;
         long long f = 1;
@@ -110,11 +99,6 @@ namespace Intratavel {
         std::vector<int> rota = {0};
         rota.insert(rota.end(), resto.begin(), resto.end());
         return rota;
-    }
-
-    std::string PlacarDoCaixeiro(const int cidades, const int tentativa, const float melhor) {
-        return "n = " + std::to_string(cidades) + "  ·  " + std::to_string(Rotas(cidades)) + " rotas  ·  tentativa " +
-               std::to_string(tentativa) + "  ·  melhor " + std::to_string(static_cast<int>(std::lround(melhor)));
     }
 
     Vector2 NaRota(const std::vector<Vector2>& cidades, const std::vector<int>& rota, const float u) {

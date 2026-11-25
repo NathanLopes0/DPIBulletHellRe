@@ -32,8 +32,6 @@ namespace Decorator {
     /// O nome do decorador, como no codigo: "Rapida", "Dividida", "Teleguiada" (com acento na tela).
     const char* Nome(Camada c);
 
-    /// A composicao de 'camadas' decoradores sobre a bala, de dentro para fora.
-    std::string Placar(int camadas);
 
     /// A cara da bala com 'camadas' decoradores: "D0" a "D3".
     std::string Cara(int camadas);

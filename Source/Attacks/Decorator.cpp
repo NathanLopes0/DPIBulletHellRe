@@ -17,13 +17,6 @@ namespace Decorator {
         return "";
     }
 
-    std::string Placar(const int camadas) {
-        const int n = std::clamp(camadas, 0, kCamadas);
-        std::string s = "bala";
-        for (int i = 0; i < n; ++i) s = std::string("new ") + Nome(kOrdem[static_cast<size_t>(i)]) + "(" + s + ")";
-        return s;
-    }
-
     std::string Cara(const int camadas) {
         return "D" + std::to_string(std::clamp(camadas, 0, kCamadas));
     }

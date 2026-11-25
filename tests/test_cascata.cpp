@@ -93,8 +93,6 @@ TEST_CASE("Scrum: a velocidade sobe a cada sprint, e os pontos sao os do poker")
     for (const int p : Pontos(s, 40)) CHECK(baralho.count(p) == 1);
     CHECK(TirosDaHistoria(8) > TirosDaHistoria(1));
     CHECK(Cara(5) == "P5");
-    CHECK(Placar(2, 1, 13) == "Sprint 3  ·  daily 1  ·  faltam 13 pontos");
-    CHECK(Placar(0, 0, 1) == "Sprint 1  ·  faltam 1 ponto");
 }
 
 TEST_CASE("Scrum: as vagas do quadro - tres colunas, a pilha de cima para baixo") {
@@ -128,10 +126,8 @@ TEST_CASE("Observer: os olhos orbitam o aluno, repartidos, e a orbita fecha") {
     }
 }
 
-TEST_CASE("Observer: o placar conta a regra - virou, notifyAll; sem aviso, polling") {
+TEST_CASE("Observer: o aviso conta a regra - virou, notifyAll; sem aviso, polling") {
     using namespace Observer;
-    CHECK(PlacarDoObserver(4) == "Observer: 4 olhos assinam você  ·  virou, é notifyAll()");
-    CHECK(PlacarDoObserver(1).find("1 olho assina") != std::string::npos);
     Estado direita, esquerda, baixo;
     direita.x = 1;
     esquerda.x = -1;
@@ -144,12 +140,8 @@ TEST_CASE("Observer: o placar conta a regra - virou, notifyAll; sem aviso, polli
     CHECK(kOnda < kEntreInscricoes);
 }
 
-TEST_CASE("Decorator: a composicao no placar, de dentro para fora") {
+TEST_CASE("Decorator: as camadas decoram a bala a tempo, e o Dificil decora mais") {
     using namespace Decorator;
-    CHECK(Placar(0) == "bala");
-    CHECK(Placar(1) == "new Rápida(bala)");
-    CHECK(Placar(3) == "new Teleguiada(new Dividida(new Rápida(bala)))");
-    CHECK(Placar(9) == Placar(3));
     CHECK(Cara(2) == "D2");
     CHECK(kEntreCamadas * static_cast<float>(kCamadas) < 3.0f);   // decorada a tempo de importar
     CHECK(DegrauDo(Dificuldade::Nivel::Dificil).entreComponentes < DegrauDo(Dificuldade::Nivel::Normal).entreComponentes);

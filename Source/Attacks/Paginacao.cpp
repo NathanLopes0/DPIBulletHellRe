@@ -17,49 +17,6 @@ namespace Paginacao {
         return static_cast<int>(kDuracoes.size()) - 1;
     }
 
-    Endereco Traduzir(const std::uint32_t virtual_) {
-        Endereco e;
-        e.pagina = static_cast<int>(virtual_ >> kBitsDoDeslocamento);
-        e.deslocamento = static_cast<int>(virtual_ & ((1u << kBitsDoDeslocamento) - 1u));
-        return e;
-    }
-
-    std::uint32_t Montar(const int pagina, const int deslocamento) {
-        const auto mascara = (1u << kBitsDoDeslocamento) - 1u;
-        return (static_cast<std::uint32_t>(std::max(pagina, 0)) << kBitsDoDeslocamento) |
-               (static_cast<std::uint32_t>(std::max(deslocamento, 0)) & mascara);
-    }
-
-    std::string Hexa(const std::uint32_t valor, const int digitos) {
-        static constexpr char kAlgarismos[] = "0123456789ABCDEF";
-        std::string s;
-        for (int i = digitos - 1; i >= 0; --i) s += kAlgarismos[(valor >> (4 * i)) & 0xFu];
-        return "0x" + s;
-    }
-
-    namespace {
-        /// "0x3A7F = página 3 + 0xA7F".
-        std::string Conta(const std::uint32_t endereco) {
-            const Endereco e = Traduzir(endereco);
-            return Hexa(endereco, 4) + " = página " + std::to_string(e.pagina) + " + " +
-                   Hexa(static_cast<std::uint32_t>(e.deslocamento), 3);
-        }
-    }
-
-    std::string PlacarDoAcerto(const std::uint32_t endereco, const int moldura) {
-        return Conta(endereco) + "  ·  acerto na moldura " + std::to_string(moldura);
-    }
-
-    std::string PlacarDaFalta(const std::uint32_t endereco, const int vitima, const int moldura) {
-        if (vitima < 0) return Conta(endereco) + "  ·  falta! vai para a moldura " + std::to_string(moldura);
-        return Conta(endereco) + "  ·  falta! sai a página " + std::to_string(vitima);
-    }
-
-    std::string PlacarDoThrashing(const int faltas, const int referencias) {
-        return "Thrashing: " + std::to_string(faltas) + (faltas == 1 ? " falta" : " faltas") + " nas últimas " +
-               std::to_string(referencias) + " referências";
-    }
-
     Relogio::Relogio(const int molduras) : mMolduras(static_cast<size_t>(std::max(1, molduras))) {}
 
     Referencia Relogio::Referenciar(const int pagina) {

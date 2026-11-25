@@ -56,8 +56,6 @@ namespace Paradigmas {
     /// O menor numero de moedas possivel - a programacao dinamica, que o guloso nao fez.
     int Otimo(const Troco& t);
 
-    /// O placar: "Troco de 30: 25+1+1+1+1+1 (ótimo: 3 moedas)".
-    std::string PlacarDoTroco(const Troco& t);
 
     /// A cara da moeda em projeteis.json: "M100", "M25", "M4"...
     std::string CaraDaMoeda(int valor);

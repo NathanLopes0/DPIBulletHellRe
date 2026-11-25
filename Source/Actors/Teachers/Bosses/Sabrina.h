@@ -81,11 +81,6 @@ private:
     /// O termometro na beirada direita do campo: de 'minima' a 'maxima' graus, cheio ate 'agora'.
     void Termometro(float agora, float minima, float maxima);
 
-    void PlacarDaEtapa(const std::string& fase, size_t etapa, const std::string& texto);
-    void Avisar(const std::string& texto, float duracao = 1.6f);
-    void Placar(const std::string& fase, size_t etapa, const std::string& texto);
-    std::string mAviso;
-    float mAvisoAte = -1.0f;
     float mRelogio = 0.0f;
     int mEtapaAnterior = -1;
 

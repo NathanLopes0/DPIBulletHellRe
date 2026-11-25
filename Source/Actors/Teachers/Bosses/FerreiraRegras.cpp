@@ -38,7 +38,6 @@ void Ferreira::AtualizarRegras(const float t, const float deltaTime) {
                 if (Vivo(bloco)) b->Faiscar(bloco->GetPosition(), Hud::Faisca::Dissolvido);
             }
         }
-        Avisar("inimigo.desativar(): o fantasma sai de cena - por enquanto", 1.4f);
     }
     mInimigoFica = etapa < kInimigoAte;
     TrocouDeEtapa(etapa);
@@ -119,12 +118,6 @@ void Ferreira::AtualizarInversao(const float te) {
             Preencher(onde + Vector2(-2.0f, -51.0f), onde + Vector2(2.0f, -33.0f), kOuro);
         }
     }
-    switch (r) {
-        case Regra::Aviso: Placar(kFase, 0, "regras.inverter() em 3, 2, 1..."); break;
-        case Regra::Invertida: Placar(kFase, 0, "INVERTIDO: pegue as moedas e NÃO atire"); break;
-        case Regra::Voltando: Placar(kFase, 0, "regras.restaurar(): as moedas viram TIROS!"); break;
-        case Regra::Normal: Placar(kFase, 0, "Regras de sempre: atire e desvie"); break;
-    }
 }
 
 void Ferreira::AtualizarFogoAmigo(const float te) {
@@ -174,7 +167,6 @@ void Ferreira::AtualizarFogoAmigo(const float te) {
         Seta(Vector2(x, c.y + 28.0f), Vector2(x, c.y + 8.0f), cor);
         Seta(Vector2(x, c.y + c.h - 6.0f), Vector2(x, c.y + c.h - 26.0f), cor);
     }
-    Placar(kFase, 1, ligado ? "fogoAmigo = true: tiro que ERRA volta por baixo" : "fogoAmigo = true em 3, 2, 1...");
 }
 
 float Ferreira::SeteSegmentos(const std::string& texto, const Vector2 canto, const float altura, const SDL_Color cor) {
@@ -321,9 +313,6 @@ void Ferreira::AtualizarFps(const float te, const float deltaTime) {
         Linha(Vector2(g0.x + passo * static_cast<float>(k - 1), a0), Vector2(g0.x + passo * static_cast<float>(k), a1), cor);
     }
     mLinhas = doCampo;
-
-    if (te < kComecaOFps) Placar(kFase, kEtapaDoFps, "fps.limite = off: segure o FOCO e o jogo cai para 30 FPS");
-    else Placar(kFase, kEtapaDoFps, "VERMELHO sem deltaTime: corre com o FPS. AZUL com deltaTime: não muda");
 }
 
 void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
@@ -359,7 +348,6 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
         if (mSave) mSave->DefinirEnfeite(true);
         mClarao = 0.2f;
         mCorDoClarao = kSave;
-        Avisar("quicksave(): o save guardou a nota " + Inteiro(mSalvo.nota), 1.4f);
         SomDoDisparo();
     }
     if (mSalvo.tem && !mSave) mSalvo.tem = false;   // o disquete sumiu por outro caminho
@@ -443,18 +431,9 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
                 break;
             }
         }
-        if (mSalvo.tem) {
-            const std::string notas = "o save tem " + Inteiro(mSalvo.nota) + ", você tem " + Inteiro(agora);
-            switch (humor) {
-                case Humor::Foge: Placar(kFase, 3, notas + ": ele FOGE - encurrale num canto, ou atire nele!"); break;
-                case Humor::Persegue: Placar(kFase, 3, notas + ": ele te PERSEGUE - fuja!"); break;
-                case Humor::Parado: Placar(kFase, 3, notas + ": ele espera"); break;
-            }
-        }
     }
     if (!mSalvo.tem) {
         Esconder(mEtiquetasDoSave);
-        Placar(kFase, 3, te > kUltimoSave ? "sem mais saves: só desvie" : "quicksave() a caminho: o save vai guardar a sua nota");
     }
 }
 
@@ -466,7 +445,6 @@ void Ferreira::Carregar(const float te) {
         alunos[i]->Proteger(0.6f);
     }
     mFuga = RegrasTrocadas::Fuga{};
-    const float antes = Nota();
     if (b) b->DefinirNota(mSalvo.nota);
     Matar(mSave);
     mSalvo.tem = false;
@@ -474,6 +452,5 @@ void Ferreira::Carregar(const float te) {
     Esconder(mEtiquetasDoSave);
     mClarao = 0.25f;
     mCorDoClarao = SDL_Color{255, 255, 255, 255};
-    Avisar("quickload(): a nota foi de " + Inteiro(antes) + " para " + Inteiro(mSalvo.nota), 1.6f);
     SomDoDisparo();
 }

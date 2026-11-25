@@ -425,8 +425,8 @@ perto de um aluno (`Poder::MaisPerto`, um aluno por vez na dupla) e paga
 87,99 (antes, 99,74 com a nota cravada).
 
 Na fase 3, a inversão: cada dúvida que chega ao professor custa 1,3, e os dois
-pilotos atiram sem parar. Quem lê o placar ("INVERTIDO: pegue as moedas e NÃO
-atire") para de atirar e cata as moedas. O `esquiva` também não pega as moedas
+pilotos atiram sem parar. Quem entende a inversão — os tiros do professor viram
+moedas — para de atirar e cata as moedas. O `esquiva` também não pega as moedas
 da chuva nem mira o botão ESPERAR do crash: são os pontos que a prova dá a quem
 entende o jogo. As fases duram 40 s, o dobro das outras (a das regras, 48 s), e
 cada acerto no professor vale 0,55 do de uma matéria comum

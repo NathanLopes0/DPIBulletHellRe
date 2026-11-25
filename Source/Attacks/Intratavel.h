@@ -61,8 +61,6 @@ namespace Intratavel {
     /// O y da camada 'c' de comparadores, entre 'topo' e 'fundo'.
     float YDaCamada(int c, float topo, float fundo);
 
-    /// O placar da rede: "Ω(n log n): log₂ 6! ≈ 9,5 → 10 · a rede usa 12".
-    std::string PlacarDaRede();
 
     constexpr float kEntreOndas = 1.45f;      ///< segundos entre duas levas de valores
     constexpr float kTroca = 0.32f;           ///< segundos que um valor leva para trocar de fio
@@ -85,8 +83,6 @@ namespace Intratavel {
     /// Uma rota qualquer: a cidade 0 primeiro, as outras embaralhadas.
     std::vector<int> Tentativa(Variacao::Sorteio& s, int n);
 
-    /// O placar da rodada: "n = 6 · 60 rotas · tentativa 3 · melhor 1840".
-    std::string PlacarDoCaixeiro(int cidades, int tentativa, float melhor);
 
     /// Onde o caixeiro esta 'u' (0 a 1) da volta inteira, andando na mesma rapidez em todo trecho.
     Vector2 NaRota(const std::vector<Vector2>& cidades, const std::vector<int>& rota, float u);

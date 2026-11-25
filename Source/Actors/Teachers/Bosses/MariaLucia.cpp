@@ -21,7 +21,6 @@
 namespace {
     /// A fase dos padroes: o Observer e o Decorator, as duas etapas dela em fases.json.
     constexpr const char* kFaseDosPadroes = Observer::kFaseDosPadroes;
-    constexpr size_t kEtapaDoDecorator = 1;
     /// O que o placar mostra de um aviso (a mudanca que estourou, a bala que nao matou).
     constexpr float kAviso = 1.3f;
 }
@@ -64,13 +63,6 @@ BossProjectile* MariaLucia::Um(const char* gatilho, const Vector2 onde, const st
 float MariaLucia::AnguloAte(const Vector2 de, const Vector2 para) const {
     const Vector2 d = para - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-void MariaLucia::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
-    auto etapas = EtapasDa(fase);
-    if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
-    etapas[etapa].second = texto;
-    ReescreverEtapas(fase, etapas);
 }
 
 void MariaLucia::PlacarDaFase(const std::string& fase, const std::string& texto) {
@@ -322,8 +314,6 @@ void MariaLucia::AtualizarScrum(const float t) {
             }
             mFaltavam = {mPontosDaSprint};
             mOndeOCursor = Vaga(0, 0, esquerda, largura, topo);
-        } else if (sprint == kSprints) {
-            PlacarDaEtapa(kFase, static_cast<size_t>(kSprints) + 1, "Retrospectiva: o que aprendemos?");
         }
     }
 
@@ -371,9 +361,6 @@ void MariaLucia::AtualizarScrum(const float t) {
                 DispararEm(kGatilhoDoTrabalho, aqui, tiros, AnguloAte(aqui, PosicaoDoAluno()), static_cast<float>(12 * (tiros - 1)));
             }
         }
-        int faltam = 0;
-        for (const Historia& h : mHistorias) faltam += h.pontos;
-        PlacarDaEtapa(kFase, static_cast<size_t>(sprint) + 1, Placar(sprint, mDailiesDaVez, faltam));
     }
 
     // A entrega: o incremento cai no campo do aluno e estoura embaixo.
@@ -482,7 +469,6 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
             Cara(o.p, mPiscando > 0.0f ? Observer::kPisca
                                        : (lado < 0 ? Observer::kOlhaEsquerda : lado > 0 ? Observer::kOlhaDireita : Observer::kOlhaFrente));
         }
-        PlacarDaEtapa(kFaseDosPadroes, 0, mRelogio < mAvisoAte ? mAvisoNoPlacar : Observer::PlacarDoObserver(inscritos));
         mAlvo = Vector2(Campo().x + Campo().w / 2.0f, Campo().y + 70.0f);
         return;
     }
@@ -546,11 +532,6 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
         if (auto* rb = d.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d.velocidade);
     }
     for (const Decorada& d : novas) mDecoradas.push_back(d);
-    // O placar: a composicao da bala mais decorada em campo.
-    int camadas = -1;
-    for (const Decorada& d : mDecoradas) camadas = std::max(camadas, d.camadas);
-    PlacarDaEtapa(kFaseDosPadroes, kEtapaDoDecorator,
-                  mRelogio < mAvisoAte ? mAvisoNoPlacar : camadas < 0 ? std::string("Decorator") : Decorator::Placar(camadas));
     mAlvo = Vector2(Campo().x + Campo().w / 2.0f + 220.0f * std::sin(t * 0.6f), Campo().y + 70.0f);
 }
 

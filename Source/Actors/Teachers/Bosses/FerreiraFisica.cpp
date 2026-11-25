@@ -120,7 +120,6 @@ void Ferreira::AtualizarFisica(const float t, const float deltaTime) {
             DesenharOChao(lado, chao, pes, kPerigo, true);
             SetaGrande(Vector2(c.x + c.w / 2.0f, c.y + c.h / 2.0f), Plataforma::Direcao(lado), 150.0f, kPerigo);
         }
-        Placar(kFase, static_cast<size_t>(etapa), "fisica.gravidade = " + NomeDoLado(lado) + " em 3, 2, 1...");
         return;
     }
 
@@ -136,7 +135,6 @@ void Ferreira::AtualizarFisica(const float t, const float deltaTime) {
         mProximoLeque = te + g.entreLeques;
         Leque(kGatilhoDoTiro, g.tirosDoLeque, 30.0f, g.velocidade, "Tiro");
     }
-    Placar(kFase, static_cast<size_t>(etapa), AnuncioDoLado(lado));
 }
 
 void Ferreira::AtualizarPulos(const float te, const float dt, const Lado l, const float chao, const float pes) {
