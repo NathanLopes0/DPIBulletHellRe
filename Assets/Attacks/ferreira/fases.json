@@ -1,7 +1,7 @@
 {
   // As fases do Lucas Ferreira (INF 216 - Projeto e Implementacao de Jogos Digitais, a optativa
   // secreta). Elas nao ensinam materia: mexem nos sistemas do proprio jogo. O que cada uma faz mora
-  // no C++ (Ferreira.cpp) e na camada pura (JogosDigitais.h); aqui ficam os tiros que ele puxa pelo
+  // no C++ (Ferreira*.cpp, um por fase) e na camada pura (JogosDigitais.h); aqui ficam os tiros que ele puxa pelo
   // gatilho e os nomes que o placar mostra. Cada fase dura 40 s, o dobro das dos outros professores
   // (a da interface, com a camera, 50; a das regras, 48; o lancamento, com os creditos, mais).
 

@@ -27,7 +27,7 @@
 ///      foge ou persegue, e o quick load);
 ///   4. o lancamento (Lancamento, a repescagem): a hitbox descola, o jogo trava, os bugs marcham, os
 ///      creditos sobem.
-/// Aqui ficam as contas; quem poe os tiros no campo e Ferreira.cpp.
+/// Aqui ficam as contas; quem poe os tiros no campo e o Ferreira (Ferreira.cpp e um arquivo por fase).
 namespace JogosDigitais {
 
     /// As fases dele duram isto, o dobro das dos outros professores (Fase::kDuracao) - menos a da

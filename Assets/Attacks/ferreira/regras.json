@@ -1,6 +1,6 @@
 {
   // As regras de projetil do Lucas Ferreira (INF 216 - Projeto e Implementacao de Jogos Digitais, a
-  // optativa secreta). Quase tudo o que se mexe e conduzido pelo C++ (Ferreira.cpp); este conjunto
+  // optativa secreta). Quase tudo o que se mexe e conduzido pelo C++ (Ferreira*.cpp); este conjunto
   // e o do tiro que um bug da frota solta.
 
   // O tiro que cai de um bug: desce balancando.

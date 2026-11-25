@@ -497,6 +497,11 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Sabrina.cpp
         Source/Actors/Teachers/Bosses/Sabrina.h
         Source/Actors/Teachers/Bosses/Ferreira.cpp
+        Source/Actors/Teachers/Bosses/FerreiraInterface.cpp
+        Source/Actors/Teachers/Bosses/FerreiraFisica.cpp
+        Source/Actors/Teachers/Bosses/FerreiraRegras.cpp
+        Source/Actors/Teachers/Bosses/FerreiraLancamento.cpp
+        Source/Actors/Teachers/Bosses/FerreiraComum.h
         Source/Actors/Teachers/Bosses/Ferreira.h
         Source/Actors/Teachers/Bosses/Goulart.h
         Source/Actors/Teachers/Bosses/Andre.h
