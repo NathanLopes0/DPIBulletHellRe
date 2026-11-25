@@ -556,7 +556,9 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   e sem uma mecânica, o gabinete abre com `--condicao` (por exemplo,
   `--condicao sem-brilho`), e cada linha grava a condição em que foi jogada. As
   colunas, as condições, como analisar e o cuidado com a privacidade estão em
-  `Documentacao/dados-das-tentativas.md`.
+  `Documentacao/dados-das-tentativas.md`. O relatório pronto (onde a nota cai,
+  em que tentativa se passa, quantos têm cada medalha) sai de
+  `python3 Ferramentas/relatorio_tentativas.py`.
 
 As chaves dos arquivos são sempre códigos, nunca posições. Reordenar as matérias
 no JSON não reatribui a nota de ninguém.
@@ -1314,8 +1316,9 @@ Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
                  parado (parado-reprova.sh), as 79 batalhas que uma
-                 refatoração não pode mudar (linha-de-base.sh) e os
-                 sanitizers e o clang-tidy (qualidade.sh)
+                 refatoração não pode mudar (linha-de-base.sh), os
+                 sanitizers e o clang-tidy (qualidade.sh) e o relatório
+                 das tentativas (relatorio_tentativas.py)
 
 tests/           a suíte
 ```

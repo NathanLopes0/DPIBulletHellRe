@@ -210,6 +210,36 @@ se a proporção `coberturas / oportunidades_de_cobertura` sobe com o brilho.
 estiver aberto; trocar é fechar e abrir com outra. Combine com o protocolo do
 estudo quem joga em qual, e confira a coluna `condicao` depois.
 
+## O relatório pronto
+
+```bash
+python3 Ferramentas/relatorio_tentativas.py                        # lê Saves/, escreve relatorio-tentativas.html
+python3 Ferramentas/relatorio_tentativas.py /media/pendrive/Saves -o turma.html
+python3 Ferramentas/relatorio_tentativas.py --desde 2026-11-01     # só desta data em diante
+python3 Ferramentas/relatorio_tentativas.py --versao 4968d99       # só de uma versão do jogo
+```
+
+Uma página HTML, sem nada para instalar (só o Python), que responde de uma vez:
+
+- **por matéria, dificuldade e modo**: quantas partidas, quantos alunos, a
+  aprovação (sem contar abandonos), o abandono, a nota média e a mediana, a
+  duração e **em que tentativa o aluno passa** pela primeira vez;
+- **onde a nota cai**: cada fase de cada matéria, as que mais tiram nota
+  primeiro, com os acertos sofridos, as fases limpas e quantas vezes a luta
+  acabou nela;
+- **a curva de aprendizado**: a nota média na 1ª, 2ª, 3ª... tentativa;
+- **as medalhas**: quantos alunos já têm cada menção e cada desafio em cada
+  matéria, contados das tentativas com as regras de `Mencoes.h` (o T, do
+  orientador, fica de fora: depende do TCC);
+- **quando o gabinete é usado**: por dia da semana e por hora.
+
+Uma partida em dupla são duas linhas com o mesmo `id`: o relatório conta a
+partida uma vez e cada aluno uma vez. Os visitantes entram nas partidas, mas não
+nos alunos nem nas medalhas.
+
+O que os dados **não** dizem: qual projétil acertou. O mais perto é "onde a nota
+cai" — cada fase é um ataque do professor.
+
 ## Respondendo às perguntas de sempre
 
 **Quantas vezes cada pessoa jogou cada matéria, passou e reprovou?** Está
