@@ -167,6 +167,12 @@ private:
 
     // ---- A camera (HudHostil::Camera) ----
     void AtualizarCamera(float te, float deltaTime);
+    /// Os passos dela: o aluno desliza ate a ancora e fica preso; o manche move o mundo; o visor, a grade
+    /// e o aviso; e os tiros e as caixas paradas.
+    void PrenderNaCamera(float te);
+    void MoverOMundo(float deltaTime);
+    void DesenharACamera(float te, HudHostil::Camera momento);
+    void AtirarNaCamera(float te, HudHostil::Camera momento);
     /// O quanto a camera andou desde o comeco da etapa: a grade do fundo anda com ela.
     Vector2 mCamera = Vector2::Zero;
     /// De onde cada aluno desliza ate a ancora, no fim do aviso.
@@ -208,6 +214,15 @@ private:
         float susto = 0.0f;     ///< > 0: um susto de fora, agora, deste tamanho (a inversao)
     };
     void AtualizarInimigo(float te, float deltaTime, const ComoOInimigo& como);
+    /// Os passos dele, na ordem: o power-up (se alguem o pegou), o corpo que acertou o aluno, o andar
+    /// (a ronda, a perseguicao, a fuga), o corpo e os olhos no lugar (e os blocos que viram nota), a IA a
+    /// mostra e o placar da fase 1.
+    bool PegarOPoderDoInimigo(float te, const ComoOInimigo& como);
+    bool CorpoDoInimigoAcertou();
+    void AndarOInimigo(Vector2 ondeAluno, float deltaTime, const ComoOInimigo& como);
+    void PorOInimigoNoLugar(Vector2 ondeAluno);
+    void MostrarAIaDoInimigo(float te, const Player* alvo, Vector2 ondeAluno);
+    void PlacarDoInimigo(float te, const ComoOInimigo& como);
     /// Nas regras, o inimigo passa de uma etapa para a outra: a troca nao o desmonta.
     bool mInimigoFica = false;
     /// O corpo inteiro e os olhos, no ninho: ele nasce.

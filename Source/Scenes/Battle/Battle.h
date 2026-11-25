@@ -46,6 +46,8 @@ class ExtraPointItem;
 class Orientador;
 class PausaDaBatalha;
 class TelaDoResultado;
+namespace Resultado { struct Resumo; }
+namespace Mencoes { struct DaMateria; }
 class DevolutivaDaBatalha;
 class BossProjectile;
 class PlayerProjectile;
@@ -379,6 +381,24 @@ private:
     /// Poe a nota no ranking da semana e devolve o lugar de quem jogou ("2o de 5"); vazio para o
     /// visitante. 'posicao' sai com o lugar, ou zero.
     std::string EntrarNoRankingDaSemana(int& posicao);
+
+    // ---- O fim da batalha (EncerrarBatalha), em pedacos ----
+    /// A matricula do aluno da posicao 'i'; o visitante e "Aluno 1" ou "Aluno 2".
+    [[nodiscard]] std::string NomeDoAluno(size_t i) const;
+    /// O resumo da tela de resultado: a nota, o recorde de antes, a devolutiva e a parte de cada um.
+    [[nodiscard]] Resultado::Resumo ResumoDaLuta(bool aprovado) const;
+    /// As horas complementares e os desafios que esta prova cumpriu (Horas.h, Mencoes.h), na ficha de
+    /// cada aluno; devolve a frase das horas novas.
+    std::string RegistrarHorasEDesafios(int lugarNaSemana);
+    /// O rival da turma (Rival.h), antes de a nota entrar: o recorde de antes contra o de agora.
+    [[nodiscard]] std::string FraseDoRival(bool temFicha) const;
+    /// As mencoes novas de quem jogou e o orientador novo no curriculo, depois de a nota entrar.
+    [[nodiscard]] std::string FraseDasMencoesNovas(const std::vector<Mencoes::DaMateria>& antes,
+                                                   const std::vector<Mencoes::DaMateria>& orientouAntes) const;
+    /// Quem se formou agora ganha o capelo ali mesmo, e o resumo diz.
+    void Formar(const std::vector<bool>& formadoAntes, Resultado::Resumo& resumo);
+    /// O campo para: os atores, os projeteis do chefe, o que ele desenhou, e os alunos invenciveis.
+    void CongelarOCampo();
 
     SoundHandle mMusica;
     /// O volume da musica (de 128): acima do disparo do chefe, que e limitado (LimiteDeSom.h).

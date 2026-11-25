@@ -985,7 +985,52 @@ void Battle::EncerrarBatalha(bool aprovado) {
 
     mAcabando = true;
 
-    // O resumo da tela de resultado.
+    Resultado::Resumo resumo = ResumoDaLuta(aprovado);
+
+    // Quem ja usava o capelo antes desta nota (Personagens::Formatura).
+    std::vector<bool> formadoAntes;
+    for (size_t i = 0; i < mJogadores.size(); ++i) formadoAntes.push_back(mGame->Formado(i));
+
+    // A prova da semana: a nota entra no ranking dela, e o lugar vai ao lado da nota.
+    int lugarNaSemana = 0;
+    if (mProvaDaSemana) resumo.provaDaSemana = EntrarNoRankingDaSemana(lugarNaSemana);
+
+    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
+    const Materias::Lista& materias = Materias::Carregadas();
+    std::vector<Mencoes::DaMateria> mencoesAntes, orientouAntes;
+    for (const auto& sessao : mGame->Sessoes()) {
+        mencoesAntes.push_back(Mencoes::Da(sessao.progresso, materias, mMateria));
+        orientouAntes.push_back(Mencoes::Da(sessao.progresso, materias, mGame->Orientador()));
+    }
+
+    if (aprovado) resumo.horas = RegistrarHorasEDesafios(lugarNaSemana);
+    resumo.rival = FraseDoRival(resumo.temFicha);
+
+    // O unico ponto em que a nota vai para o armazenamento persistente.
+    mGame->RegistrarNota(mMateria, mConta.Valor(), mConta.Extra());
+
+    if (aprovado) {
+        resumo.mencoes = FraseDasMencoesNovas(mencoesAntes, orientouAntes);
+        Formar(formadoAntes, resumo);
+    }
+    // E a tentativa, com o resultado.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoFimDoQuadro(*this); });
+    const auto resultado = aprovado ? Tentativas::Resultado::Aprovado : Tentativas::Resultado::Reprovado;
+    Avisar([&](OuvinteDaBatalha& o) { o.AoTerminar(*this, resultado, mConta.Valor() > 0.0f); });
+    CongelarOCampo();
+
+    mResultado = std::make_unique<TelaDoResultado>(
+        *this, *mGame, mFonteDaNota.get(), mJogadores.size(), mCondicao.Ligada(Experimento::Mecanica::Toque),
+        [this]() { Avisar([&](OuvinteDaBatalha& o) { o.AoTocarAqui(*this); }); });
+    mResultado->Mostrar(resumo, mChefe);
+}
+
+std::string Battle::NomeDoAluno(const size_t i) const {
+    const std::string& m = mGame->MatriculaDe(i);
+    return (m.empty() || m == Matricula::kVisitante) ? "Aluno " + std::to_string(i + 1) : m;
+}
+
+Resultado::Resumo Battle::ResumoDaLuta(const bool aprovado) const {
     Resultado::Resumo resumo;
     resumo.nota = mConta.Valor();
     resumo.extra = mConta.Extra();
@@ -1004,144 +1049,105 @@ void Battle::EncerrarBatalha(bool aprovado) {
             resumo.causas.resize(static_cast<size_t>(Devolutiva::kCausasNaTela));
         }
     }
-    // A matricula; quem nao tem uma (o visitante) e o aluno da posicao dele - a cor diz qual.
-    const auto nomeDe = [this](const size_t i) {
-        const std::string& m = mGame->MatriculaDe(i);
-        return (m.empty() || m == Matricula::kVisitante) ? "Aluno " + std::to_string(i + 1) : m;
-    };
-    // A justica, na dupla: a parte de cada um, com a matricula dele.
+    // A justica, na dupla: a parte de cada um, com a matricula dele (a cor diz qual e o visitante).
     if (mDevolutiva->Partes().size() >= 2) {
         resumo.partes = mDevolutiva->Partes();
-        for (size_t i = 0; i < resumo.partes.size(); ++i) resumo.partes[i].quem = nomeDe(i);
+        for (size_t i = 0; i < resumo.partes.size(); ++i) resumo.partes[i].quem = NomeDoAluno(i);
         // E o papel de cada um, pelo que mais fez (Devolutiva::Titulos).
         if (mCondicao.Ligada(Experimento::Mecanica::Titulos)) resumo.titulos = Devolutiva::Titulos(resumo.partes);
     }
+    return resumo;
+}
 
-    // Quem ja usava o capelo antes desta nota (Personagens::Formatura).
-    std::vector<bool> formadoAntes;
-    for (size_t i = 0; i < mJogadores.size(); ++i) formadoAntes.push_back(mGame->Formado(i));
-
+std::string Battle::RegistrarHorasEDesafios(const int lugarNaSemana) {
     const Materias::Lista& materias = Materias::Carregadas();
-
-    // A prova da semana: a nota entra no ranking dela, e o lugar vai ao lado da nota.
-    int lugarNaSemana = 0;
-    if (mProvaDaSemana) resumo.provaDaSemana = EntrarNoRankingDaSemana(lugarNaSemana);
-
-    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
-    const int orientador = mGame->Orientador();
-    std::vector<Mencoes::DaMateria> mencoesAntes, orientouAntes;
-    for (const auto& sessao : mGame->Sessoes()) {
-        mencoesAntes.push_back(Mencoes::Da(sessao.progresso, materias, mMateria));
-        orientouAntes.push_back(Mencoes::Da(sessao.progresso, materias, orientador));
-    }
-
     // As horas complementares (Horas.h): o que esta prova cumpriu, para cada aluno. Entram na ficha
-    // junto com a nota, logo abaixo; a tela diz as novas (na dupla, as de qualquer um dos dois).
-    if (aprovado) {
-        Horas::Feito feito;
-        feito.materia = materias.CodigoDe(mMateria);
-        feito.aprovado = true;
-        feito.dupla = mJogadores.size() > 1;
-        feito.acertosSofridos = mConta.AcertosSofridos();
-        feito.fasesLimpas = mConta.FasesLimpas();
-        feito.menorNota = mContagem ? mContagem->MenorNota() : 100.0f;
-        feito.raspoes = mContagem ? mContagem->Raspoes() : 0;
-        feito.pontosExtras = mContagem ? mContagem->PontosExtras() : 0;
-        feito.coberturas = mContagem ? mContagem->Coberturas() : 0;
-        feito.poderes = mOrientador ? mOrientador->Poderes() : 0;
-        feito.provaDaSemana = mProvaDaSemana;
-        feito.posicaoNaSemana = lugarNaSemana;
-        std::vector<std::string> novas;
-        for (size_t i = 0; i < mGame->Sessoes().size(); ++i) {
-            const Progresso& p = mGame->Sessoes()[i].progresso;
-            feito.aprovacoesNaMateria = p.Tentativas(mMateria) - p.Reprovacoes(mMateria) + 1;
-            for (const std::string& chave : mGame->RegistrarAtividades(i, Horas::Cumpridas(feito))) {
-                if (std::find(novas.begin(), novas.end(), chave) == novas.end()) novas.push_back(chave);
-            }
-        }
-        resumo.horas = Horas::FraseDasNovas(novas, materias);
-
-        // Os desafios (Mencoes.h): como a prova foi jogada, da dupla inteira. Entram na ficha como as
-        // horas; a linha das mencoes novas, mais abaixo, os anuncia.
-        Mencoes::Prova prova;
-        prova.aprovado = true;
-        for (const Player* aluno : mJogadores) if (aluno) prova.tiros += aluno->Disparos();
-        prova.acertosNoProfessor = mContagem ? mContagem->AcertosNoProfessor() : 0;
-        prova.acertosDePerto = mContagem ? mContagem->AcertosDePerto() : 0;
-        prova.acertosSofridos = mConta.AcertosSofridos();
-        const std::vector<std::string> desafios = Mencoes::Desafios(prova, feito.materia);
-        for (size_t i = 0; i < mGame->Sessoes().size(); ++i) mGame->RegistrarAtividades(i, desafios);
-    }
-
-    // O unico ponto em que a nota vai para o armazenamento persistente.
-    // O rival da turma (Rival.h), antes de a nota entrar: o recorde de antes contra o de agora.
-    {
-        std::vector<std::string> alunos;
-        for (size_t i = 0; i < mGame->QuantosJogadores(); ++i) alunos.push_back(mGame->MatriculaDe(i));
-        const Rival::Turma turma = Rival::DaTurma(FichaArquivo::TodasAsFichas(materias), mMateria, mNivel, alunos,
-                                                  mGame->Sessoes().front().progresso);
-        resumo.rival = Rival::FraseDoResultado(turma.colegas, turma.nota, std::max(turma.nota, mConta.Valor()),
-                                               resumo.temFicha);
-    }
-    mGame->RegistrarNota(mMateria, mConta.Valor(), mConta.Extra());
-
-    // O que esta luta deu alem da nota: as mencoes novas de quem jogou (na dupla, as de qualquer um
-    // dos dois), e o orientador novo no curriculo - pelo nome da materia dele.
-    if (aprovado) {
-        std::vector<Mencoes::Mencao> novas;
-        bool orientadorNovo = false;
-        for (size_t i = 0; i < mGame->Sessoes().size() && i < mencoesAntes.size(); ++i) {
-            const Progresso& p = mGame->Sessoes()[i].progresso;
-            for (const Mencoes::Mencao m : Mencoes::Novas(mencoesAntes[i], Mencoes::Da(p, materias, mMateria))) {
-                if (std::find(novas.begin(), novas.end(), m) == novas.end()) novas.push_back(m);
-            }
-            orientadorNovo = orientadorNovo ||
-                             !Mencoes::Novas(orientouAntes[i], Mencoes::Da(p, materias, orientador)).empty();
-        }
-        resumo.mencoes = Mencoes::FraseDasNovas(novas);
-        if (const Materias::Materia* m = materias.Por(orientador); m && orientadorNovo) {
-            resumo.mencoes += std::string(resumo.mencoes.empty() ? "" : "  ·  ") + "Currículo: " +
-                              m->nome + " orientou";
+    // junto com a nota; a tela diz as novas (na dupla, as de qualquer um dos dois).
+    Horas::Feito feito;
+    feito.materia = materias.CodigoDe(mMateria);
+    feito.aprovado = true;
+    feito.dupla = mJogadores.size() > 1;
+    feito.acertosSofridos = mConta.AcertosSofridos();
+    feito.fasesLimpas = mConta.FasesLimpas();
+    feito.menorNota = mContagem ? mContagem->MenorNota() : 100.0f;
+    feito.raspoes = mContagem ? mContagem->Raspoes() : 0;
+    feito.pontosExtras = mContagem ? mContagem->PontosExtras() : 0;
+    feito.coberturas = mContagem ? mContagem->Coberturas() : 0;
+    feito.poderes = mOrientador ? mOrientador->Poderes() : 0;
+    feito.provaDaSemana = mProvaDaSemana;
+    feito.posicaoNaSemana = lugarNaSemana;
+    std::vector<std::string> novas;
+    for (size_t i = 0; i < mGame->Sessoes().size(); ++i) {
+        const Progresso& p = mGame->Sessoes()[i].progresso;
+        feito.aprovacoesNaMateria = p.Tentativas(mMateria) - p.Reprovacoes(mMateria) + 1;
+        for (const std::string& chave : mGame->RegistrarAtividades(i, Horas::Cumpridas(feito))) {
+            if (std::find(novas.begin(), novas.end(), chave) == novas.end()) novas.push_back(chave);
         }
     }
 
-    // Quem se formou agora ganha o capelo ali mesmo, e a tela diz.
-    if (aprovado) {
-        bool todosGravados = true;
-        for (size_t i = 0; i < mJogadores.size(); ++i) {
-            if (formadoAntes[i] || !mGame->Formado(i)) continue;
-            resumo.formados.push_back(nomeDe(i));
-            todosGravados = todosGravados && mGame->ProgressoEGravado(i);
-            if (mJogadores[i]) mJogadores[i]->RecomporPersonagem();
-        }
-        resumo.formaturaGravada = !resumo.formados.empty() && todosGravados;
-    }
-    // E a tentativa, com o resultado.
-    Avisar([&](OuvinteDaBatalha& o) { o.AoFimDoQuadro(*this); });
-    const auto resultado = aprovado ? Tentativas::Resultado::Aprovado : Tentativas::Resultado::Reprovado;
-    Avisar([&](OuvinteDaBatalha& o) { o.AoTerminar(*this, resultado, mConta.Valor() > 0.0f); });
-    for (auto& actor : mActors) {
-        actor->SetState(ActorState::Paused);
-    }
+    // Os desafios (Mencoes.h): como a prova foi jogada, da dupla inteira. Entram na ficha como as
+    // horas; a linha das mencoes novas os anuncia.
+    Mencoes::Prova prova;
+    prova.aprovado = true;
+    for (const Player* aluno : mJogadores) if (aluno) prova.tiros += aluno->Disparos();
+    prova.acertosNoProfessor = mContagem ? mContagem->AcertosNoProfessor() : 0;
+    prova.acertosDePerto = mContagem ? mContagem->AcertosDePerto() : 0;
+    prova.acertosSofridos = mConta.AcertosSofridos();
+    const std::vector<std::string> desafios = Mencoes::Desafios(prova, feito.materia);
+    for (size_t i = 0; i < mGame->Sessoes().size(); ++i) mGame->RegistrarAtividades(i, desafios);
+    return Horas::FraseDasNovas(novas, materias);
+}
 
-    // 1.
-    if (mProjeteis) {
-        mProjeteis->ClearBossProjectiles();
-        // Se tiver função para limpar projéteis do player, chame aqui também.
+std::string Battle::FraseDoRival(const bool temFicha) const {
+    std::vector<std::string> alunos;
+    for (size_t i = 0; i < mGame->QuantosJogadores(); ++i) alunos.push_back(mGame->MatriculaDe(i));
+    const Materias::Lista& materias = Materias::Carregadas();
+    const Rival::Turma turma = Rival::DaTurma(FichaArquivo::TodasAsFichas(materias), mMateria, mNivel, alunos,
+                                              mGame->Sessoes().front().progresso);
+    return Rival::FraseDoResultado(turma.colegas, turma.nota, std::max(turma.nota, mConta.Valor()), temFicha);
+}
+
+std::string Battle::FraseDasMencoesNovas(const std::vector<Mencoes::DaMateria>& antes,
+                                         const std::vector<Mencoes::DaMateria>& orientouAntes) const {
+    // As mencoes novas de quem jogou (na dupla, as de qualquer um dos dois), e o orientador novo no
+    // curriculo - pelo nome da materia dele.
+    const Materias::Lista& materias = Materias::Carregadas();
+    const int orientador = mGame->Orientador();
+    std::vector<Mencoes::Mencao> novas;
+    bool orientadorNovo = false;
+    for (size_t i = 0; i < mGame->Sessoes().size() && i < antes.size(); ++i) {
+        const Progresso& p = mGame->Sessoes()[i].progresso;
+        for (const Mencoes::Mencao m : Mencoes::Novas(antes[i], Mencoes::Da(p, materias, mMateria))) {
+            if (std::find(novas.begin(), novas.end(), m) == novas.end()) novas.push_back(m);
+        }
+        orientadorNovo = orientadorNovo || !Mencoes::Novas(orientouAntes[i], Mencoes::Da(p, materias, orientador)).empty();
     }
+    std::string frase = Mencoes::FraseDasNovas(novas);
+    if (const Materias::Materia* m = materias.Por(orientador); m && orientadorNovo) {
+        frase += std::string(frase.empty() ? "" : "  ·  ") + "Currículo: " + m->nome + " orientou";
+    }
+    return frase;
+}
+
+void Battle::Formar(const std::vector<bool>& formadoAntes, Resultado::Resumo& resumo) {
+    bool todosGravados = true;
+    for (size_t i = 0; i < mJogadores.size(); ++i) {
+        if (formadoAntes[i] || !mGame->Formado(i)) continue;
+        resumo.formados.push_back(NomeDoAluno(i));
+        todosGravados = todosGravados && mGame->ProgressoEGravado(i);
+        if (mJogadores[i]) mJogadores[i]->RecomporPersonagem();
+    }
+    resumo.formaturaGravada = !resumo.formados.empty() && todosGravados;
+}
+
+void Battle::CongelarOCampo() {
+    for (auto& actor : mActors) actor->SetState(ActorState::Paused);
+    if (mProjeteis) mProjeteis->ClearBossProjectiles();
     // E o que o chefe desenhou no campo sem ser projetil (Boss.h).
     for (Boss* corpo : Corpos()) if (corpo) corpo->AoTerminarABatalha();
-
-    // 2.
     for (Player* jogador : mJogadores) {
         if (jogador) jogador->DefinirInvencivel(true);
     }
-
-    // 3.
-    mResultado = std::make_unique<TelaDoResultado>(
-        *this, *mGame, mFonteDaNota.get(), mJogadores.size(), mCondicao.Ligada(Experimento::Mecanica::Toque),
-        [this]() { Avisar([&](OuvinteDaBatalha& o) { o.AoTocarAqui(*this); }); });
-    mResultado->Mostrar(resumo, mChefe);
 }
 
 float Battle::TempoNoResultado() const {

@@ -86,10 +86,6 @@ void Ferreira::DesenharOVisor(const SDL_Color cor) {
 
 void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
     using namespace HudHostil;
-    const Degrau& g = mDegrauDoHud;
-    const SDL_FRect c = Campo();
-    const JogosDigitais::Campo cp = CampoPuro();
-    const std::vector<Player*> alunos = Jogadores();
     const Camera momento = CameraEm(te);
     Esconder(mEtiquetasDaCamera);
     if (!mCameraAvisada) {
@@ -99,6 +95,22 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
         TocarSom("sinal.wav");
     }
 
+    // O aluno fica preso; o manche move o mundo; e a camera se desenha, atira e poe as caixas.
+    PrenderNaCamera(te);
+    if (momento != Camera::Aviso) MoverOMundo(deltaTime);
+    DesenharACamera(te, momento);
+    AtirarNaCamera(te, momento);
+
+    // O quadro so diz o que o codigo faz, e nao o que fazer.
+    if (momento == Camera::Aviso) Placar(kFase, kEtapaDaCamera, "camera.ligar()");
+    else if (momento == Camera::Livre) Placar(kFase, kEtapaDaCamera, "camera.ligar(): REC");
+    else Placar(kFase, kEtapaDaCamera, "camera.desligar()");
+}
+
+void Ferreira::PrenderNaCamera(const float te) {
+    using namespace HudHostil;
+    const JogosDigitais::Campo cp = CampoPuro();
+    const std::vector<Player*> alunos = Jogadores();
     // O aluno: no aviso ele ainda anda; no fim dele, desliza ate a ancora, e dali nao sai.
     if (mDeslizaDe.size() != alunos.size()) {
         mDeslizaDe.clear();
@@ -126,45 +138,52 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
         Linha(pe, pe + Vector2(16.0f, 18.0f), kGuia);
         Linha(pe, pe + Vector2(0.0f, 20.0f), kGuia);
     }
+}
 
+void Ferreira::MoverOMundo(const float deltaTime) {
+    using namespace HudHostil;
+    const JogosDigitais::Campo cp = CampoPuro();
+    const std::vector<Player*> alunos = Jogadores();
     // A camera: o manche (na dupla, a media dos dois) a move, e o mundo anda o contrario na tela.
-    if (momento != Camera::Aviso) {
-        if (!mCameraLigada) {
-            mCameraLigada = true;
-            TocarSom("toque.wav");
-        }
-        Vector2 intencao = Vector2::Zero;
-        int presos = 0;
-        for (const Player* a : alunos) {
-            if (a && a->NaCamera()) {
-                intencao += a->IntencaoDaCamera();
-                ++presos;
-            }
-        }
-        if (presos > 0) intencao = intencao * (1.0f / static_cast<float>(presos));
-        const Vector2 passo = PassoDoMundo(intencao, deltaTime);
-        mCamera -= passo;
-        if (Battle* b = Batalha()) {
-            if (ProjectileManager* tiros = b->GerenteDeProjeteis()) {
-                for (const auto& p : tiros->GetBossProjectiles()) {
-                    if (p && p->GetState() == ActorState::Active) p->SetPosition(p->GetPosition() + passo);
-                }
-            }
-        }
-        // O professor anda com o mundo (e a varredura dele tambem), sem sair da tela.
-        const Vector2 solto = GetPosition() + passo;
-        const Vector2 preso = ProfessorNaTela(solto, cp, 48.0f, kFundoDoProfessor);
-        SetPosition(preso);
-        if (mAlvo) mAlvo = ProfessorNaTela(*mAlvo - mCamera, cp, 48.0f, kFundoDoProfessor);
-        if ((solto - preso).Length() > 0.5f) {
-            // A borda segura o professor: a camera nao sai da arena.
-            const Vector2 d = JogosDigitais::Rumo(preso, solto);
-            const Vector2 lado(-d.y, d.x);
-            const Vector2 na = preso + d * 34.0f;
-            for (int k = -1; k <= 1; ++k) Linha(na + lado * 28.0f + d * (2.0f * k), na - lado * 28.0f + d * (2.0f * k), kPerigo);
+    if (!mCameraLigada) {
+        mCameraLigada = true;
+        TocarSom("toque.wav");
+    }
+    Vector2 intencao = Vector2::Zero;
+    int presos = 0;
+    for (const Player* a : alunos) {
+        if (a && a->NaCamera()) {
+            intencao += a->IntencaoDaCamera();
+            ++presos;
         }
     }
+    if (presos > 0) intencao = intencao * (1.0f / static_cast<float>(presos));
+    const Vector2 passo = PassoDoMundo(intencao, deltaTime);
+    mCamera -= passo;
+    if (Battle* b = Batalha()) {
+        if (ProjectileManager* tiros = b->GerenteDeProjeteis()) {
+            for (const auto& p : tiros->GetBossProjectiles()) {
+                if (p && p->GetState() == ActorState::Active) p->SetPosition(p->GetPosition() + passo);
+            }
+        }
+    }
+    // O professor anda com o mundo (e a varredura dele tambem), sem sair da tela.
+    const Vector2 solto = GetPosition() + passo;
+    const Vector2 preso = ProfessorNaTela(solto, cp, 48.0f, kFundoDoProfessor);
+    SetPosition(preso);
+    if (mAlvo) mAlvo = ProfessorNaTela(*mAlvo - mCamera, cp, 48.0f, kFundoDoProfessor);
+    if ((solto - preso).Length() > 0.5f) {
+        // A borda segura o professor: a camera nao sai da arena.
+        const Vector2 d = JogosDigitais::Rumo(preso, solto);
+        const Vector2 lado(-d.y, d.x);
+        const Vector2 na = preso + d * 34.0f;
+        for (int k = -1; k <= 1; ++k) Linha(na + lado * 28.0f + d * (2.0f * k), na - lado * 28.0f + d * (2.0f * k), kPerigo);
+    }
+}
 
+void Ferreira::DesenharACamera(const float te, const HudHostil::Camera momento) {
+    using namespace HudHostil;
+    const SDL_FRect c = Campo();
     // A grade do fundo anda com a camera: e ela que mostra que o mundo e que se move.
     {
         constexpr float kPasso = 90.0f;
@@ -215,7 +234,14 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
         Circulo(icone, 8.0f + 1.5f * std::sin(mRelogio * 8.0f), branco, 16);
         if (pisca) for (float r = 1.0f; r <= 5.0f; r += 1.0f) Circulo(icone + Vector2(34.0f, -16.0f), r, vermelho, 12);
     }
+}
 
+void Ferreira::AtirarNaCamera(const float te, const HudHostil::Camera momento) {
+    using namespace HudHostil;
+    const Degrau& g = mDegrauDoHud;
+    const SDL_FRect c = Campo();
+    const std::vector<Player*> alunos = Jogadores();
+    const bool pisca = std::fmod(mRelogio, 0.3f) < 0.18f;
     // Os tiros: o anel do professor e o leque mirado; e as caixas paradas do mundo, que so a camera move.
     if (te >= kAvisoDaCamera + 0.3f) {
         if (te >= mProximoAnel) {
@@ -262,11 +288,6 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
     mCaixasDaCamera.erase(std::remove_if(mCaixasDaCamera.begin(), mCaixasDaCamera.end(),
                                          [](const CaixaDaCamera& cx) { return !cx.p; }),
                           mCaixasDaCamera.end());
-
-    // O quadro so diz o que o codigo faz, e nao o que fazer.
-    if (momento == Camera::Aviso) Placar(kFase, kEtapaDaCamera, "camera.ligar()");
-    else if (momento == Camera::Livre) Placar(kFase, kEtapaDaCamera, "camera.ligar(): REC");
-    else Placar(kFase, kEtapaDaCamera, "camera.desligar()");
 }
 
 void Ferreira::AtualizarAbertura(const float te) {
@@ -562,7 +583,6 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
     const IaDoInimigo::Degrau& g = mDegrauDoInimigo;
     const JogosDigitais::Campo campo = CampoPuro();
     const auto ronda = Ronda(campo);
-    Battle* b = Batalha();
     const std::vector<Player*> alunos = Jogadores();
 
     // O alvo da IA: o aluno mais perto.
@@ -589,35 +609,8 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
     }
     if (como.fase1 && mProximoPoder < 0.0f) mProximoPoder = g.primeiroPoder;
 
-    // O power-up: nasce longe dele e espera; quem encosta faz ele fugir. Enquanto ele nasce, ou
-    // depois de derrotado, o power-up espera.
-    bool pegou = false;
-    if (Vivo(mPoder)) {
-        const bool valeAgora = mIa.estado != Estado::Nascendo && mIa.estado != Estado::Derrotado;
-        for (const Player* a : alunos) {
-            if (!valeAgora || (a->GetPosition() - mPoder->GetPosition()).Length() > RaioDe(a) + kToque + 6.0f) continue;
-            pegou = true;
-            if (b) b->Faiscar(mPoder->GetPosition(), Hud::Faisca::Coleta);
-            Matar(mPoder);
-            break;
-        }
-    } else if (como.fase1 && te >= mProximoPoder && mIa.estado != Estado::Fugindo &&
-               te < HudHostil::kDuracoes[HudHostil::kEtapaDoInimigo] - 1.5f) {
-        mPoder = Peca(HudHostil::kGatilhoDoPoder, LugarDoPoder(mSorteio, campo, mCentroDoInimigo), "Poder");
-        if (mPoder) mPoder->DefinirEnfeite(true);
-        mProximoPoder = 1e9f;
-    }
-
-    // O corpo acabou de acertar alguem: o aluno que comecou a piscar agora, encostado nele.
-    bool acertou = false;
-    for (size_t i = 0; i < alunos.size() && i < mApanhava.size(); ++i) {
-        const bool apanha = alunos[i]->AcabouDeApanhar();
-        const Vector2 d = alunos[i]->GetPosition() - mCentroDoInimigo;
-        if (apanha && !mApanhava[i] && std::fabs(d.x) <= kMeiaLargura + 10.0f && std::fabs(d.y) <= kMeiaAltura + 10.0f) {
-            acertou = true;
-        }
-        mApanhava[i] = apanha;
-    }
+    const bool pegou = PegarOPoderDoInimigo(te, como);
+    const bool acertou = CorpoDoInimigoAcertou();
 
     // A IA percebe e decide.
     Percepcao p;
@@ -639,6 +632,61 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
         }
     }
 
+    // Ele anda, o corpo vai para o lugar, a IA aparece, e o placar diz o estado.
+    AndarOInimigo(ondeAluno, deltaTime, como);
+    PorOInimigoNoLugar(ondeAluno);
+    MostrarAIaDoInimigo(te, alvo, ondeAluno);
+    PlacarDoInimigo(te, como);
+}
+
+bool Ferreira::PegarOPoderDoInimigo(const float te, const ComoOInimigo& como) {
+    using namespace IaDoInimigo;
+    const IaDoInimigo::Degrau& g = mDegrauDoInimigo;
+    const JogosDigitais::Campo campo = CampoPuro();
+    Battle* b = Batalha();
+    const std::vector<Player*> alunos = Jogadores();
+    // O power-up: nasce longe dele e espera; quem encosta faz ele fugir. Enquanto ele nasce, ou
+    // depois de derrotado, o power-up espera.
+    bool pegou = false;
+    if (Vivo(mPoder)) {
+        const bool valeAgora = mIa.estado != Estado::Nascendo && mIa.estado != Estado::Derrotado;
+        for (const Player* a : alunos) {
+            if (!valeAgora || (a->GetPosition() - mPoder->GetPosition()).Length() > RaioDe(a) + kToque + 6.0f) continue;
+            pegou = true;
+            if (b) b->Faiscar(mPoder->GetPosition(), Hud::Faisca::Coleta);
+            Matar(mPoder);
+            break;
+        }
+    } else if (como.fase1 && te >= mProximoPoder && mIa.estado != Estado::Fugindo &&
+               te < HudHostil::kDuracoes[HudHostil::kEtapaDoInimigo] - 1.5f) {
+        mPoder = Peca(HudHostil::kGatilhoDoPoder, LugarDoPoder(mSorteio, campo, mCentroDoInimigo), "Poder");
+        if (mPoder) mPoder->DefinirEnfeite(true);
+        mProximoPoder = 1e9f;
+    }
+    return pegou;
+}
+
+bool Ferreira::CorpoDoInimigoAcertou() {
+    using namespace IaDoInimigo;
+    const std::vector<Player*> alunos = Jogadores();
+    // O corpo acabou de acertar alguem: o aluno que comecou a piscar agora, encostado nele.
+    bool acertou = false;
+    for (size_t i = 0; i < alunos.size() && i < mApanhava.size(); ++i) {
+        const bool apanha = alunos[i]->AcabouDeApanhar();
+        const Vector2 d = alunos[i]->GetPosition() - mCentroDoInimigo;
+        if (apanha && !mApanhava[i] && std::fabs(d.x) <= kMeiaLargura + 10.0f && std::fabs(d.y) <= kMeiaAltura + 10.0f) {
+            acertou = true;
+        }
+        mApanhava[i] = apanha;
+    }
+    return acertou;
+}
+
+void Ferreira::AndarOInimigo(const Vector2 ondeAluno, const float deltaTime, const ComoOInimigo& como) {
+    using namespace IaDoInimigo;
+    const IaDoInimigo::Degrau& g = mDegrauDoInimigo;
+    const JogosDigitais::Campo campo = CampoPuro();
+    const auto ronda = Ronda(campo);
     // Onde ele anda: a ronda pelos cantos, atras do aluno, ou para longe dele.
     Vector2 rumo = Vector2::Zero;
     if (mIa.estado == Estado::Patrulha) {
@@ -654,9 +702,14 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
     // No FPS ele anda sem deltaTime: o passo dele e o do quadro.
     mVelocidadeDoInimigo = rumo * (Rapidez(mIa, g) * como.passo);
     if (mCorpoMontado) mCentroDoInimigo = NaArena(mCentroDoInimigo + mVelocidadeDoInimigo * deltaTime, campo);
+}
 
-    // O corpo e os olhos no lugar. Nascendo, os blocos vem do meio para o lugar; no alerta, ele treme.
+void Ferreira::PorOInimigoNoLugar(const Vector2 ondeAluno) {
+    using namespace IaDoInimigo;
+    Battle* b = Batalha();
+    const std::vector<Player*> alunos = Jogadores();
     const bool fugindo = mIa.estado == Estado::Fugindo;
+    // O corpo e os olhos no lugar. Nascendo, os blocos vem do meio para o lugar; no alerta, ele treme.
     const bool pisca = Pisca(mIa, mRelogio);
     const bool machuca = Machuca(mIa.estado);
     const float junta = mIa.estado == Estado::Nascendo ? std::clamp(mIa.noEstado / kNascendo, 0.0f, 1.0f) : 1.0f;
@@ -706,7 +759,15 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
             mPremioDoInimigo = 0.0f;
         }
     }
+}
 
+void Ferreira::MostrarAIaDoInimigo(const float te, const Player* alvo, const Vector2 ondeAluno) {
+    using namespace IaDoInimigo;
+    const IaDoInimigo::Degrau& g = mDegrauDoInimigo;
+    const JogosDigitais::Campo campo = CampoPuro();
+    const auto ronda = Ronda(campo);
+    const std::vector<Player*> alunos = Jogadores();
+    const bool fugindo = mIa.estado == Estado::Fugindo;
     // A IA a mostra, como no modo debug de quem faz o jogo: o raio de visao na ronda, a linha ate o
     // alvo na perseguicao, o tempo do power-up na fuga, as estrelas do atordoado.
     const Vector2 eu = mCentroDoInimigo;
@@ -764,7 +825,11 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
     } else if (rotulo) {
         rotulo->Mostrar(false);
     }
+}
 
+void Ferreira::PlacarDoInimigo(const float te, const ComoOInimigo& como) {
+    using namespace IaDoInimigo;
+    const bool pisca = Pisca(mIa, mRelogio);
     // Na fase 1, o professor continua: os leques, menos que no resto da prova. Nas regras, a etapa
     // e quem atira, e o placar e dela.
     if (!como.fase1) return;
