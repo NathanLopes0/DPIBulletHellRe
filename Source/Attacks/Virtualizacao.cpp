@@ -20,8 +20,9 @@ namespace Virtualizacao {
 
     Vector2 Host(const int k, const float x, const float y, const float largura, const float altura) {
         const int i = ((k % kHosts) + kHosts) % kHosts;
+        const int linha = i / 3;   // inteira: a fileira da grade 3 x n
         const float coluna = static_cast<float>(i % 3);
-        const float fileira = static_cast<float>(i / 3);
+        const float fileira = static_cast<float>(linha);
         return Vector2(x + largura * (0.2f + 0.3f * coluna), y + altura * (0.42f + 0.38f * fileira));
     }
 

@@ -128,6 +128,31 @@ alguém acrescenta um professor pela metade.
 O que **não** é coberto: desenho, áudio, entrada e o laço principal. Para esses
 há a instrumentação da última seção.
 
+### Sanitizers e clang-tidy
+
+```bash
+bash Ferramentas/qualidade.sh            # os dois
+bash Ferramentas/qualidade.sh testes     # só os testes com AddressSanitizer e UBSan
+bash Ferramentas/qualidade.sh tidy       # só o clang-tidy
+```
+
+`testes` compila a suíte em `build-qualidade/` com `-DDPI_SANITIZE=ON` (a opção
+está no `CMakeLists.txt`; fica desligada nos builds normais) e roda inteira. Um
+acesso a memória liberada, um estouro de vetor ou uma conta com comportamento
+indefinido param a suíte com a pilha de onde aconteceu — coisas que o teste
+comum deixa passar, porque o resultado às vezes sai certo por sorte.
+
+`tidy` roda o clang-tidy com as checagens de `.clang-tidy` sobre `Source/` e
+`tests/` e grava `build-qualidade/clang-tidy.txt`, com a contagem por checagem.
+São as checagens de bug (`bugprone-*`, o analisador estático), as de desempenho
+que valem a pena, e `readability-function-size`: **uma função com mais de 150
+linhas aparece no relatório**, como pedido para ser quebrada em passos com nome.
+O próprio `.clang-tidy` diz, em comentário, o que ficou de fora e por quê.
+Leva uns 40 minutos numa máquina de 4 núcleos; vale rodar antes de uma entrega
+grande, não a cada commit.
+
+Precisa de `clang-tidy` (e `run-clang-tidy`), além do que o build normal pede.
+
 ---
 
 ## A disciplina de teste

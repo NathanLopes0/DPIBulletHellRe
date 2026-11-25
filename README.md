@@ -1313,8 +1313,9 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
-                 parado (parado-reprova.sh) e as 79 batalhas que uma
-                 refatoração não pode mudar (linha-de-base.sh)
+                 parado (parado-reprova.sh), as 79 batalhas que uma
+                 refatoração não pode mudar (linha-de-base.sh) e os
+                 sanitizers e o clang-tidy (qualidade.sh)
 
 tests/           a suíte
 ```

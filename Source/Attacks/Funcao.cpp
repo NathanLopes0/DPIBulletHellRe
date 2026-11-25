@@ -48,7 +48,7 @@ namespace Funcao {
     std::vector<int> ArgumentosDaInterna(const Comando& c) {
         switch (c.forma) {
             case Forma::Baloes: return {c.a, c.b};
-            case Forma::Leque: return {c.a};
+            case Forma::Leque:
             case Forma::BaloesDoDobro: return {c.a};
             case Forma::LequeDoMeio: return {c.a, c.b};
             default: return {};

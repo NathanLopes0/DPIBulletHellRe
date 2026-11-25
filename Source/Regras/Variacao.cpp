@@ -33,8 +33,7 @@ std::uint32_t SementeNova() {
     try {
         std::random_device rd;
         doSistema = static_cast<std::uint32_t>(rd());
-    } catch (...) {
-        // Sem fonte de entropia, fica o relogio.
+    } catch (...) {  // NOLINT(bugprone-empty-catch): sem fonte de entropia, fica o relogio (abaixo)
     }
     const auto agora = static_cast<std::uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     const auto dia = static_cast<std::uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());

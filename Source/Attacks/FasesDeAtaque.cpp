@@ -1009,8 +1009,8 @@ float PrimeiroDisparoNaJanela(const float de) {
 DescricaoDeAtaque NoNivel(const DescricaoDeAtaque& a, const Dificuldade::Nivel n) {
     DescricaoDeAtaque saida = a;
     if (n != Dificuldade::Nivel::Dificil || !a.dificil) return saida;
-    if (a.dificil->projeteis) saida.projeteis = *a.dificil->projeteis;
-    if (a.dificil->velocidade) saida.velocidade = *a.dificil->velocidade;
+    if (a.dificil->projeteis) saida.projeteis = a.dificil->projeteis;
+    if (a.dificil->velocidade) saida.velocidade = a.dificil->velocidade;
     if (a.dificil->cooldown) saida.cooldown = *a.dificil->cooldown;
     return saida;
 }

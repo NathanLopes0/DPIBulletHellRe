@@ -9,6 +9,18 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
+# O compile_commands.json, para o clang-tidy (Ferramentas/qualidade.sh) e para os editores.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# DPI_SANITIZE: o jogo e os testes com AddressSanitizer e UBSan (GCC e Clang): o uso de memoria
+# liberada, o ponteiro de projetil que o pool ja reaproveitou, o estouro de vetor e o comportamento
+# indefinido aparecem na hora, com a pilha. Mais lento: so para investigar (Ferramentas/qualidade.sh).
+option(DPI_SANITIZE "Compila com AddressSanitizer e UBSan" OFF)
+if(DPI_SANITIZE AND NOT MSVC)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
 add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Game.cpp
         Source/Motor/Game.h

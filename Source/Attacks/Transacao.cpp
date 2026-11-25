@@ -176,7 +176,7 @@ int PosicaoDoSelo(const std::vector<int>& ocupadas, const std::uint32_t sorteio)
 std::string PlacarDoBegin(const int id) { return "BEGIN T" + std::to_string(id); }
 
 std::string PlacarDaOperacao(const int id, const Operacao& op) {
-    const std::string t = "T" + std::to_string(id) + ": ";
+    std::string t = "T" + std::to_string(id) + ": ";
     const std::string onde = " WHERE mat = " + std::to_string(op.mat);
     switch (op.tipo) {
         case Tipo::SelectLinha: return t + "SELECT *" + onde;

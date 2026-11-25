@@ -97,7 +97,7 @@ namespace Hud {
             case Faisca::Dano:      return 0.45f;
             case Faisca::Coleta:    return 0.5f;
             case Faisca::Dissolvido: return 0.35f;
-            case Faisca::Resposta:  return 0.45f;
+            case Faisca::Resposta:
             case Faisca::RespostaDePerto: return 0.45f;
             case Faisca::Raspao:    return 0.25f;
             case Faisca::Cobertura: return 0.4f;
@@ -114,7 +114,7 @@ namespace Hud {
             case Faisca::Dano:      return 14.0f + 46.0f * abre;
             case Faisca::Coleta:    return 10.0f + 40.0f * abre;
             case Faisca::Dissolvido: return 3.0f + 13.0f * abre;
-            case Faisca::Resposta:  return 2.0f + 16.0f * abre;   // o quanto o "!" ja subiu
+            case Faisca::Resposta:          // o quanto o "!" ja subiu
             case Faisca::RespostaDePerto: return 2.0f + 16.0f * abre;
             case Faisca::Raspao:    return 5.0f + 11.0f * abre;
             case Faisca::Cobertura: return 8.0f + 24.0f * abre;

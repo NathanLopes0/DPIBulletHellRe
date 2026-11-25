@@ -97,8 +97,6 @@ namespace Laco {
                 break;
             }
             case Forma::Continue:
-                p.passo = 3 + static_cast<int>(g() % 2u);
-                break;
             case Forma::Aninhado:
                 p.passo = 3 + static_cast<int>(g() % 2u);
                 break;

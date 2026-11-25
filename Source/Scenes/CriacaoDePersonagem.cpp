@@ -288,12 +288,14 @@ void CriacaoDePersonagem::Trocar(const int passo) {
     // Anda na lista de ids da categoria, dando a volta nas pontas.
     if (mColunaEmFoco == kCor) {
         const int n = static_cast<int>(c->cores.size());
+        if (n == 0) return;   // uma categoria sem cores no arquivo: nao ha para onde andar
         int atual = 0;
         for (int i = 0; i < n; ++i) if (c->cores[static_cast<size_t>(i)].id == e.cor) atual = i;
         e.cor = c->cores[static_cast<size_t>((atual + passo + n) % n)].id;
     }
     else {
         const int n = static_cast<int>(c->pecas.size());
+        if (n == 0) return;
         int atual = 0;
         for (int i = 0; i < n; ++i) if (c->pecas[static_cast<size_t>(i)].id == e.peca) atual = i;
         e.peca = c->pecas[static_cast<size_t>((atual + passo + n) % n)].id;

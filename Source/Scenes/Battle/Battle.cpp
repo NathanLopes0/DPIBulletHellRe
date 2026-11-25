@@ -895,7 +895,9 @@ void Battle::AoGastarPontoExtra(Player* quemGastou) {
 
     // O mesmo nos dois modos, e repartido: e acao de um jogador.
     mConta.GastarPontoExtra();
-    if (quemGastou) Avisar([&](OuvinteDaBatalha& o) { o.AoUsarPontoExtra(*this, *quemGastou); });
+    // Sem quem gastou nao ha de onde soltar a onda: so a conta muda.
+    if (!quemGastou) return;
+    Avisar([&](OuvinteDaBatalha& o) { o.AoUsarPontoExtra(*this, *quemGastou); });
 
     Player* oOutro = OutroJogador(quemGastou);
 

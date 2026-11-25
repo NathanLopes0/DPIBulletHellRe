@@ -193,8 +193,9 @@ namespace Golpe {
                 r.duracao = 2.0f;
                 for (int i = 0; i < 4; ++i) {
                     Tiro t;
+                    const int metade = i / 2;   // inteira: 0, 0, 1, 1
                     t.dx = 9.0f * static_cast<float>(2 * (i % 2) - 1);
-                    t.dy = 9.0f * static_cast<float>(2 * (i / 2) - 1);
+                    t.dy = 9.0f * static_cast<float>(2 * metade - 1);
                     t.paralelo = true;
                     r.tiros.push_back(t);
                 }
@@ -207,7 +208,8 @@ namespace Golpe {
                 r.duracao = 1.8f;
                 for (int i = 0; i < 4; ++i) {
                     Tiro t;
-                    t.quando = 0.18f * static_cast<float>(i / 2);
+                    const int par = i / 2;      // inteira: o par de fitas
+                    t.quando = 0.18f * static_cast<float>(par);
                     t.onda = (i % 2 == 0) ? 46.0f : -46.0f;
                     r.tiros.push_back(t);
                 }

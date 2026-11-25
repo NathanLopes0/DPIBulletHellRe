@@ -273,7 +273,7 @@ void Game::ProcessInput()
     }
 
     mHouveEntrada = false;
-    for (int i = 0; i < quantasTeclas; ++i) {
+    for (int i = 0; state && i < quantasTeclas; ++i) {
         if (state[i]) {
             mHouveEntrada = true;
             break;

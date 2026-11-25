@@ -141,11 +141,15 @@ void Identificacao::CriarTeclado() {
         const bool ehAcao = (tecla.acao != Teclado::Acao::Digito);
 
         const int larguraDaTecla = ehAcao ? kAcaoLargura : kTeclaLargura;
+        // O meio da tecla em pixels inteiros: a divisao e inteira de proposito.
+        const int meioDaAcao = kAcaoLargura / 2;
+        const int meioDaTecla = kTeclaLargura / 2;
+        const int meioDaAltura = kTeclaAltura / 2;
         const float cx = ehAcao
-            ? x0 + static_cast<float>(blocoDeDigitos + kVaoDaColuna + kAcaoLargura / 2)
-            : x0 + static_cast<float>(tecla.coluna * (kTeclaLargura + kVao) + kTeclaLargura / 2);
+            ? x0 + static_cast<float>(blocoDeDigitos + kVaoDaColuna + meioDaAcao)
+            : x0 + static_cast<float>(tecla.coluna * (kTeclaLargura + kVao) + meioDaTecla);
         const float cy = static_cast<float>(kTopoDoTeclado + tecla.linha * (kTeclaAltura + kVao)
-                                            + kTeclaAltura / 2);
+                                            + meioDaAltura);
 
         auto caixa = std::make_unique<Actor>(this);
         caixa->SetPosition(Vector2(cx, cy));

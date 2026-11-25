@@ -170,7 +170,7 @@ TEST_CASE("Painel: no gabinete a tecla NAO aparece") {
                                              Painel::Jeito::SoOPainel);
 
     CHECK(linha.find("ESPACO") == std::string::npos);
-    CHECK(linha.find("(") == std::string::npos);
+    CHECK(linha.find('(') == std::string::npos);
     CHECK(linha == std::string("BOTAO 1") + Painel::kEntreNomeEAcao + "jogar");
 }
 

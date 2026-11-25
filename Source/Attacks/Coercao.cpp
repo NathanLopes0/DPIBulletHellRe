@@ -28,7 +28,7 @@ namespace Coercao {
 
     Tipagem TipagemDe(const Linguagem l) {
         switch (l) {
-            case Linguagem::JavaScript: return Tipagem::Fraca;
+            case Linguagem::JavaScript:
             case Linguagem::PHP:        return Tipagem::Fraca;
             case Linguagem::Python:     return Tipagem::ForteDinamica;
             case Linguagem::Haskell:    return Tipagem::ForteEstatica;

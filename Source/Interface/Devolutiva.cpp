@@ -67,7 +67,7 @@ namespace Devolutiva {
         const std::string onde = f.final ? "prova final" : "fase " + std::to_string(f.ordem);
         char perda[24];
         std::snprintf(perda, sizeof(perda), " (-%.2f)", static_cast<double>(f.perdido));
-        const std::string curta = "Onde a nota mais caiu: " + onde + perda;
+        std::string curta = "Onde a nota mais caiu: " + onde + perda;
         if (f.anuncio.empty() || f.final) return curta;
         const std::string longa = "Onde a nota mais caiu: " + onde + ", " + f.anuncio + perda;
         return Letras(longa) <= kMaximoDaLinha ? longa : curta;

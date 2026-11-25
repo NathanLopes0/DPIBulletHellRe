@@ -136,7 +136,7 @@ std::vector<std::string> ListarMatriculas() {
         if (ec) break;
         if (!entrada.is_regular_file()) continue;
 
-        const auto caminho = entrada.path();
+        const auto& caminho = entrada.path();
         if (caminho.extension() != ".json") continue;   // pula .tmp e o que mais houver
 
         // O nome do arquivo e a fonte da verdade, e ele passa pela mesma validacao.

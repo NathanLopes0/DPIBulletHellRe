@@ -47,7 +47,7 @@ namespace {
 
         for (auto it = j["animacoes"].begin(); it != j["animacoes"].end(); ++it) {
 
-            const std::string nome = it.key();
+            const std::string& nome = it.key();
             const std::string ondeAnim = onde + "animacao \"" + nome + "\": ";
 
             if (nome.empty()) {
@@ -290,7 +290,7 @@ ProjeteisLidos LerProjeteis(const std::string& textoJson) {
 
     for (auto it = raiz.begin(); it != raiz.end(); ++it) {
 
-        const std::string nome = it.key();
+        const std::string& nome = it.key();
         const std::string onde = "projetil \"" + nome + "\": ";
 
         if (nome.empty()) {

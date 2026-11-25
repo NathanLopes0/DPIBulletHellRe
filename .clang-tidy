@@ -1,0 +1,35 @@
+# As checagens do clang-tidy (Ferramentas/qualidade.sh): bugs de verdade e o tamanho das funcoes.
+# Fica de fora o que so e gosto, e o que o projeto faz de proposito. A primeira rodada (novembro de
+# 2026) mostrou o que era so ruido:
+#   - parametros parecidos lado a lado, e conversoes de float em int nas contas de tela;
+#   - o indice de grade pequena (static_cast<size_t>(l * n + c)): misplaced-widening-cast, 33 avisos,
+#     nenhum perto de estourar um int;
+#   - o optional lido depois de checado em outra funcao (unchecked-optional-access, 49 avisos, quase
+#     todos nos REQUIRE dos testes): a checagem nao enxerga atraves da chamada;
+#   - enum com int por baixo (enum-size, 1110 avisos) e std::sin de float (type-promotion-in-math-fn,
+#     130): trocar mudaria a conta de ponto flutuante, e as linhas de base, por nada que se veja.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-misplaced-widening-cast,
+  -bugprone-unchecked-optional-access,
+  clang-analyzer-core.*,
+  clang-analyzer-cplusplus.*,
+  clang-analyzer-deadcode.*,
+  performance-*,
+  -performance-avoid-endl,
+  -performance-enum-size,
+  -performance-type-promotion-in-math-fn,
+  readability-function-size
+CheckOptions:
+  # Uma funcao com mais que isto pede para ser quebrada em passos com nome.
+  - key: readability-function-size.LineThreshold
+    value: 150
+# So os cabecalhos do projeto: o Json.h (e o JsonDeDados.h, que so o embrulha) e o doctest.h sao de
+# terceiros. O regex do clang-tidy 18 nao tem lookahead: a pasta Motor entra sem os que comecam com J,
+# por qualquer caminho (o Json.h chega como Source/Personagem/../Motor/Json.h), e nas outras pastas
+# o caminho nao pode ter "..".
+HeaderFilterRegex: '.*/Source/(Actors|Aluno|Attacks|Components|Curso|Entrada|Interface|Movements|Personagem|Pesquisa|Regras|Scenes|Simulacao)(/[A-Za-z0-9_]+)*/[A-Za-z0-9_]+\.h|.*/Motor/[A-IK-Z][A-Za-z0-9_]*\.h'
