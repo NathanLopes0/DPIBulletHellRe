@@ -127,7 +127,7 @@ std::string Placar(const Programa& p, const Comando& c, const bool achou) {
     // A chamada de f por g: a regra na linha de baixo, e depois o x que ela acha.
     if (c.chamada) {
         const bool estatico = c.regra == Regra::Estatico;
-        const std::string regra = estatico ? "est\xC3\xA1tico" : "din\xC3\xA2mico";
+        const std::string regra = estatico ? "estático" : "dinâmico";
         const std::string linha = "g() chama f(): atira(x);\n";
         if (!achou) return linha + "escopo " + regra;
         return linha + regra + ": " + valor + (estatico ? de : "de quem chamou");

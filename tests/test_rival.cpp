@@ -31,7 +31,7 @@ TEST_CASE("rival: o mais perto acima, e quanto falta") {
     CHECK(s.alvo.quem == "90112");
     CHECK(s.posicaoDoAlvo == 2);
     CHECK(s.distancia == doctest::Approx(2.5f));
-    CHECK(Frase(s) == "Rival: 90112 (2\xc2\xba) \xc2\xb7 faltam 2.50");
+    CHECK(Frase(s) == "Rival: 90112 (2º) · faltam 2.50");
 }
 
 TEST_CASE("rival: empatar nao poe o colega acima") {
@@ -44,8 +44,8 @@ TEST_CASE("rival: o lider ve quem vem atras") {
     CHECK(s.tipo == Tipo::Lider);
     CHECK(s.alvo.quem == "77002");
     CHECK(s.distancia == doctest::Approx(5.0f));
-    CHECK(Frase(s).rfind("1\xc2\xba da turma", 0) == 0);
-    CHECK(Frase(Da(kTurma, 90.0f)) == "1\xc2\xba da turma, empatado com 77002");
+    CHECK(Frase(s).rfind("1º da turma", 0) == 0);
+    CHECK(Frase(Da(kTurma, 90.0f)) == "1º da turma, empatado com 77002");
 }
 
 TEST_CASE("rival: quem a nota nova passou") {
@@ -57,13 +57,13 @@ TEST_CASE("rival: quem a nota nova passou") {
 }
 
 TEST_CASE("rival: a frase do resultado") {
-    CHECK(FraseDoResultado(kTurma, 60.0f, 73.0f) == "Voc\xc3\xaa passou 90112 e mais 2: agora \xc3\xa9 o 2\xc2\xba da turma");
-    CHECK(FraseDoResultado(kTurma, 70.0f, 73.0f) == "Voc\xc3\xaa passou 90112: agora \xc3\xa9 o 2\xc2\xba da turma");
+    CHECK(FraseDoResultado(kTurma, 60.0f, 73.0f) == "Você passou 90112 e mais 2: agora é o 2º da turma");
+    CHECK(FraseDoResultado(kTurma, 70.0f, 73.0f) == "Você passou 90112: agora é o 2º da turma");
     CHECK(FraseDoResultado(kTurma, 50.0f, 62.0f) == "Faltaram 2.00 para passar 88001");
     CHECK(FraseDoResultado(kTurma, 30.0f, 40.0f).empty());   // longe demais
     CHECK(FraseDoResultado({}, 0.0f, 80.0f).empty());
     // O visitante nao entra no ranking: le no condicional.
-    CHECK(FraseDoResultado(kTurma, 70.0f, 73.0f, false) == "Com essa nota voc\xc3\xaa passaria 90112 e seria o 2\xc2\xba");
+    CHECK(FraseDoResultado(kTurma, 70.0f, 73.0f, false) == "Com essa nota você passaria 90112 e seria o 2º");
 }
 
 TEST_CASE("rival: os colegas saem do ranking sem o proprio aluno") {

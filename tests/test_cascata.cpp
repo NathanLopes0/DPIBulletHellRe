@@ -44,7 +44,7 @@ TEST_CASE("Cascata: a mudanca custa mais a cada etapa - a curva de Boehm em pont
     CHECK(Custo(2) == 3);
     CHECK(Custo(3) == 5);
     CHECK(Custo(4) == 8);
-    CHECK(PlacarDaMudanca(3) == "Mudan\xc3\xa7" "a nos Testes: custo \xc3\x97" "5");
+    CHECK(PlacarDaMudanca(3) == "Mudança nos Testes: custo ×5");
     CHECK(TirosDoCusto(1) == 2);
     CHECK(TirosDoCusto(4) == kMaisNoAnel);   // o anel tem teto
     // As cortinas deixam um vao no meio da caixa.
@@ -93,8 +93,8 @@ TEST_CASE("Scrum: a velocidade sobe a cada sprint, e os pontos sao os do poker")
     for (const int p : Pontos(s, 40)) CHECK(baralho.count(p) == 1);
     CHECK(TirosDaHistoria(8) > TirosDaHistoria(1));
     CHECK(Cara(5) == "P5");
-    CHECK(Placar(2, 1, 13) == "Sprint 3  \xc2\xb7  daily 1  \xc2\xb7  faltam 13 pontos");
-    CHECK(Placar(0, 0, 1) == "Sprint 1  \xc2\xb7  faltam 1 ponto");
+    CHECK(Placar(2, 1, 13) == "Sprint 3  ·  daily 1  ·  faltam 13 pontos");
+    CHECK(Placar(0, 0, 1) == "Sprint 1  ·  faltam 1 ponto");
 }
 
 TEST_CASE("Scrum: as vagas do quadro - tres colunas, a pilha de cima para baixo") {
@@ -130,16 +130,16 @@ TEST_CASE("Observer: os olhos orbitam o aluno, repartidos, e a orbita fecha") {
 
 TEST_CASE("Observer: o placar conta a regra - virou, notifyAll; sem aviso, polling") {
     using namespace Observer;
-    CHECK(PlacarDoObserver(4) == "Observer: 4 olhos assinam voc\xc3\xaa  \xc2\xb7  virou, \xc3\xa9 notifyAll()");
+    CHECK(PlacarDoObserver(4) == "Observer: 4 olhos assinam você  ·  virou, é notifyAll()");
     CHECK(PlacarDoObserver(1).find("1 olho assina") != std::string::npos);
     Estado direita, esquerda, baixo;
     direita.x = 1;
     esquerda.x = -1;
     baixo.x = 1;
     baixo.y = 1;
-    CHECK(PlacarDaNotificacao(direita, esquerda, 4) == "notifyAll(): voc\xc3\xaa virou para a esquerda  \xc2\xb7  4 avisos");
+    CHECK(PlacarDaNotificacao(direita, esquerda, 4) == "notifyAll(): você virou para a esquerda  ·  4 avisos");
     CHECK(PlacarDaNotificacao(direita, baixo, 1).find("para baixo") != std::string::npos);
-    CHECK(PlacarDaConsulta(2.0f, 4) == "polling: 2 s sem aviso  \xc2\xb7  4 olhos perguntam getEstado()");
+    CHECK(PlacarDaConsulta(2.0f, 4) == "polling: 2 s sem aviso  ·  4 olhos perguntam getEstado()");
     CHECK(PlacarDaConsulta(1.7f, 2).rfind("polling: 1,7 s", 0) == 0);
     CHECK(kOnda < kEntreInscricoes);
 }
@@ -147,8 +147,8 @@ TEST_CASE("Observer: o placar conta a regra - virou, notifyAll; sem aviso, polli
 TEST_CASE("Decorator: a composicao no placar, de dentro para fora") {
     using namespace Decorator;
     CHECK(Placar(0) == "bala");
-    CHECK(Placar(1) == "new R\xc3\xa1pida(bala)");
-    CHECK(Placar(3) == "new Teleguiada(new Dividida(new R\xc3\xa1pida(bala)))");
+    CHECK(Placar(1) == "new Rápida(bala)");
+    CHECK(Placar(3) == "new Teleguiada(new Dividida(new Rápida(bala)))");
     CHECK(Placar(9) == Placar(3));
     CHECK(Cara(2) == "D2");
     CHECK(kEntreCamadas * static_cast<float>(kCamadas) < 3.0f);   // decorada a tempo de importar
@@ -175,8 +175,8 @@ TEST_CASE("Decorator: o componente sai para fora, e a Teleguiada vira aos poucos
     // A guia acaba antes de a bala dar uma volta inteira em quem foge dela.
     CHECK(kGiroDaTeleguiada * kGuia < 360.0f);
     // O placar explica cada decorador e o que sai quando o tiro o tira.
-    CHECK(OQueFaz(Camada::Teleguiada) == "+Teleguiada: a bala persegue voc\xc3\xaa");
-    CHECK(OQueSai(Camada::Teleguiada) == "Voc\xc3\xaa tirou a Teleguiada: segue reta");
+    CHECK(OQueFaz(Camada::Teleguiada) == "+Teleguiada: a bala persegue você");
+    CHECK(OQueSai(Camada::Teleguiada) == "Você tirou a Teleguiada: segue reta");
     for (const Camada c : kOrdem) {
         CHECK_FALSE(OQueFaz(c).empty());
         CHECK_FALSE(OQueSai(c).empty());
@@ -197,7 +197,7 @@ TEST_CASE("Bala de prata: o lobisomem persegue, cresce e nao passa do alvo") {
     CHECK(EscalaDoLobisomem(0) == doctest::Approx(kEscalaInicial));
     CHECK(EscalaDoLobisomem(3) > EscalaDoLobisomem(0));
     CHECK(EscalaDoLobisomem(100) == doctest::Approx(kMaiorEscala));
-    CHECK(NaoMatou("IA") == "IA? N\xc3\xa3o matou o lobisomem.");
+    CHECK(NaoMatou("IA") == "IA? Não matou o lobisomem.");
 }
 
 TEST_CASE("Bala de prata: a promessa persegue o aluno, e no Dificil vira mais depressa") {

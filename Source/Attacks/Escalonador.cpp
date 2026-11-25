@@ -129,10 +129,9 @@ namespace Escalonador {
             return s;
         };
         const int decimos = static_cast<int>(std::lround(rr.Quantum() * 10.0f));
-        // \xc2\xb7 e o ponto do meio.
         return "Round Robin, q = " + std::to_string(decimos / 10) + "," + std::to_string(decimos % 10) +
-               " s  \xc2\xb7  CPU: " + (rr.Rodando() ? Cara(*rr.Rodando()) : std::string("ociosa")) +
-               "  \xc2\xb7  prontos: " + lista(rr.Prontos()) + "  \xc2\xb7  E/S: " + lista(rr.Bloqueados());
+               " s  ·  CPU: " + (rr.Rodando() ? Cara(*rr.Rodando()) : std::string("ociosa")) +
+               "  ·  prontos: " + lista(rr.Prontos()) + "  ·  E/S: " + lista(rr.Bloqueados());
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {

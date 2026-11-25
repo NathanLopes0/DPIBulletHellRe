@@ -56,14 +56,12 @@ void EscolhaDoComeco::Load() {
     mPainel = std::make_unique<PainelDeMenu>(*this, mFonte.get(), " ",
                                              std::vector<std::string>{"Jogar agora", "Personalizar personagem"},
                                              rodape, kLinhas, medidas);
-    // \xc3\x87 e o C cedilha, \xc3\x8a o E circunflexo; \xc3\xa9 o e agudo, \xc3\xb3 o o agudo e
-    // \xc3\xa1 o a agudo.
     const bool emDupla = mGame->QuantosJogadores() > 1;
-    mPainel->SetTitulo(emDupla ? "JOGADOR " + std::to_string(mQuem + 1) + ": COMO COME\xc3\x87" "AR?"
-                               : std::string("COMO VOC\xc3\x8a QUER COME\xc3\x87" "AR?"),
+    mPainel->SetTitulo(emDupla ? "JOGADOR " + std::to_string(mQuem + 1) + ": COMO COMEÇAR?"
+                               : std::string("COMO VOCÊ QUER COMEÇAR?"),
                        Vector3(1.0f, 0.86f, 0.42f));
     mPainel->SetLinhas({"Jogar agora: uma personagem sorteada, sem montar nada.",
-                        "Personalizar: monte a sua pe\xc3\xa7" "a por pe\xc3\xa7" "a (d\xc3\xa1 para trocar depois)."});
+                        "Personalizar: monte a sua peça por peça (dá para trocar depois)."});
     mPainel->Selecionar(mSelecionada);
     mPainel->Mostrar(true);
 }

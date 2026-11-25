@@ -86,7 +86,7 @@ TEST_CASE("Escalonador: quem acaba a CPU termina, kill -9 tira de onde estiver, 
     outro.Chegar(Novo(1, Tipo::Cpu));
     outro.Chegar(Novo(2, Tipo::Threads));
     outro.Avancar(0.5f);
-    CHECK(Placar(outro) == "Round Robin, q = 1,2 s  \xc2\xb7  CPU: P1  \xc2\xb7  prontos: P2  \xc2\xb7  E/S: -");
+    CHECK(Placar(outro) == "Round Robin, q = 1,2 s  ·  CPU: P1  ·  prontos: P2  ·  E/S: -");
     CHECK(Cara(10) == "P1");
     CHECK(TipoDoFork(0) == Tipo::Cpu);
     CHECK(TipoDoFork(4) == Tipo::EntradaSaida);
@@ -118,10 +118,10 @@ TEST_CASE("Paginacao: a MMU parte o endereco em pagina e deslocamento") {
     CHECK(e.deslocamento == 0xA7F);
     CHECK(Montar(5, 0xA07) == 0x5A07u);
     CHECK(Hexa(0x3A7F, 4) == "0x3A7F");
-    CHECK(PlacarDoAcerto(0x3A7F, 2) == "0x3A7F = p\xc3\xa1gina 3 + 0xA7F  \xc2\xb7  acerto na moldura 2");
-    CHECK(PlacarDaFalta(0x5A07, 3, 1) == "0x5A07 = p\xc3\xa1gina 5 + 0xA07  \xc2\xb7  falta! sai a p\xc3\xa1gina 3");
+    CHECK(PlacarDoAcerto(0x3A7F, 2) == "0x3A7F = página 3 + 0xA7F  ·  acerto na moldura 2");
+    CHECK(PlacarDaFalta(0x5A07, 3, 1) == "0x5A07 = página 5 + 0xA07  ·  falta! sai a página 3");
     CHECK(PlacarDaFalta(0x5A07, -1, 1).find("vai para a moldura 1") != std::string::npos);
-    CHECK(PlacarDoThrashing(8, 10) == "Thrashing: 8 faltas nas \xc3\xbaltimas 10 refer\xc3\xaancias");
+    CHECK(PlacarDoThrashing(8, 10) == "Thrashing: 8 faltas nas últimas 10 referências");
     // O maior endereco ainda cabe em quatro algarismos.
     CHECK(Montar(kPaginas - 1, (1 << kBitsDoDeslocamento) - 1) <= 0xFFFFu);
 }
@@ -249,8 +249,8 @@ TEST_CASE("Disco: a trilha, as etapas e o placar") {
     CHECK(EtapaNoTempo(0.0f) == 0);
     CHECK(EtapaNoTempo(kDuracoes[0] + 0.1f) == 1);
     CHECK(kDuracoes[0] + kDuracoes[1] + kDuracoes[2] == doctest::Approx(Fase::kDuracao));
-    CHECK(Placar(Algoritmo::FCFS, 640, 8, 640) == "FCFS: o bra\xc3\xa7o andou 640 cilindros em 8 pedidos");
-    CHECK(Placar(Algoritmo::SCAN, 236, 8, 640) == "SCAN: 236 cilindros em 8 pedidos  \xc2\xb7  em FCFS seriam 640");
+    CHECK(Placar(Algoritmo::FCFS, 640, 8, 640) == "FCFS: o braço andou 640 cilindros em 8 pedidos");
+    CHECK(Placar(Algoritmo::SCAN, 236, 8, 640) == "SCAN: 236 cilindros em 8 pedidos  ·  em FCFS seriam 640");
     CHECK(DegrauDo(Dificuldade::Nivel::Dificil).entrePedidos < DegrauDo(Dificuldade::Nivel::Normal).entrePedidos);
     CHECK(DegrauDo(Dificuldade::Nivel::Dificil).queda > DegrauDo(Dificuldade::Nivel::Normal).queda);
 }
@@ -281,8 +281,8 @@ TEST_CASE("Virtualizacao: os hosts, a elasticidade e a migracao") {
     CHECK(NaMigracao(a, b, 0.5f).x == doctest::Approx(50.0f));
     CHECK(NaMigracao(a, b, 2.0f).x == doctest::Approx(100.0f));
     CHECK(NaMigracao(a, b, 0.1f).x < 10.0f);   // devagar no comeco
-    CHECK(PlacarDaMigracao(2, 0, 4) == "Migra\xc3\xa7\xc3\xa3o ao vivo: VM 2, do host A para o E");
-    CHECK(PlacarDaEscala(3, 4) == "Carga subindo: 3 \xe2\x86\x92 4 VMs");
+    CHECK(PlacarDaMigracao(2, 0, 4) == "Migração ao vivo: VM 2, do host A para o E");
+    CHECK(PlacarDaEscala(3, 4) == "Carga subindo: 3 → 4 VMs");
     CHECK(Placar(3) == "Hipervisor: 3 VMs em 6 hosts");
     CHECK(kVooDoTrap < kEntreTraps);
     CHECK(kMigracao < kEntreMigracoes);

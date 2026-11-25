@@ -24,7 +24,7 @@ namespace Automato {
         }
 
         /// O epsilon, a palavra vazia: ce B5 em UTF-8.
-        constexpr const char* kVazia = "\xCE\xB5";
+        constexpr const char* kVazia = "ε";
     }
 
     int Proximo(const int q, const char letra) {

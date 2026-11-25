@@ -10,9 +10,7 @@
 namespace Filosofos {
 
     namespace {
-        // \xc2\xb7 e o ponto do meio, e os nomes levam acento: o MSVC nao le
-        // acento nem simbolo em literal.
-        const char* const kPonto = " \xc2\xb7 ";
+        const char* const kPonto = " · ";
 
         constexpr float kGrau = 3.14159265f / 180.0f;
 
@@ -40,9 +38,9 @@ namespace Filosofos {
 
     std::string Nome(const int f) {
         switch (((f % kFilosofos) + kFilosofos) % kFilosofos) {
-            case 0:  return "S\xc3\xb3" "crates";
-            case 1:  return "Plat\xc3\xa3o";
-            case 2:  return "Arist\xc3\xb3teles";
+            case 0:  return "Sócrates";
+            case 1:  return "Platão";
+            case 2:  return "Aristóteles";
             case 3:  return "Kant";
             default: return "Descartes";
         }
@@ -258,14 +256,14 @@ namespace Filosofos {
 
     std::string Pensador(const int i) {
         switch (((i % kPensadores) + kPensadores) % kPensadores) {
-            case 0:  return "S\xc3\xb3" "crates";
-            case 1:  return "Plat\xc3\xa3o";
-            case 2:  return "Arist\xc3\xb3teles";
+            case 0:  return "Sócrates";
+            case 1:  return "Platão";
+            case 2:  return "Aristóteles";
             case 3:  return "Kant";
             case 4:  return "Descartes";
             case 5:  return "Hume";
-            case 6:  return "Hip\xc3\xa1tia";
-            case 7:  return "Conf\xc3\xba" "cio";
+            case 6:  return "Hipátia";
+            case 7:  return "Confúcio";
             case 8:  return "Espinosa";
             default: return "Beauvoir";
         }
@@ -349,7 +347,7 @@ namespace Filosofos {
             case Rodada::Jantar:   texto = "jantar"; break;
             case Rodada::Deadlock: texto = "todos pegam o garfo da esquerda"; break;
             case Rodada::Ordem:    texto = "menor garfo primeiro"; break;
-            case Rodada::Garcom:   texto = "gar\xc3\xa7om: 4 \xc3\xa0 mesa"; break;
+            case Rodada::Garcom:   texto = "garçom: 4 à mesa"; break;
         }
         for (int f = 0; f < kFilosofos; ++f) {
             if (m.estado[static_cast<size_t>(f)] == Estado::Morto) texto = "kill -9 " + nome(f);

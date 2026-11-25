@@ -10,9 +10,7 @@
 namespace Tcp {
 
     namespace {
-        // \xc2\xb7 e o ponto do meio, \xc3\xa7\xc3\xa3 o "cao" de evitacao: o
-        // MSVC nao le acento nem simbolo em literal.
-        const char* const kPonto = " \xc2\xb7 ";
+        const char* const kPonto = " · ";
     }
 
     Janela Enviar(Conexao& c) {
@@ -106,7 +104,7 @@ namespace Tcp {
     }
 
     std::string Placar(const Conexao& c) {
-        const std::string estado = c.estado == Estado::SlowStart ? "slow start" : "evita\xc3\xa7\xc3\xa3o";
+        const std::string estado = c.estado == Estado::SlowStart ? "slow start" : "evitação";
         return "cwnd = " + std::to_string(c.cwnd) + kPonto + estado;
     }
 

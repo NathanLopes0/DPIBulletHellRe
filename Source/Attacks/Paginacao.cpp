@@ -38,28 +38,26 @@ namespace Paginacao {
     }
 
     namespace {
-        /// "0x3A7F = página 3 + 0xA7F". \xc3\xa1 e o a com acento.
+        /// "0x3A7F = página 3 + 0xA7F".
         std::string Conta(const std::uint32_t endereco) {
             const Endereco e = Traduzir(endereco);
-            return Hexa(endereco, 4) + " = p\xc3\xa1gina " + std::to_string(e.pagina) + " + " +
+            return Hexa(endereco, 4) + " = página " + std::to_string(e.pagina) + " + " +
                    Hexa(static_cast<std::uint32_t>(e.deslocamento), 3);
         }
     }
 
     std::string PlacarDoAcerto(const std::uint32_t endereco, const int moldura) {
-        // \xc2\xb7 e o ponto do meio.
-        return Conta(endereco) + "  \xc2\xb7  acerto na moldura " + std::to_string(moldura);
+        return Conta(endereco) + "  ·  acerto na moldura " + std::to_string(moldura);
     }
 
     std::string PlacarDaFalta(const std::uint32_t endereco, const int vitima, const int moldura) {
-        if (vitima < 0) return Conta(endereco) + "  \xc2\xb7  falta! vai para a moldura " + std::to_string(moldura);
-        return Conta(endereco) + "  \xc2\xb7  falta! sai a p\xc3\xa1gina " + std::to_string(vitima);
+        if (vitima < 0) return Conta(endereco) + "  ·  falta! vai para a moldura " + std::to_string(moldura);
+        return Conta(endereco) + "  ·  falta! sai a página " + std::to_string(vitima);
     }
 
     std::string PlacarDoThrashing(const int faltas, const int referencias) {
-        // \xc3\xba e o u com acento; \xc3\xaa o e com circunflexo.
-        return "Thrashing: " + std::to_string(faltas) + (faltas == 1 ? " falta" : " faltas") + " nas \xc3\xbaltimas " +
-               std::to_string(referencias) + " refer\xc3\xaancias";
+        return "Thrashing: " + std::to_string(faltas) + (faltas == 1 ? " falta" : " faltas") + " nas últimas " +
+               std::to_string(referencias) + " referências";
     }
 
     Relogio::Relogio(const int molduras) : mMolduras(static_cast<size_t>(std::max(1, molduras))) {}

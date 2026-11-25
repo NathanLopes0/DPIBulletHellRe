@@ -80,15 +80,15 @@ TEST_CASE("Fita: o ultimo passo cai antes do fim da fase, e a fita cabe na tela"
 TEST_CASE("Fita: o placar e a transicao, com o branco, o h de quem para e a seta da tela") {
     Passo p;
     p.de = 0; p.leu = 0; p.escreveu = 1; p.para = 1; p.sentido = 1;
-    CHECK(Transicao(p) == "\xCE\xB4(q\xE2\x82\x80, \xE2\x96\xA1) = (q\xE2\x82\x81, a, \xE2\x86\x92)");
+    CHECK(Transicao(p) == "δ(q₀, □) = (q₁, a, →)");
     p.de = 2; p.leu = 0; p.escreveu = 1; p.para = kParada; p.sentido = -1;
-    CHECK(Transicao(p) == "\xCE\xB4(q\xE2\x82\x82, \xE2\x96\xA1) = (pare, a, \xE2\x86\x90)");
+    CHECK(Transicao(p) == "δ(q₂, □) = (pare, a, ←)");
 
     Estado e = Inicio(false);
     const Passo primeiro = Avancar(e, false);
-    CHECK(Placar(e, primeiro) == Transicao(primeiro) + "\npasso 1 \xC2\xB7 1 marcas");
+    CHECK(Placar(e, primeiro) == Transicao(primeiro) + "\npasso 1 · 1 marcas");
     const Corrida c = Rodar(false);
-    CHECK(Placar(c.fim, primeiro).find("\xCE\xA3(4) = 13") != std::string::npos);
+    CHECK(Placar(c.fim, primeiro).find("Σ(4) = 13") != std::string::npos);
 }
 
 TEST_CASE("Fita: cada luta sorteia a maquina como ela e ou espelhada, as duas acontecem") {

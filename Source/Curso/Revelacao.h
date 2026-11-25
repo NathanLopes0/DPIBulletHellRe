@@ -110,6 +110,6 @@ namespace Revelacao {
     };
     Ida IdaEm(Vector2 meio, Vector2 lugar, float desdeOBotao);
 
-    /// "a 17\xc2\xaa materia": a frase dos parabens, com o numero de materias do curso.
+    /// "a 17ª materia": a frase dos parabens, com o numero de materias do curso.
     std::string Parabens(int materiasDoCurso);
 }

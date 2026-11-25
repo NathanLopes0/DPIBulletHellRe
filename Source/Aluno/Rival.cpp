@@ -17,8 +17,7 @@ namespace {
         return b;
     }
 
-    // \xc2\xba e o o do ordinal.
-    std::string Lugar(const int p) { return std::to_string(p) + "\xc2\xba"; }
+    std::string Lugar(const int p) { return std::to_string(p) + "º"; }
 
 }
 
@@ -77,17 +76,16 @@ std::vector<Colega> Passados(const std::vector<Colega>& colegas, const float ant
 }
 
 std::string Frase(const Situacao& s) {
-    // \xc2\xb7 e o ponto do meio, \xc3\xa9 o e agudo, \xc3\xba o u agudo.
     switch (s.tipo) {
         case Tipo::Sozinho:
-            return "Ningu\xc3\xa9m mais jogou: o ranking \xc3\xa9 seu";
+            return "Ninguém mais jogou: o ranking é seu";
         case Tipo::Estreante:
-            return "\xc3\x9altimo da turma: " + s.alvo.quem + " com " + Numero(s.alvo.nota);
+            return "Último da turma: " + s.alvo.quem + " com " + Numero(s.alvo.nota);
         case Tipo::Atras:
-            return "Rival: " + s.alvo.quem + " (" + Lugar(s.posicaoDoAlvo) + ") \xc2\xb7 faltam " + Numero(s.distancia);
+            return "Rival: " + s.alvo.quem + " (" + Lugar(s.posicaoDoAlvo) + ") · faltam " + Numero(s.distancia);
         case Tipo::Lider:
-            if (s.distancia <= 0.0f) return "1\xc2\xba da turma, empatado com " + s.alvo.quem;
-            return "1\xc2\xba da turma \xc2\xb7 " + s.alvo.quem + " vem " + Numero(s.distancia) + " atr\xc3\xa1s";
+            if (s.distancia <= 0.0f) return "1º da turma, empatado com " + s.alvo.quem;
+            return "1º da turma · " + s.alvo.quem + " vem " + Numero(s.distancia) + " atrás";
     }
     return {};
 }
@@ -99,10 +97,9 @@ std::string FraseDoResultado(const std::vector<Colega>& colegas, const float ant
         std::string quem = passados.front().quem;
         if (passados.size() == 2) quem += " e " + passados[1].quem;
         else if (passados.size() > 2) quem += " e mais " + std::to_string(passados.size() - 1);
-        // \xc3\xa9 o e agudo.
         const std::string lugar = Lugar(PosicaoCom(colegas, depois));
-        if (!entraNoRanking) return "Com essa nota voc\xc3\xaa passaria " + quem + " e seria o " + lugar;
-        return "Voc\xc3\xaa passou " + quem + ": agora \xc3\xa9 o " + lugar + " da turma";
+        if (!entraNoRanking) return "Com essa nota você passaria " + quem + " e seria o " + lugar;
+        return "Você passou " + quem + ": agora é o " + lugar + " da turma";
     }
     // Sem passar ninguem: so fala do rival se a nota desta luta chegou perto dele.
     const Situacao s = Da(colegas, depois);

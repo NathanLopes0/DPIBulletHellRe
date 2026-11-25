@@ -649,11 +649,11 @@ TEST_CASE("Ranking: as quatro listas, na ordem das abas, e o manche da a volta")
     using Modo = Progresso::Modo;
     REQUIRE(Ranking::kQuantasListas == 4);
     CHECK(Ranking::NomeDaLista(Ranking::kListas[0]) == "Normal");
-    CHECK(Ranking::NomeDaLista(Ranking::kListas[1]) == "Dif\xc3\xad" "cil");
+    CHECK(Ranking::NomeDaLista(Ranking::kListas[1]) == "Difícil");
     // Oito bytes, contados e nao escritos.
     CHECK(Ranking::NomeDaLista(Ranking::kListas[1]).size() == 8u);
     CHECK(Ranking::NomeDaLista(Ranking::kListas[2]) == "Normal em dupla");
-    CHECK(Ranking::NomeDaLista(Ranking::kListas[3]) == "Dif\xc3\xad" "cil em dupla");
+    CHECK(Ranking::NomeDaLista(Ranking::kListas[3]) == "Difícil em dupla");
 
     for (int i = 0; i < Ranking::kQuantasListas; ++i) {
         CHECK(Ranking::IndiceDaLista(Ranking::kListas[i].modo, Ranking::kListas[i].nivel) == i);

@@ -263,8 +263,7 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
 }
 
 std::string NomeDaLista(const Lista l) {
-    // \xc3\xad e o i agudo: o MSVC nao le acento em literal.
-    const std::string nivel = l.nivel == Dificuldade::Nivel::Dificil ? "Dif\xc3\xad" "cil" : "Normal";
+    const std::string nivel = l.nivel == Dificuldade::Nivel::Dificil ? "Difícil" : "Normal";
     return l.modo == Progresso::Modo::Dupla ? nivel + " em dupla" : nivel;
 }
 

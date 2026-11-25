@@ -62,7 +62,7 @@ namespace Hash {
     }
 
     std::string PlacarDoRehash(const int de, const int para) {
-        return "rehash: m = " + std::to_string(de) + " \xE2\x86\x92 " + std::to_string(para);
+        return "rehash: m = " + std::to_string(de) + " → " + std::to_string(para);
     }
 
     std::string CaraDaChave(const int chave) {

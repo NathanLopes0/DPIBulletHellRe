@@ -88,13 +88,13 @@ TEST_CASE("Coercao: o * do JavaScript converte os dois, e o do Python repete o t
 
 TEST_CASE("Coercao: o placar diz a linguagem, como ela tipa, e depois o resultado") {
     const Comando js{Forma::JsSoma, 3, 4};
-    CHECK(Placar(js) == "JavaScript \xc2\xb7 tipagem fraca\n3 + \"4\"");
-    CHECK(PlacarComResultado(js) == "JavaScript \xc2\xb7 tipagem fraca\n3 + \"4\"  \xe2\x86\x92  \"34\"");
-    CHECK(PlacarComResultado({Forma::PhpSoma, 3, 4}).find("\xe2\x86\x92  7") != std::string::npos);
+    CHECK(Placar(js) == "JavaScript · tipagem fraca\n3 + \"4\"");
+    CHECK(PlacarComResultado(js) == "JavaScript · tipagem fraca\n3 + \"4\"  →  \"34\"");
+    CHECK(PlacarComResultado({Forma::PhpSoma, 3, 4}).find("→  7") != std::string::npos);
     CHECK(PlacarComResultado({Forma::PythonSoma, 3, 4}).find("TypeError") != std::string::npos);
-    CHECK(Placar({Forma::PythonSoma, 3, 4}).find("din\xc3\xa2mica") != std::string::npos);
-    CHECK(Placar({Forma::HaskellSoma, 3, 4}).find("est\xc3\xa1tica") != std::string::npos);
-    CHECK(PlacarComResultado({Forma::HaskellSoma, 3, 4}).find("compila\xc3\xa7\xc3\xa3o") != std::string::npos);
+    CHECK(Placar({Forma::PythonSoma, 3, 4}).find("dinâmica") != std::string::npos);
+    CHECK(Placar({Forma::HaskellSoma, 3, 4}).find("estática") != std::string::npos);
+    CHECK(PlacarComResultado({Forma::HaskellSoma, 3, 4}).find("compilação") != std::string::npos);
 
     for (const Forma f : kTodas) {
         const Comando c{f, 3, 4};

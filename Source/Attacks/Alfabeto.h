@@ -19,7 +19,7 @@ namespace Alfabeto {
 
     /// O que o placar diz durante o aviso do intercambio, no Vladimir: "Intercambio: a <-> b", com
     /// o acento e a seta de verdade.
-    inline constexpr const char* kAvisoDaTroca = "Interc\xC3\xA2mbio: a \xE2\x86\x94 b";
+    inline constexpr const char* kAvisoDaTroca = "Intercâmbio: a ↔ b";
 
     /// Se a animacao e uma das duas letras.
     bool EhLetra(const std::string& animacao);

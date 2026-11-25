@@ -29,7 +29,7 @@ TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave so dele") {
     }
     CHECK(chaves.size() == static_cast<size_t>(Dificuldade::kQuantos));
     CHECK(nomes.size() == static_cast<size_t>(Dificuldade::kQuantos));
-    CHECK(std::string(Dificuldade::Nome(Nivel::Dificil)) == "DIF\xc3\x8d" "CIL");
+    CHECK(std::string(Dificuldade::Nome(Nivel::Dificil)) == "DIFÍCIL");
 }
 
 TEST_CASE("Dificuldade: andar para qualquer lado troca, e da a volta") {

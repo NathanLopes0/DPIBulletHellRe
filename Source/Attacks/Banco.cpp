@@ -320,7 +320,7 @@ namespace Banco {
         switch (plano) {
             case Plano::PorLinha:         return "JOIN sem WHERE: por linha";
             case Plano::PorColuna:        return "JOIN sem WHERE: por coluna";
-            case Plano::DeTrasParaFrente: return "JOIN sem WHERE: de tr\xC3\xA1s pra frente";
+            case Plano::DeTrasParaFrente: return "JOIN sem WHERE: de trás pra frente";
             case Plano::ZigueZague:       return "JOIN sem WHERE: em zigue-zague";
         }
         return "";

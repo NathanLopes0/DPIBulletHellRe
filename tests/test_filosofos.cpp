@@ -83,7 +83,7 @@ TEST_CASE("Filosofos: o deadlock - todos com o garfo da esquerda, a espera circu
             if (EmDeadlock(m)) {
                 viu = true;
                 CHECK(Esperas(m).size() == 5u);   // o pentagono inteiro
-                CHECK(Placar(Rodada::Deadlock, m) == "deadlock \xc2\xb7 espera circular");
+                CHECK(Placar(Rodada::Deadlock, m) == "deadlock · espera circular");
             }
             if (p.acao == Acao::Morre) {
                 CHECK(p.filosofo == vitima);
@@ -168,8 +168,8 @@ TEST_CASE("Filosofos: os textos") {
     Aplicar(m, {0.0f, 3, Acao::Pega, 3});
     Aplicar(m, {0.0f, 3, Acao::Pega, 4});
     Aplicar(m, {0.0f, 3, Acao::Come});
-    CHECK(Placar(Rodada::Ordem, m) == "menor garfo primeiro \xc2\xb7 comendo: Kant");
-    CHECK(Placar(Rodada::Garcom, MesaPosta()) == "gar\xc3\xa7om: 4 \xc3\xa0 mesa");
+    CHECK(Placar(Rodada::Ordem, m) == "menor garfo primeiro · comendo: Kant");
+    CHECK(Placar(Rodada::Garcom, MesaPosta()) == "garçom: 4 à mesa");
     Mesa morta = MesaPosta();
     Aplicar(morta, {0.0f, 3, Acao::Morre});
     CHECK(Placar(Rodada::Deadlock, morta) == "kill -9 Kant");
@@ -291,14 +291,14 @@ TEST_CASE("Filosofos: no ritmo da luta os passos sao os mesmos, na mesma ordem, 
 
 TEST_CASE("Filosofos: o placar fala os nomes desta luta") {
     Plano p = PlanoDeSempre();
-    p.nomes = {"Hume", "Beauvoir", "Hip\xc3\xa1tia", "Espinosa", "Conf\xc3\xba" "cio"};
+    p.nomes = {"Hume", "Beauvoir", "Hipátia", "Espinosa", "Confúcio"};
     Mesa m = MesaPosta();
     REQUIRE(Aplicar(m, {0.0f, 2, Acao::Pega, 2}));
     REQUIRE(Aplicar(m, {0.0f, 2, Acao::Pega, 3}));
     REQUIRE(Aplicar(m, {0.0f, 2, Acao::Come}));
-    CHECK(Placar(Rodada::Jantar, m, p) == "jantar \xc2\xb7 comendo: Hip\xc3\xa1tia");
+    CHECK(Placar(Rodada::Jantar, m, p) == "jantar · comendo: Hipátia");
     REQUIRE(Aplicar(m, {0.0f, 4, Acao::Morre}));
-    CHECK(Placar(Rodada::Deadlock, m, p) == "kill -9 Conf\xc3\xba" "cio \xc2\xb7 comendo: Hip\xc3\xa1tia");
+    CHECK(Placar(Rodada::Deadlock, m, p) == "kill -9 Confúcio · comendo: Hipátia");
 }
 
 TEST_CASE("Filosofos: o degrau - o Normal e o de sempre, o Dificil e mais cheio") {

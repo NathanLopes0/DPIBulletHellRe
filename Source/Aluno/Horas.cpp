@@ -34,18 +34,17 @@ namespace Horas {
     }
 
     const std::vector<Dados>& Todas() {
-        // \xc3\xa9 e o e com acento, \xc3\xa3 o a com til, \xc3\xb5 o o com til, \xc3\xa7 o c cedilha.
         static const std::vector<Dados> todas = {
             {Atividade::FaseLimpa, "fase-limpa", true, 2, "Fase limpa", "uma fase sem levar acerto"},
-            {Atividade::PoucosAcertos, "poucos-acertos", true, 3, "Prova segura", "aprovado com at\xc3\xa9 10 acertos sofridos"},
-            {Atividade::Veterano, "veterano", true, 3, "Monitoria", "3 aprova\xc3\xa7\xc3\xb5" "es na mat\xc3\xa9ria"},
+            {Atividade::PoucosAcertos, "poucos-acertos", true, 3, "Prova segura", "aprovado com até 10 acertos sofridos"},
+            {Atividade::Veterano, "veterano", true, 3, "Monitoria", "3 aprovações na matéria"},
             {Atividade::Virada, "virada", false, 6, "Virada", "aprovado depois de a nota cair abaixo de 25"},
-            {Atividade::DeRaspao, "de-raspao", false, 4, "De rasp\xc3\xa3o", "15 rasp\xc3\xb5" "es numa prova"},
+            {Atividade::DeRaspao, "de-raspao", false, 4, "De raspão", "15 raspões numa prova"},
             {Atividade::PontoExtra, "ponto-extra", false, 4, "Ponto extra", "2 pontos extras usados numa prova"},
             {Atividade::Cobertura, "cobertura", false, 5, "Trabalho em grupo", "10 coberturas ao parceiro numa prova"},
-            {Atividade::Poder, "poder", false, 5, "Orienta\xc3\xa7\xc3\xa3o", "3 poderes do orientador num TCC"},
+            {Atividade::Poder, "poder", false, 5, "Orientação", "3 poderes do orientador num TCC"},
             {Atividade::ProvaDaSemana, "prova-da-semana", false, 5, "Prova da semana", "aprovado na prova da semana"},
-            {Atividade::Podio, "podio", false, 8, "P\xc3\xb3" "dio", "entre os 3 primeiros da prova da semana"},
+            {Atividade::Podio, "podio", false, 8, "Pódio", "entre os 3 primeiros da prova da semana"},
         };
         return todas;
     }

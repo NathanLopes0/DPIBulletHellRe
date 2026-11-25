@@ -49,7 +49,7 @@ namespace Tipos {
     const char* Nome(const int t) {
         switch (t) {
             case kFogo: return "fogo";
-            case kAgua: return "\xc3\xa1gua";
+            case kAgua: return "água";
             case kPlanta: return "planta";
             default: return "";
         }

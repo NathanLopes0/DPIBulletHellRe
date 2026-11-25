@@ -75,12 +75,12 @@ TEST_CASE("Termina: as rodadas variam o programa e a entrada, e umas param e out
 TEST_CASE("Termina: o placar pergunta ao Termina, e o Paradoxo faz o contrario da resposta") {
     const Rodada r{Programa::DeDoisEmDois, 7};
     CHECK(Placar(r, std::nullopt) == "enquanto (n != 0) n = n - 2;\nTermina(P, 7) = ?");
-    CHECK(Placar(r, false) == "enquanto (n != 0) n = n - 2;\nTermina(P, 7) = N\xC3\x83O");
+    CHECK(Placar(r, false) == "enquanto (n != 0) n = n - 2;\nTermina(P, 7) = NÃO");
     CHECK(Resposta(true) == "SIM");
     CHECK(Pergunta(r) == "Termina(P, 7)");
-    CHECK(PlacarDoParadoxo(true, false) == "Paradoxo: se Termina(Paradoxo)\nSIM \xE2\x86\x92 o Paradoxo repete");
-    CHECK(PlacarDoParadoxo(false, false) == "Paradoxo: se Termina(Paradoxo)\nN\xC3\x83O \xE2\x86\x92 o Paradoxo para");
-    CHECK(PlacarDoParadoxo(std::nullopt, true) == "Termina n\xC3\xA3o pode existir.\ncontradi\xC3\xA7\xC3\xA3o!");
+    CHECK(PlacarDoParadoxo(true, false) == "Paradoxo: se Termina(Paradoxo)\nSIM → o Paradoxo repete");
+    CHECK(PlacarDoParadoxo(false, false) == "Paradoxo: se Termina(Paradoxo)\nNÃO → o Paradoxo para");
+    CHECK(PlacarDoParadoxo(std::nullopt, true) == "Termina não pode existir.\ncontradição!");
     // Ele comeca dizendo que para, e muda de ideia a cada virada.
     CHECK(VereditoDaVirada(0));
     for (int k = 1; k < kViradas; ++k) CHECK(VereditoDaVirada(k) != VereditoDaVirada(k - 1));

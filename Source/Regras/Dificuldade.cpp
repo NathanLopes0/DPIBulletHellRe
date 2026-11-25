@@ -7,10 +7,9 @@
 namespace Dificuldade {
 
     const char* Nome(const Nivel n) {
-        // \xc3\x8d e o I agudo: o MSVC nao le acento em literal.
         switch (n) {
             case Nivel::Normal:  return "NORMAL";
-            case Nivel::Dificil: return "DIF\xc3\x8d" "CIL";
+            case Nivel::Dificil: return "DIFÍCIL";
         }
         return "";
     }
@@ -18,7 +17,7 @@ namespace Dificuldade {
     const char* Descricao(const Nivel n) {
         switch (n) {
             case Nivel::Normal:  return "As fases como foram pensadas.";
-            case Nivel::Dificil: return "Mais tiros e mais r\xc3\xa1pidos, e um acerto mal protege do pr\xc3\xb3ximo. "
+            case Nivel::Dificil: return "Mais tiros e mais rápidos, e um acerto mal protege do próximo. "
                                         "A nota vale o mesmo.";
         }
         return "";
@@ -27,7 +26,7 @@ namespace Dificuldade {
     const char* Vantagem(const Nivel n) {
         switch (n) {
             case Nivel::Normal:  return "";
-            case Nivel::Dificil: return "Passar no Dif\xc3\xad" "cil conta para liberar as optativas.";
+            case Nivel::Dificil: return "Passar no Difícil conta para liberar as optativas.";
         }
         return "";
     }

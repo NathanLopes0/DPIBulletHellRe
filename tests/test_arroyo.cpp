@@ -29,28 +29,28 @@ namespace {
 
 TEST_CASE("Recorrencia: o Teorema Mestre nos tres casos") {
     using namespace Recorrencia;
-    CHECK(Solucao(Achar("merge sort")) == "\xce\x98(n log n)");                       // caso 2
-    CHECK(Solucao(Achar("busca bin\xc3\xa1ria")) == "\xce\x98(log n)");              // caso 2, k = 0
-    CHECK(Solucao(Achar("Karatsuba")) == "\xce\x98(n^1,58)");                        // caso 1
-    CHECK(Solucao(Achar("percurso em \xc3\xa1rvore")) == "\xce\x98(n)");             // caso 1
-    CHECK(Solucao(Achar("sele\xc3\xa7\xc3\xa3o linear")) == "\xce\x98(n)");          // caso 3
-    CHECK(Solucao(Achar("multiplica\xc3\xa7\xc3\xa3o ing\xc3\xaanua")) == "\xce\x98(n\xc2\xb2)");
-    CHECK(Solucao(Achar("pares mais distantes")) == "\xce\x98(n\xc2\xb2)");          // caso 3
-    CHECK(Solucao(Achar("merge sort tern\xc3\xa1rio")) == "\xce\x98(n log n)");
+    CHECK(Solucao(Achar("merge sort")) == "Θ(n log n)");                       // caso 2
+    CHECK(Solucao(Achar("busca binária")) == "Θ(log n)");              // caso 2, k = 0
+    CHECK(Solucao(Achar("Karatsuba")) == "Θ(n^1,58)");                        // caso 1
+    CHECK(Solucao(Achar("percurso em árvore")) == "Θ(n)");             // caso 1
+    CHECK(Solucao(Achar("seleção linear")) == "Θ(n)");          // caso 3
+    CHECK(Solucao(Achar("multiplicação ingênua")) == "Θ(n²)");
+    CHECK(Solucao(Achar("pares mais distantes")) == "Θ(n²)");          // caso 3
+    CHECK(Solucao(Achar("merge sort ternário")) == "Θ(n log n)");
 }
 
 TEST_CASE("Recorrencia: a formula, o rotulo e a cara de cada no") {
     using namespace Recorrencia;
     CHECK(Formula(Achar("merge sort")) == "T(n) = 2T(n/2) + n");
-    CHECK(Formula(Achar("busca bin\xc3\xa1ria")) == "T(n) = T(n/2) + 1");
-    CHECK(Placar(Achar("merge sort"), true) == "T(n) = 2T(n/2) + n = \xce\x98(n log n)");
+    CHECK(Formula(Achar("busca binária")) == "T(n) = T(n/2) + 1");
+    CHECK(Placar(Achar("merge sort"), true) == "T(n) = 2T(n/2) + n = Θ(n log n)");
     const Caso ms = Achar("merge sort");
     CHECK(Rotulo(ms, 0) == "n");
     CHECK(Rotulo(ms, 2) == "n/4");
     CHECK(Rotulo(ms, Niveis(ms)) == "1");
     CHECK(Cara(ms, 1) == "N2");
     CHECK(Cara(ms, Niveis(ms)) == "Um");
-    CHECK(Cara(Achar("merge sort tern\xc3\xa1rio"), 1) == "N3");
+    CHECK(Cara(Achar("merge sort ternário"), 1) == "N3");
     CHECK(Resistencia(0) > Resistencia(1));
     CHECK(Resistencia(2) == 1);
 }
@@ -69,10 +69,10 @@ TEST_CASE("Recorrencia: o trabalho de cada nivel conta a historia do Teorema Mes
     const Caso ka = Achar("Karatsuba");
     CHECK(doNivel(ka, 1) > doNivel(ka, 0));
     // Selecao linear: o custo cai, e a raiz domina.
-    const Caso se = Achar("sele\xc3\xa7\xc3\xa3o linear");
+    const Caso se = Achar("seleção linear");
     CHECK(doNivel(se, 1) < doNivel(se, 0));
     // Busca binaria: um tiro por nivel.
-    const Caso bb = Achar("busca bin\xc3\xa1ria");
+    const Caso bb = Achar("busca binária");
     for (int d = 0; d < Niveis(bb); ++d) CHECK(doNivel(bb, d) == 1);
     // Nenhuma arvore passa de 16 folhas.
     for (const Caso& c : Casos()) {
@@ -107,10 +107,10 @@ TEST_CASE("Paradigmas: o troco guloso acerta no real e erra nos sistemas ruins")
     CHECK(Otimo(t[1]) == 4);
     CHECK(Guloso(t[2]) == std::vector<int>{9, 1, 1, 1});
     CHECK(Otimo(t[2]) == 2);
-    CHECK(PlacarDoTroco(t[1]) == "Troco de 31: 25+1+1+1+1+1+1  (\xc3\xb3timo: 4 moedas)");
+    CHECK(PlacarDoTroco(t[1]) == "Troco de 31: 25+1+1+1+1+1+1  (ótimo: 4 moedas)");
     // As moedas de um troco cabem no tempo dele.
     for (const auto& troco : t) CHECK(0.25f + kEntreMoedas * static_cast<float>(Guloso(troco).size()) < kDuracaoDoTroco);
-    CHECK(PlacarDoTroco(t[0]).find("\xc3\xb3timo!") != std::string::npos);
+    CHECK(PlacarDoTroco(t[0]).find("ótimo!") != std::string::npos);
     CHECK(EscalaDaMoeda(100) > EscalaDaMoeda(1));
     CHECK(CaraDaMoeda(25) == "M25");
     // Os tres trocos cabem na etapa.
@@ -186,8 +186,8 @@ TEST_CASE("Intratavel: a rede ordena todas as permutacoes de 6, com 12 comparado
     }
     CHECK(XDoFio(0, 0.0f, 600.0f) < XDoFio(5, 0.0f, 600.0f));
     // log2 720 = 9,49...: arredonda para 10. Sem o sinal de teto, que a fonte do quadro nao tem.
-    CHECK(PlacarDaRede() == "\xce\xa9(n log n): log\xe2\x82\x82 6! \xe2\x89\x88 9,5 \xe2\x86\x92 10  \xc2\xb7  a rede usa 12");
-    CHECK(PlacarDaRede().find("\xe2\x8c\x88") == std::string::npos);
+    CHECK(PlacarDaRede() == "Ω(n log n): log₂ 6! ≈ 9,5 → 10  ·  a rede usa 12");
+    CHECK(PlacarDaRede().find("⌈") == std::string::npos);
 }
 
 TEST_CASE("Intratavel: o caixeiro conta as rotas e anda na rota") {
@@ -214,7 +214,7 @@ TEST_CASE("Intratavel: o caixeiro conta as rotas e anda na rota") {
     const std::vector<Vector2> q = {Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)};
     CHECK(Comprimento(q, {0, 1, 2, 3}) == doctest::Approx(4.0f));
     CHECK(Comprimento(q, {0, 2, 1, 3}) > 4.0f);
-    CHECK(PlacarDoCaixeiro(6, 3, 1840.4f) == "n = 6  \xc2\xb7  60 rotas  \xc2\xb7  tentativa 3  \xc2\xb7  melhor 1840");
+    CHECK(PlacarDoCaixeiro(6, 3, 1840.4f) == "n = 6  ·  60 rotas  ·  tentativa 3  ·  melhor 1840");
     CHECK(kFimDaRede + kDuracaoDaRodada * 3.0f == doctest::Approx(Fase::kDuracao));
 }
 
@@ -235,10 +235,10 @@ TEST_CASE("Tempera: esfria, reaquece, e o Metropolis aceita pior so quando quent
     CHECK(Placar(kQuente) == "Quente, T = 1000: aceita passo pior (72%)");
     CHECK(Placar(100.0f) == "Esfriando, T = 100: aceita pior 4% das vezes");
     CHECK(Placar(60.0f).rfind("Fria", 0) == 0);   // abaixo de 1%, fria: nunca "aceita pior 0%"
-    CHECK(Placar(10.0f) == "Fria, T = 10: s\xc3\xb3 aceita o que melhora");
+    CHECK(Placar(10.0f) == "Fria, T = 10: só aceita o que melhora");
     CHECK(EstagioDe(kQuente) == Estagio::Quente);
     CHECK(EstagioDe(kFrio) == Estagio::Frio);
-    CHECK(PlacarDoOtimoLocal(1) == "\xc3\x93timo local: 1 solu\xc3\xa7\xc3\xa3o presa num vale raso");
+    CHECK(PlacarDoOtimoLocal(1) == "Ótimo local: 1 solução presa num vale raso");
     CHECK(PlacarDoOtimoLocal(4).find("4 solu") != std::string::npos);
     // O termometro: cheio no quente, vazio no frio, e no meio na media geometrica.
     CHECK(Nivel(kQuente) == doctest::Approx(1.0f));

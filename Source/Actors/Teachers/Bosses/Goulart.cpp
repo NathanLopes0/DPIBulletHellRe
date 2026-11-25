@@ -318,8 +318,7 @@ void Goulart::AtualizarEscalonador(const float t, const float deltaTime) {
                 Avisar(Escalonador::Cara(a.pid) + " pediu E/S: a faixa dele para de chover");
                 break;
             case Evento::Acordou:
-                // \xc3\xa7\xc3\xa3 e "ca" com cedilha e til.
-                Avisar("interrup\xc3\xa7\xc3\xa3o: " + Escalonador::Cara(a.pid) + " volta para a fila");
+                Avisar("interrupção: " + Escalonador::Cara(a.pid) + " volta para a fila");
                 break;
             case Evento::Terminou:
                 FecharFatia(a.pid, t);
@@ -456,8 +455,7 @@ void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
         // A memoria encolhe: as molduras de sobra saem, e as paginas delas desabam.
         if (mEtapaDaPaginacao >= 0) {
             for (const int p : mMemoria->Encolher(MoldurasNaEtapa(etapa, nivel))) Despejar(p, t, t + 0.5f);
-            // \xc3\xb3 e o o com acento.
-            Avisar("Outro processo pegou mem\xc3\xb3ria: " + std::to_string(mMemoria->Molduras().size()) + " molduras", 1.6f);
+            Avisar("Outro processo pegou memória: " + std::to_string(mMemoria->Molduras().size()) + " molduras", 1.6f);
         }
         mEtapaDaPaginacao = etapa;
     }

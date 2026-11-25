@@ -170,7 +170,6 @@ namespace Revelacao {
     }
 
     std::string Parabens(const int materiasDoCurso) {
-        // \xc3\xaa e o e circunflexo; \xc2\xaa, o ordinal.
-        return "Parab\xc3\xa9ns! Voc\xc3\xaa achou a " + std::to_string(materiasDoCurso) + "\xc2\xaa mat\xc3\xa9ria.";
+        return "Parabéns! Você achou a " + std::to_string(materiasDoCurso) + "ª matéria.";
     }
 }

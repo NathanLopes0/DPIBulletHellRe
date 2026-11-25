@@ -96,7 +96,7 @@ TEST_CASE("Temperatura: o placar da etapa diz o numero, e o de sempre e o do arq
     // Os textos de julio/fases.json, que o placar mostrava antes do sorteio.
     CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[0], false) == "temperatura = 0,2");
     CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[1], false) == "temperatura = 0,8");
-    CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[2], true) == "temperatura = 1,6 \xc2\xb7 alucinando");
+    CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[2], true) == "temperatura = 1,6 · alucinando");
     CHECK(Temperatura::Anuncio(1.0f, false) == "temperatura = 1,0");
     CHECK(Temperatura::Anuncio(0.1f, false) == "temperatura = 0,1");
 }

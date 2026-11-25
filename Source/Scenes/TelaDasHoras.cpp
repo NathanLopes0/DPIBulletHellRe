@@ -65,7 +65,6 @@ void TelaDasHoras::Load() {
     mAlunoAtor = Texto(largura / 2.0f, altura * 0.13f, 24, 900);
     mTotalAtor = Texto(largura / 2.0f, altura * 0.185f, 30, 1000);
 
-    // \xc3\xa7\xc3\xa3 e "ca" de descricao.
     const float yTitulos = altura * 0.245f;
     Escrever(Texto(largura * kColunaTitulo, yTitulos, 18, 240, true), "Atividade", kTituloDaColuna);
     Escrever(Texto(largura * kColunaDescricao, yTitulos, 18, 440, true), "O que pede, numa prova aprovada", kTituloDaColuna);
@@ -95,8 +94,7 @@ void TelaDasHoras::Redesenhar() {
     const std::string& matricula = mGame->MatriculaDe(mAluno);
     const bool visitante = matricula.empty() || matricula == Matricula::kVisitante;
 
-    // \xc3\xa3 e o a com til, \xc3\xad o i com acento.
-    std::string quem = visitante ? std::string("Visitante - n\xc3\xa3o salva") : "Matr\xc3\xad" "cula " + matricula;
+    std::string quem = visitante ? std::string("Visitante - não salva") : "Matrícula " + matricula;
     if (dupla) quem = "Aluno " + std::to_string(mAluno + 1) + ": " + quem;
     const Hud::Rgb c = Hud::CorDoAluno(mAluno);
     Escrever(mAlunoAtor, quem, dupla ? Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f) : Color::LightBlue);
@@ -106,11 +104,11 @@ void TelaDasHoras::Redesenhar() {
     const bool cumpriu = horas >= Horas::kMeta;
     // O saldo e o que ainda se gasta com optativas; a carga conta tudo o que foi ganho.
     const int gastas = Horas::Gastas(chaves, materias);
-    const std::string saldo = "  \xc2\xb7  para optativas: " + std::to_string(Horas::Saldo(chaves, materias)) + " h" +
+    const std::string saldo = "  ·  para optativas: " + std::to_string(Horas::Saldo(chaves, materias)) + " h" +
                               (gastas > 0 ? " (" + std::to_string(gastas) + " gastas)" : "");
     Escrever(mTotalAtor,
              std::to_string(horas) + " h de " + std::to_string(Horas::kMeta) +
-                 (cumpriu ? "  \xc2\xb7  carga cumprida!" : "  \xc2\xb7  faltam " + std::to_string(Horas::kMeta - horas) + " h") +
+                 (cumpriu ? "  ·  carga cumprida!" : "  ·  faltam " + std::to_string(Horas::kMeta - horas) + " h") +
                  saldo,
              cumpriu ? Color::Gold : Color::White);
 
@@ -121,9 +119,8 @@ void TelaDasHoras::Redesenhar() {
         const Vector3 cor = toda ? Color::Gold : (l.cumpridas > 0 ? Color::LightGreen : Color::White);
         Escrever(mLinhas[i].titulo, l.dados.titulo, cor);
         Escrever(mLinhas[i].descricao, l.dados.descricao, l.cumpridas > 0 ? Color::White : kApagado);
-        // \xc3\xa9 e o e com acento.
         Escrever(mLinhas[i].horas,
-                 std::to_string(l.dados.horas) + " h" + (l.dados.porMateria ? " por mat\xc3\xa9ria" : ""), Color::LightBlue);
+                 std::to_string(l.dados.horas) + " h" + (l.dados.porMateria ? " por matéria" : ""), Color::LightBlue);
         Escrever(mLinhas[i].cumpridas,
                  l.dados.porMateria ? std::to_string(l.cumpridas) + " de " + std::to_string(l.possiveis)
                                     : std::string(l.cumpridas > 0 ? "sim" : "-"),

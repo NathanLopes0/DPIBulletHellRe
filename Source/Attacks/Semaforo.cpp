@@ -10,8 +10,7 @@
 namespace Semaforo {
 
     namespace {
-        // \xc2\xb7 e o ponto do meio: o MSVC nao le simbolo em literal.
-        const char* const kPonto = " \xc2\xb7 ";
+        const char* const kPonto = " · ";
 
         /// Um sorteador pequeno e deterministico (xorshift): a mesma semente
         /// da a mesma rodada, que e o que o teste e o arnes precisam.

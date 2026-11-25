@@ -75,10 +75,10 @@ TEST_CASE("Devolutiva: as linhas, com duas casas e o plural certo") {
     CHECK(LinhaDaFase(f) == "Onde a nota mais caiu: fase 2 (-6.00)");
 
     // O acento conta como uma letra: 58 letras (62 bytes) cabem...
-    f.anuncio = "\xc3\xa1rvore bin\xc3\xa1ria \xc3\xa9 j\xc3\xa1";
-    CHECK(LinhaDaFase(f) == "Onde a nota mais caiu: fase 2, \xc3\xa1rvore bin\xc3\xa1ria \xc3\xa9 j\xc3\xa1 (-6.00)");
+    f.anuncio = "árvore binária é já";
+    CHECK(LinhaDaFase(f) == "Onde a nota mais caiu: fase 2, árvore binária é já (-6.00)");
     // ...e o nome que nao cabe sai, e a linha fica com o numero da fase.
-    f.anuncio = "\xc3\xa1rvore bin\xc3\xa1ria de busca";
+    f.anuncio = "árvore binária de busca";
     CHECK(LinhaDaFase(f) == "Onde a nota mais caiu: fase 2 (-6.00)");
 
     Parte p;
@@ -138,7 +138,7 @@ TEST_CASE("Devolutiva: quem nao e dono de nenhum papel ganha o que fez, sem comp
 
     partes = {{"A", 0, 0, 0}, {"B", 0, 0, 0}};
     t = Titulos(partes);
-    CHECK(t[0] == "esteve junto at\xc3\xa9 o fim");
+    CHECK(t[0] == "esteve junto até o fim");
 
     // Fora da dupla nao ha titulo.
     CHECK(Titulos({{"A", 10, 0, 0}}).empty());

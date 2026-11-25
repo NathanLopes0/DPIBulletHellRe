@@ -279,7 +279,7 @@ void Michel::OnDerrubou(BossProjectile* qual) {
                 b->Conquistar(RedeNeural::kPremioDoDropout);
                 b->Faiscar(qual->GetPosition(), Hud::Faisca::Derrubada);
             }
-            Avisar("Dropout: um neur\xc3\xb4nio fora da rede por " + Decimal(mDegrauDaRede.dropout, 1) + " s", 1.0f);
+            Avisar("Dropout: um neurônio fora da rede por " + Decimal(mDegrauDaRede.dropout, 1) + " s", 1.0f);
             return;
         }
     }
@@ -436,9 +436,9 @@ void Michel::AtualizarCamera(const float t, const float deltaTime) {
     mCena.erase(std::remove_if(mCena.begin(), mCena.end(), [](const ObjetoNaCena& o) { return o.objeto == nullptr; }),
                 mCena.end());
 
-    if (etapa == 0) Placar(kFase, 0, "C\xc3\xa2mera escura: a imagem sai de cabe\xc3\xa7" "a para baixo");
-    else if (etapa == 1) Placar(kFase, 1, "Foco: a imagem com aumento de " + Decimal(aumento, 2) + "\xc3\x97");
-    else Placar(kFase, 2, "Desfoque: o plano de foco segue voc\xc3\xaa");
+    if (etapa == 0) Placar(kFase, 0, "Câmera escura: a imagem sai de cabeça para baixo");
+    else if (etapa == 1) Placar(kFase, 1, "Foco: a imagem com aumento de " + Decimal(aumento, 2) + "×");
+    else Placar(kFase, 2, "Desfoque: o plano de foco segue você");
 }
 
 // ---- Fase 2: os descritores e a convolucao ----
@@ -520,7 +520,7 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
             const int giro = t >= 0.5f * kDuracoes[0] ? kGiroDaImagem : 0;
             if (giro != mGiro) {
                 mGiro = giro;
-                Avisar("A imagem girou 90\xc2\xb0: o descritor feito \xc3\xa0 m\xc3\xa3o n\xc3\xa3o gira junto");
+                Avisar("A imagem girou 90°: o descritor feito à mão não gira junto");
             }
             for (int l = 0; l < kLinhas; ++l) {
                 for (int col = 0; col < kColunas; ++col) {
@@ -555,8 +555,8 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
                 break;
             }
         }
-        Placar(kFase, 0, mGiro == 0 ? "Gradiente: 8 dire\xc3\xa7\xc3\xb5" "es por c\xc3\xa9lula, todas para voc\xc3\xaa"
-                                    : "O descritor n\xc3\xa3o girou: as setas ficaram de lado");
+        Placar(kFase, 0, mGiro == 0 ? "Gradiente: 8 direções por célula, todas para você"
+                                    : "O descritor não girou: as setas ficaram de lado");
     }
     // Os tiros do gradiente seguem a seta da celula em que estao (e morrem com o tempo).
     for (Fluxo& f : mFluxos) {
@@ -658,8 +658,8 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
         const auto [cd, ca] = celula(jc, jl);
         Retangulo(cd + Vector2(3.0f, 3.0f), ca - Vector2(3.0f, 3.0f), kJanela);
         if (g.filtros < 2) {
-            Placar(kFase, 1, "Filtro 3\xc3\x97" "3 na c\xc3\xa9lula (" + std::to_string(jc + 1) + ", " + std::to_string(jl + 1) +
-                                 "): resposta " + Decimal(mUltimaResposta, 2) + " \xc2\xb7 seus tiros s\xc3\xa3o a imagem");
+            Placar(kFase, 1, "Filtro 3×3 na célula (" + std::to_string(jc + 1) + ", " + std::to_string(jl + 1) +
+                                 "): resposta " + Decimal(mUltimaResposta, 2) + " · seus tiros são a imagem");
             return;
         }
         // O segundo filtro, o de borda: vem de tras para a frente, e responde ao lado do que se
@@ -725,7 +725,7 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
         (void)a0;
         (void)d1;
         Retangulo(de, ate, kJanela);
-        Placar(kFase, 2, "Max pooling 2\xc3\x97" "2: o bloco (" + std::to_string(pc + 1) + ", " + std::to_string(pl + 1) +
+        Placar(kFase, 2, "Max pooling 2×2: o bloco (" + std::to_string(pc + 1) + ", " + std::to_string(pl + 1) +
                              ") vale o maior, " + Decimal(pool.Em(pc, pl), 2));
     } else {
         if (!mVetorDisparado) {
@@ -750,7 +750,7 @@ void Michel::AtualizarConvolucao(const float t, const float deltaTime) {
                        360.0f * (n - 1.0f) / n);
             SomDoDisparo();
         }
-        Placar(kFase, 2, "Deep features: o que voc\xc3\xaa acendeu virou o vetor");
+        Placar(kFase, 2, "Deep features: o que você acendeu virou o vetor");
     }
 }
 
@@ -1083,11 +1083,11 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
         }
     }
 
-    const std::string dropout = fora > 0 ? " \xc2\xb7 " + std::to_string(fora) + (fora == 1 ? " neur\xc3\xb4nio fora" : " neur\xc3\xb4nios fora")
+    const std::string dropout = fora > 0 ? " · " + std::to_string(fora) + (fora == 1 ? " neurônio fora" : " neurônios fora")
                                          : std::string();
-    if (etapa == 0) Placar(kFase, 0, "Neur\xc3\xb4nios: encoste ou atire, e ele sai da rede (dropout)" + dropout);
-    else if (etapa == 1) Placar(kFase, 1, "Retropropaga\xc3\xa7\xc3\xa3o, \xc3\xa9poca " + std::to_string(mTreinos) + ": a rede aprende onde voc\xc3\xaa est\xc3\xa1" + dropout);
-    else Placar(kFase, 2, "Residual: o atalho pula duas camadas, e o dropout n\xc3\xa3o o corta" + dropout);
+    if (etapa == 0) Placar(kFase, 0, "Neurônios: encoste ou atire, e ele sai da rede (dropout)" + dropout);
+    else if (etapa == 1) Placar(kFase, 1, "Retropropagação, época " + std::to_string(mTreinos) + ": a rede aprende onde você está" + dropout);
+    else Placar(kFase, 2, "Residual: o atalho pula duas camadas, e o dropout não o corta" + dropout);
 }
 
 // ---- A repescagem: o MaVIlab ----
@@ -1153,8 +1153,8 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
         m.some = m.dispara + g.vidaDoPixel;
         m.espacamento = d.espacamento;
         const int celulas = m.m.Quantas();
-        Avisar("Decoder " + std::to_string(d.n) + "\xc3\x97" + std::to_string(d.n) + ": " + std::to_string(celulas) +
-                   (celulas == 1 ? " c\xc3\xa9lula" : " c\xc3\xa9lulas") + (mAtalhos.empty() ? "" : ", com o atalho do passo anterior"),
+        Avisar("Decoder " + std::to_string(d.n) + "×" + std::to_string(d.n) + ": " + std::to_string(celulas) +
+                   (celulas == 1 ? " célula" : " células") + (mAtalhos.empty() ? "" : ", com o atalho do passo anterior"),
                d.aviso + 0.3f);
         mMascaras.push_back(std::move(m));
         mAtalhos = agora;
@@ -1212,7 +1212,7 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
             Um(kGatilhoDoRuido, Vector2(mSorteio.Real(c.x + 20.0f, c.x + c.w - 20.0f), c.y + 96.0f), "Ruido",
                Vector2(0.0f, 150.0f));
         }
-        Placar(kFase, 0, "Segmenta\xc3\xa7\xc3\xa3o: o encoder-decoder pinta onde voc\xc3\xaa est\xc3\xa1");
+        Placar(kFase, 0, "Segmentação: o encoder-decoder pinta onde você está");
         return;
     }
 
@@ -1224,7 +1224,7 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
         const bool lstm = tEtapa >= 0.5f * kDuracoes[1];
         if (lstm && !mLstm) {
             mLstm = true;
-            Avisar("LSTM: a mem\xc3\xb3ria longa lembra tamb\xc3\xa9m da curva", 1.8f);
+            Avisar("LSTM: a memória longa lembra também da curva", 1.8f);
         }
         size_t alvo = 0;
         if (batalha) {
@@ -1288,8 +1288,8 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
             mMiras.push_back(Mira{de, para, t + 0.35f});
             SomDoDisparo();
         }
-        Placar(kFase, 1, lstm ? "LSTM: ela tamb\xc3\xa9m lembra da curva - quebre o padr\xc3\xa3o"
-                              : "Recorrente: a rede prev\xc3\xaa onde voc\xc3\xaa vai estar");
+        Placar(kFase, 1, lstm ? "LSTM: ela também lembra da curva - quebre o padrão"
+                              : "Recorrente: a rede prevê onde você vai estar");
         return;
     }
 
@@ -1304,7 +1304,7 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
             if (colega.p) colega.p->DefinirEnfeite(true);
             mColegas.push_back(colega);
         }
-        Avisar("MaVIlab: o detector procura voc\xc3\xaa entre os colegas", 1.8f);
+        Avisar("MaVIlab: o detector procura você entre os colegas", 1.8f);
     }
     for (Colega& k : mColegas) {
         if (!Vivo(k.p)) continue;
@@ -1363,7 +1363,7 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
     for (size_t i = 0; i < alunos.size() && i < mConfiancaDosAlunos.size(); ++i) {
         caixas.push_back(CaixaEm(alunos[i], kLado));
         confiancas.push_back(mConfiancaDosAlunos[i]);
-        nomes.push_back(alunos.size() > 1 ? "J" + std::to_string(i + 1) : std::string("voc\xc3\xaa"));
+        nomes.push_back(alunos.size() > 1 ? "J" + std::to_string(i + 1) : std::string("você"));
         qualAluno.push_back(static_cast<int>(i));
     }
 
@@ -1397,7 +1397,7 @@ void Michel::AtualizarLaboratorio(const float t, const float deltaTime) {
             const float x = c.x + c.w * std::clamp(naRodada / std::max(g.procura, 0.05f), 0.0f, 1.0f);
             Preencher(Vector2(x - 26.0f, topo - 10.0f), Vector2(x, chao + 18.0f), SDL_Color{kCaixa.r, kCaixa.g, kCaixa.b, 26});
             Linha(Vector2(x, topo - 10.0f), Vector2(x, chao + 18.0f), kCaixa);
-            Placar(kFase, 2, "Detector: procurando voc\xc3\xaa entre os do MaVIlab");
+            Placar(kFase, 2, "Detector: procurando você entre os do MaVIlab");
         } else {
             if (mDetectados.empty() && !caixas.empty()) {
                 const int quantas = static_cast<int>(std::max<size_t>(1, alunos.size()));

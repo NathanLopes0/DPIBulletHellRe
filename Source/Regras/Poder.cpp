@@ -51,7 +51,7 @@ namespace Poder {
                      kEntrePassagens};
                 break;
             case Golpe::Materia::Arroyo:
-                d = {Tipo::BuscaBinaria, "busca bin\xc3\xa1ria", "metade dos tiros some, de novo e de novo",
+                d = {Tipo::BuscaBinaria, "busca binária", "metade dos tiros some, de novo e de novo",
                      static_cast<float>(kPassosDaBusca) * kEntrePassosDaBusca + 0.3f, 0.0f, kPassosDaBusca,
                      kEntrePassosDaBusca};
                 break;
@@ -60,23 +60,20 @@ namespace Poder {
                      kGruposDoRodizio, kQuantumDoRodizio};
                 break;
             case Golpe::Materia::Michel:
-                // \xc3\xa2 e o a circunflexo, \xc3\xa7 o c cedilha.
-                d = {Tipo::CameraEscura, "c\xc3\xa2mera escura", "o tiro que passa pelo furo volta de cabe\xc3\xa7" "a para baixo",
+                d = {Tipo::CameraEscura, "câmera escura", "o tiro que passa pelo furo volta de cabeça para baixo",
                      4.5f, kDistanciaDaParede, 0, 0.0f};
                 break;
             case Golpe::Materia::Sabrina:
-                // \xc3\xa9 e o e agudo.
-                d = {Tipo::Helice, "dupla h\xc3\xa9lice", "uma fita de tiros sobe girando e varre o que encosta",
+                d = {Tipo::Helice, "dupla hélice", "uma fita de tiros sobe girando e varre o que encosta",
                      kDuracaoDaHelice, kRaioDaHelice,
                      2 * static_cast<int>(std::ceil(kDuracaoDaHelice / kEntrePares)), kEntrePares};
                 break;
             case Golpe::Materia::Ferreira:
-                d = {Tipo::ModoDeus, "modo deus", "invenc\xc3\xadvel: raios apagam os tiros, e cada um vira nota",
+                d = {Tipo::ModoDeus, "modo deus", "invencível: raios apagam os tiros, e cada um vira nota",
                      kDuracaoDoModoDeus, 0.0f, RaiosDoModoDeus(), kEntreRaios};
                 break;
             case Golpe::Materia::Daniel:
-                // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
-                d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides, 4 vezes",
+                d = {Tipo::KMedias, "k-médias", "os tiros do Hugo viram 4 centróides, 4 vezes",
                      static_cast<float>(kRodadasDasKMedias - 1) * kEntreRodadasDasKMedias + kJuntaDasKMedias, 0.0f,
                      kGruposDasKMedias, kEntreRodadasDasKMedias};
                 break;
@@ -433,9 +430,9 @@ namespace Poder {
                 if (passos > 0 && t - kComeca - static_cast<float>(passos - 1) * kPorPasso < 0.3f) {
                     Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, 0.12f + 0.05f * static_cast<float>(passos));
                 }
-                q.legenda = passos == 0 ? "busca bin\xc3\xa1ria: 16 tiros"
+                q.legenda = passos == 0 ? "busca binária: 16 tiros"
                                         : "passo " + std::to_string(passos) + ": sobram " + std::to_string(ficam) +
-                                              (passos == 4 ? "  (log\xe2\x82\x82 16 = 4)" : "");
+                                              (passos == 4 ? "  (log₂ 16 = 4)" : "");
                 break;
             }
             case Tipo::Rodizio: {
@@ -475,9 +472,8 @@ namespace Poder {
                     q.tracos.push_back({Marca::Apagado, pelo.x, pelo.y, kAlunoX, kParede});
                 }
                 Atirar(q, t, hugoX, kHugoY);
-                // \xc3\xa2 e o a circunflexo, \xc3\xa7 o c cedilha.
-                q.legenda = Fracao01(t / 3.0f) < 0.5f ? "c\xc3\xa2mera escura: o furo em cima de voc\xc3\xaa"
-                                                      : "o tiro passa e volta de cabe\xc3\xa7" "a para baixo";
+                q.legenda = Fracao01(t / 3.0f) < 0.5f ? "câmera escura: o furo em cima de você"
+                                                      : "o tiro passa e volta de cabeça para baixo";
                 break;
             }
             case Tipo::KMedias: {
@@ -513,9 +509,8 @@ namespace Poder {
                         Anel(q, Marca::Estrutura, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f), 0.035f);
                     }
                 }
-                // \xc3\xa9 e o e agudo, \xc3\xa7\xc3\xa3 o "cao", \xc3\xb3 o o agudo.
-                q.legenda = t < kAgrupa ? "k-m\xc3\xa9" "dias: 16 tiros"
-                                        : (t < kJunta ? "atribui\xc3\xa7\xc3\xa3o: cada tiro ao centr\xc3\xb3" "ide"
+                q.legenda = t < kAgrupa ? "k-médias: 16 tiros"
+                                        : (t < kJunta ? "atribuição: cada tiro ao centróide"
                                                       : "16 tiros viram 4, e de novo a cada 2 s");
                 break;
             }
@@ -629,8 +624,7 @@ namespace Poder {
                     q.tracos.push_back({Marca::Figura, a, b, a, a});
                 }
                 for (const Ponto& p : chuva) q.pontos.push_back(p);
-                // \xc3\xad e o i agudo, \xc3\xb3 o o agudo.
-                q.legenda = !ligado ? "modo deus: os c\xc3\xb3" "digos do jogo"
+                q.legenda = !ligado ? "modo deus: os códigos do jogo"
                                     : (t < kSai + 1.6f ? "godMode = true" : "cada tiro apagado vira nota");
                 break;
             }
@@ -657,8 +651,7 @@ namespace Poder {
                     for (const Ponto& f : frente) varrido = varrido || std::hypot(p.x - f.x, p.y - f.y) < 0.045f;
                     if (!varrido) q.pontos.push_back(p);
                 }
-                // \xc3\xa9 e o e agudo.
-                q.legenda = t < kSai + 0.9f ? "dupla h\xc3\xa9lice: A-T, C-G"
+                q.legenda = t < kSai + 0.9f ? "dupla hélice: A-T, C-G"
                                             : (t < kSai + 2.0f ? "5' ATGGATTACA 3'" : "a fita da frente varre os tiros do Hugo");
                 break;
             }

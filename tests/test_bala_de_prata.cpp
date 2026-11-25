@@ -25,8 +25,8 @@ TEST_CASE("BalaDePrata: cada luta embaralha as promessas, todas, sem repetir") {
 }
 
 TEST_CASE("BalaDePrata: o placar diz que nao ha bala de prata, ou que o teste a reprovou") {
-    CHECK(BalaDePrata::Desfeita("IA") == "IA? N\xc3\xa3o h\xc3\xa1 bala de prata.");
-    CHECK(BalaDePrata::Testada("UML") == "UML \xc2\xb7 teste com usu\xc3\xa1rio: reprovada");
+    CHECK(BalaDePrata::Desfeita("IA") == "IA? Não há bala de prata.");
+    CHECK(BalaDePrata::Testada("UML") == "UML · teste com usuário: reprovada");
 }
 
 TEST_CASE("BalaDePrata: o degrau do Normal e o de sempre, e o Dificil dispara mais") {

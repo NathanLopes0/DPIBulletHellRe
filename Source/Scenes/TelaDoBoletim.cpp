@@ -91,13 +91,13 @@ void TelaDoBoletim::Load() {
     const auto titulo = [&](const char* t, const float x, const int w) {
         Escrever(Texto(t, largura * x, yTitulos, 18, w, true), t, kTituloDaColuna);
     };
-    titulo("Per\xc3\xadodo", kColunaPeriodo, 100);
-    titulo("Mat\xc3\xa9ria", kColunaMateria, 340);
+    titulo("Período", kColunaPeriodo, 100);
+    titulo("Matéria", kColunaMateria, 340);
     titulo("Professor", kColunaProfessor, 110);
     titulo("Nota", kColunaNota, 90);
-    titulo("Situa\xc3\xa7\xc3\xa3o", kColunaSituacao, 110);
+    titulo("Situação", kColunaSituacao, 110);
     titulo("Tent.", kColunaTentativas - 0.01f, 60);
-    titulo("Men\xc3\xa7\xc3\xb5" "es", kColunaMencoes, 200);
+    titulo("Menções", kColunaMencoes, 200);
 
     for (size_t i = 0; i < kLinhasDaTabela; ++i) {
         const float y = altura * (kTopoDaTabela + kPassoDaTabela * static_cast<float>(i));
@@ -154,7 +154,7 @@ void TelaDoBoletim::Redesenhar() {
     const bool visitante = matricula.empty() || matricula == Matricula::kVisitante;
 
     // Quem: a matricula, ou o aviso de que o visitante nao salva; na dupla, na cor do aluno.
-    std::string quem = visitante ? std::string("Visitante - n\xc3\xa3o salva") : "Matr\xc3\xad" "cula " + matricula;
+    std::string quem = visitante ? std::string("Visitante - não salva") : "Matrícula " + matricula;
     if (dupla) quem = "Aluno " + std::to_string(mAluno + 1) + ": " + quem;
     const Hud::Rgb c = Hud::CorDoAluno(mAluno);
     Escrever(mAlunoAtor, quem, dupla ? Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f) : Color::LightBlue);
@@ -207,7 +207,7 @@ void TelaDoBoletim::Redesenhar() {
     std::snprintf(cr, sizeof(cr), "%.2f", static_cast<double>(d.cr));
     std::string resumo = std::string("CR: ") + (d.cursadas > 0 ? cr : "-") + "     Aprovadas: " +
                          std::to_string(d.aprovadas) + " de " + std::to_string(d.total);
-    resumo += "     Men\xc3\xa7\xc3\xb5" "es: " + std::to_string(mencoes.ganhas) + " de " + std::to_string(mencoes.possiveis);
+    resumo += "     Menções: " + std::to_string(mencoes.ganhas) + " de " + std::to_string(mencoes.possiveis);
     const auto& chaves = sessoes[mAluno].progresso.Atividades();
     resumo += "     Horas: " + std::to_string(Horas::De(chaves)) + " de " + std::to_string(Horas::kMeta);
     // Quem ja gastou horas com optativas ve o saldo; quem nao gastou, o saldo e o total.
@@ -215,12 +215,12 @@ void TelaDoBoletim::Redesenhar() {
     Escrever(mResumoAtor, resumo, Color::White);
 
     // A posicao no curso, pela media do curso no nivel da partida - so de quem tem ficha.
-    std::string posicao = "O CR \xc3\xa9 a m\xc3\xa9" "dia das melhores notas das mat\xc3\xa9rias cursadas.";
+    std::string posicao = "O CR é a média das melhores notas das matérias cursadas.";
     if (!visitante) {
         const int p = Ranking::PosicaoNoGeral(mFichas, materias.DoGeral(), mGame->NivelDeDificuldade(), matricula);
         if (p > 0) {
-            posicao = "Posi\xc3\xa7\xc3\xa3o no curso: " + std::to_string(p) + "\xc2\xba (" +
-                      (mGame->NivelDeDificuldade() == Dificuldade::Nivel::Dificil ? "Dif\xc3\xad" "cil" : "Normal") + ")";
+            posicao = "Posição no curso: " + std::to_string(p) + "º (" +
+                      (mGame->NivelDeDificuldade() == Dificuldade::Nivel::Dificil ? "Difícil" : "Normal") + ")";
         }
     }
     Escrever(mPosicaoAtor, posicao, Color::LightBlue);

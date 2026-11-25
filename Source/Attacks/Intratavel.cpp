@@ -60,11 +60,9 @@ namespace Intratavel {
         double bits = 0.0;
         for (int i = 2; i <= kFios; ++i) bits += std::log2(static_cast<double>(i));
         const long decimos = std::lround(bits * 10.0);
-        // \xce\xa9 e o omega maiusculo, \xe2\x82\x82 o 2 subscrito, \xe2\x89\x88 o "quase igual" e
-        // \xe2\x86\x92 a seta.
-        return "\xce\xa9(n log n): log\xe2\x82\x82 " + std::to_string(kFios) + "! \xe2\x89\x88 " +
-               std::to_string(decimos / 10) + "," + std::to_string(decimos % 10) + " \xe2\x86\x92 " +
-               std::to_string(LimiteInferior(kFios)) + "  \xc2\xb7  a rede usa " + std::to_string(Comparadores());
+        return "Ω(n log n): log₂ " + std::to_string(kFios) + "! ≈ " +
+               std::to_string(decimos / 10) + "," + std::to_string(decimos % 10) + " → " +
+               std::to_string(LimiteInferior(kFios)) + "  ·  a rede usa " + std::to_string(Comparadores());
     }
 
     long long Rotas(const int n) {
@@ -115,9 +113,8 @@ namespace Intratavel {
     }
 
     std::string PlacarDoCaixeiro(const int cidades, const int tentativa, const float melhor) {
-        // \xc2\xb7 e o ponto do meio.
-        return "n = " + std::to_string(cidades) + "  \xc2\xb7  " + std::to_string(Rotas(cidades)) + " rotas  \xc2\xb7  tentativa " +
-               std::to_string(tentativa) + "  \xc2\xb7  melhor " + std::to_string(static_cast<int>(std::lround(melhor)));
+        return "n = " + std::to_string(cidades) + "  ·  " + std::to_string(Rotas(cidades)) + " rotas  ·  tentativa " +
+               std::to_string(tentativa) + "  ·  melhor " + std::to_string(static_cast<int>(std::lround(melhor)));
     }
 
     Vector2 NaRota(const std::vector<Vector2>& cidades, const std::vector<int>& rota, const float u) {

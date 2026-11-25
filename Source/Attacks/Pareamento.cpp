@@ -192,7 +192,7 @@ namespace Pareamento {
 
     const char* NomeDa(const Familia f) {
         switch (f) {
-            case Familia::Hidrofobico: return "hidrof\xc3\xb3" "bico";
+            case Familia::Hidrofobico: return "hidrofóbico";
             case Familia::Polar: return "polar";
             case Familia::Positivo: return "positivo";
             case Familia::Negativo: return "negativo";

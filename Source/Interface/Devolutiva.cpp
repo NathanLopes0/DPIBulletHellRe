@@ -120,7 +120,7 @@ namespace Devolutiva {
             const Parte& p = partes[i];
             if (p.acertos > 0) titulos[i] = "fez " + Contagem(p.acertos, "pergunta", "perguntas");
             else if (p.coberturas > 0) titulos[i] = "cobriu " + Contagem(p.coberturas, "vez", "vezes");
-            else titulos[i] = "esteve junto at\xc3\xa9 o fim";
+            else titulos[i] = "esteve junto até o fim";
         }
         return titulos;
     }

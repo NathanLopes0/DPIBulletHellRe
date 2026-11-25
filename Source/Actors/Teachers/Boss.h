@@ -197,7 +197,7 @@ public:
 
     /// O que o placar diz durante o aviso do intercambio, quando o chefe nao
     /// diz outra coisa.
-    static inline const std::string kAvisoDoIntercambio = "Programa de Interc\xC3\xA2mbio";
+    static inline const std::string kAvisoDoIntercambio = "Programa de Intercâmbio";
 
     /// O que o placar diz durante o aviso do intercambio. O padrao e o nome do programa; o Vladimir
     /// avisa tambem o que a troca faz com as letras.

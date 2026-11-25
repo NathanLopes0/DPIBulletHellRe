@@ -57,8 +57,8 @@ void EscolhaDaDificuldade::Load() {
     const float yDosCartoes = altura * 0.50f;
 
     Texto("DIFICULDADE", meio, altura * 0.15f, 52, 760);
-    Texto(mGame->QuantosJogadores() > 1 ? "Escolham juntos como v\xc3\xa3o encarar o semestre."
-                                        : "Como voc\xc3\xaa vai encarar o semestre?",
+    Texto(mGame->QuantosJogadores() > 1 ? "Escolham juntos como vão encarar o semestre."
+                                        : "Como você vai encarar o semestre?",
           meio, altura * 0.24f, 24, 900);
 
     for (int k = 0; k < Dificuldade::kQuantos; ++k) {

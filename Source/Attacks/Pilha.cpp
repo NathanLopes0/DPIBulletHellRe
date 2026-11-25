@@ -35,7 +35,7 @@ namespace Pilha {
     std::string Placar(const Operacao& op, const int topo) {
         switch (op.tipo) {
             case Tipo::Push:     return "push(" + std::to_string(op.valor) + ")";
-            case Tipo::Pop:      return "pop() \xE2\x86\x92 " + std::to_string(topo);
+            case Tipo::Pop:      return "pop() → " + std::to_string(topo);
             case Tipo::Overflow: return "stack overflow!";
         }
         return "";

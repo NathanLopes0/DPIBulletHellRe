@@ -134,18 +134,17 @@ namespace {
             case TipoDeRequisito::Mencao: {
                 const std::optional<Mencoes::Mencao> m = Mencoes::PelaChave(r.mencao);
                 if (!m) return {};
-                // \xc3\xa7 e o c cedilha; \xc3\xa3 o a com til; \xc3\xb5 o o com til.
-                // \xc3\xb3 e o o agudo. Todas as obrigatorias: "mencao no Dificil em todas as 13 obrigatorias".
+                // Todas as obrigatorias: "mencao no Dificil em todas as 13 obrigatorias".
                 if (r.soObrigatorias && r.fracao >= 0.999f) {
-                    return "men\xc3\xa7\xc3\xa3o " + MencaoNaFrase(*m) + " em todas as " + n + " obrigat\xc3\xb3rias";
+                    return "menção " + MencaoNaFrase(*m) + " em todas as " + n + " obrigatórias";
                 }
-                return "pelo menos " + n + (r.quantas == 1 ? " men\xc3\xa7\xc3\xa3o " : " men\xc3\xa7\xc3\xb5" "es ") +
-                       MencaoNaFrase(*m) + (r.soObrigatorias ? " nas obrigat\xc3\xb3rias" : "");
+                return "pelo menos " + n + (r.quantas == 1 ? " menção " : " menções ") +
+                       MencaoNaFrase(*m) + (r.soObrigatorias ? " nas obrigatórias" : "");
             }
             case TipoDeRequisito::Horas:
                 return n + " h de atividades complementares";
             case TipoDeRequisito::Aprovadas:
-                return n + (r.quantas == 1 ? " aprova\xc3\xa7\xc3\xa3o" : " aprova\xc3\xa7\xc3\xb5" "es") + " no curso";
+                return n + (r.quantas == 1 ? " aprovação" : " aprovações") + " no curso";
         }
         return {};
     }
@@ -346,9 +345,8 @@ std::vector<ItemDaExigencia> Lista::Itens(const int indice, const Progresso& pro
             break;
         case TipoDeDesbloqueio::AprovadasNaColuna: {
             const int tem = progresso.QuantasAprovadas(DaColuna(d.coluna));
-            // \xc3\xa7\xc3\xb5 e o "coes", \xc3\xaa o e circunflexo.
-            itens.push_back({std::to_string(d.quantas) + (d.quantas == 1 ? " aprova\xc3\xa7\xc3\xa3o" : " aprova\xc3\xa7\xc3\xb5" "es") +
-                                 " na coluna " + std::to_string(d.coluna + 1) + "  (voc\xc3\xaa tem " + std::to_string(tem) + ")",
+            itens.push_back({std::to_string(d.quantas) + (d.quantas == 1 ? " aprovação" : " aprovações") +
+                                 " na coluna " + std::to_string(d.coluna + 1) + "  (você tem " + std::to_string(tem) + ")",
                              tem >= d.quantas});
             break;
         }

@@ -56,9 +56,8 @@ namespace Paradigmas {
         std::string s = "Troco de " + std::to_string(t.valor) + ": ";
         for (size_t i = 0; i < dadas.size(); ++i) s += (i ? "+" : "") + std::to_string(dadas[i]);
         const int otimo = Otimo(t);
-        // \xc3\xb3 e o o com acento.
-        if (otimo < static_cast<int>(dadas.size())) s += "  (\xc3\xb3timo: " + std::to_string(otimo) + " moedas)";
-        else s += "  (\xc3\xb3timo!)";
+        if (otimo < static_cast<int>(dadas.size())) s += "  (ótimo: " + std::to_string(otimo) + " moedas)";
+        else s += "  (ótimo!)";
         return s;
     }
 

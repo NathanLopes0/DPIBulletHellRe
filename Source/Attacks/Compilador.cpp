@@ -199,11 +199,10 @@ const std::vector<Token>& tokens, const float largura) {
     }
 
     std::string Placar(const std::string& linha, const Etapa e, const std::string& instrucao) {
-        // \xc3\xa9 e agudo, \xc3\xa1 a agudo, \xc3\xa1 a agudo: o MSVC nao le acento.
         switch (e) {
-            case Etapa::Lexico:    return linha + "\nan\xc3\xa1lise l\xc3\xa9xica";
-            case Etapa::Sintatico: return linha + "\nan\xc3\xa1lise sint\xc3\xa1tica";
-            case Etapa::Codigo:    return linha + "\n" + (instrucao.empty() ? std::string("gera\xc3\xa7\xc3\xa3o de c\xc3\xb3" "digo") : instrucao);
+            case Etapa::Lexico:    return linha + "\nanálise léxica";
+            case Etapa::Sintatico: return linha + "\nanálise sintática";
+            case Etapa::Codigo:    return linha + "\n" + (instrucao.empty() ? std::string("geração de código") : instrucao);
             case Etapa::Pronto:    return linha + "\ncompilado";
         }
         return linha;

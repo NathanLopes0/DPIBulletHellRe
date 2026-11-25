@@ -110,7 +110,7 @@ TEST_CASE("Semaforo: na espera ocupada entra quem ganha o test-and-set, nao a pr
 TEST_CASE("Semaforo: na corrida todas entram juntas, e o saldo sai errado") {
     Escalonador e = Comecar(RodadaDaVez(3), 5, 1, 3u);
     REQUIRE(e.rodada.tipo == Tipo::Corrida);
-    CHECK(Placar(e, false) == "saldo++ \xc2\xb7 sem trava");
+    CHECK(Placar(e, false) == "saldo++ · sem trava");
     const auto ev = Avancar(e, kAbre);
     CHECK(ev.size() == 5u);
     CHECK(e.dentro.size() == 5u);
@@ -118,7 +118,7 @@ TEST_CASE("Semaforo: na corrida todas entram juntas, e o saldo sai errado") {
     Avancar(e, kAbre + kSaldoAparece);
     CHECK(e.saldo >= 1);
     CHECK(e.saldo < 5);
-    CHECK(Placar(e, false) == "saldo = " + std::to_string(e.saldo) + " \xc2\xb7 esperado 5");
+    CHECK(Placar(e, false) == "saldo = " + std::to_string(e.saldo) + " · esperado 5");
 }
 
 TEST_CASE("Semaforo: a corrida da um saldo diferente de uma luta para a outra, e nunca o esperado") {
@@ -243,12 +243,12 @@ TEST_CASE("Semaforo: as rodadas cabem na fase, e os textos") {
 
     Escalonador e = Comecar(RodadaDaVez(0), 3, 0, 5u);
     e.fila = {2, 0, 1};
-    CHECK(Placar(e, false) == "s = 1 \xc2\xb7 fila: T3 T1 T2");
-    CHECK(Placar(e, true) == "aluno em P(s) \xc2\xb7 s = 1 \xc2\xb7 fila: T3 T1 T2");
+    CHECK(Placar(e, false) == "s = 1 · fila: T3 T1 T2");
+    CHECK(Placar(e, true) == "aluno em P(s) · s = 1 · fila: T3 T1 T2");
     CHECK(CodigoDaSecao(Tipo::Mutex) == "P(s);  saldo++;  V(s);");
     Escalonador g = Comecar(RodadaDaVez(2), 2, 0, 5u);
     g.fila = {1};
-    CHECK(Placar(g, false) == "espera ocupada \xc2\xb7 girando: T2");
+    CHECK(Placar(g, false) == "espera ocupada · girando: T2");
 }
 
 // ---- A variacao e o degrau ----

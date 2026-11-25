@@ -11,14 +11,14 @@
 namespace Golpe {
 
     Materia DoProfessor(const std::string& professor) {
-        if (professor == "Andr\xc3\xa9" || professor == "Andre") return Materia::Andre;
+        if (professor == "André" || professor == "Andre") return Materia::Andre;
         if (professor == "Salles") return Materia::Salles;
         if (professor == "Ricardo") return Materia::Ricardo;
         if (professor == "Thiago") return Materia::Thiago;
         if (professor == "Luizinho") return Materia::Luizinho;
         if (professor == "Vladimir") return Materia::Vladimir;
-        if (professor == "J\xc3\xbalio" || professor == "Julio") return Materia::Julio;
-        if (professor == "Maria L\xc3\xba" "cia" || professor == "Maria Lucia") return Materia::MariaLucia;
+        if (professor == "Júlio" || professor == "Julio") return Materia::Julio;
+        if (professor == "Maria Lúcia" || professor == "Maria Lucia") return Materia::MariaLucia;
         if (professor == "Lucas") return Materia::Lucas;
         if (professor == "Vitor") return Materia::Vitor;
         if (professor == "Arroyo") return Materia::Arroyo;

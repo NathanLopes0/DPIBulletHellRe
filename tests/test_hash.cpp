@@ -20,7 +20,7 @@ TEST_CASE("Hash: h(k) = k mod m, e o placar o escreve por extenso") {
     CHECK(Hash::PlacarDaInsercao(23, 7) == "h(23) = 23 mod 7 = 2");
     CHECK(Hash::PlacarDaBusca(23, true) == "busca(23): achou");
     CHECK(Hash::PlacarDaBusca(41, false) == "busca(41): NULL");
-    CHECK(Hash::PlacarDoRehash(7, 11) == "rehash: m = 7 \xE2\x86\x92 11");
+    CHECK(Hash::PlacarDoRehash(7, 11) == "rehash: m = 7 → 11");
 }
 
 TEST_CASE("Hash: o rehash cresce pelos primos, e para no ultimo") {

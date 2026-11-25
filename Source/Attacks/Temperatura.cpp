@@ -61,10 +61,9 @@ namespace Temperatura {
     }
 
     std::string Anuncio(const float temperatura, const bool alucinando) {
-        // \xc2\xb7 e o ponto do meio: o MSVC nao le acento em literal.
         const long decimos = std::lround(std::max(0.0f, temperatura) * 10.0f);
         std::string texto = "temperatura = " + std::to_string(decimos / 10) + "," + std::to_string(decimos % 10);
-        if (alucinando) texto += " \xc2\xb7 alucinando";
+        if (alucinando) texto += " · alucinando";
         return texto;
     }
 }

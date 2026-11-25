@@ -9,10 +9,9 @@
 namespace Pausa {
 
     const char* Texto(const Opcao o) {
-        // \xc3\xa7 e o c cedilha: o MSVC nao le acento em literal.
         switch (o) {
             case Opcao::Continuar: return "Continuar";
-            case Opcao::Recomecar: return "Recome\xc3\xa7" "ar a fase";
+            case Opcao::Recomecar: return "Recomeçar a fase";
             case Opcao::Sair:      return "Sair da fase";
         }
         return "";

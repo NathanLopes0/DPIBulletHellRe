@@ -40,12 +40,10 @@ namespace Cascata {
     }
 
     std::string PlacarDaMudanca(const int etapa) {
-        // Os nomes com acento: \xc3\xa7 e o c cedilha, \xc3\xa3 o a til, \xc3\xa7\xc3\xa3 "ca".
         static constexpr std::array<const char*, 5> kNomes = {
-            "nos Requisitos", "no Projeto", "na Implementa\xc3\xa7\xc3\xa3o", "nos Testes", "na Manuten\xc3\xa7\xc3\xa3o"};
+            "nos Requisitos", "no Projeto", "na Implementação", "nos Testes", "na Manutenção"};
         const int k = std::clamp(etapa, 0, 4);
-        // \xc3\xa7 e o c cedilha; \xc3\x97 o sinal de vezes.
-        return std::string("Mudan\xc3\xa7" "a ") + kNomes[static_cast<size_t>(k)] + ": custo \xc3\x97" +
+        return std::string("Mudança ") + kNomes[static_cast<size_t>(k)] + ": custo ×" +
                std::to_string(Custo(k));
     }
 

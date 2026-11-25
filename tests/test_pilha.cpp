@@ -65,7 +65,7 @@ TEST_CASE("Pilha: o lugar de cada bloco, e o placar de cada operacao") {
     CHECK(Pilha::kAoLado - 22.0f - 12.0f > 30.0f);
     CHECK(Pilha::AbaixoDoProfessor(2) == doctest::Approx(Pilha::kPrimeiroBloco + 2.0f * Pilha::kEntreBlocos));
     CHECK(Pilha::Placar({Pilha::Tipo::Push, 7}, 0) == "push(7)");
-    CHECK(Pilha::Placar({Pilha::Tipo::Pop, 0}, 4) == "pop() \xE2\x86\x92 4");
+    CHECK(Pilha::Placar({Pilha::Tipo::Pop, 0}, 4) == "pop() → 4");
     CHECK(Pilha::Placar({Pilha::Tipo::Overflow, 0}, 0) == "stack overflow!");
     CHECK(Pilha::CaraDoBloco(3) == "N3");
     CHECK(Pilha::CaraDoBloco(12) == "N0");

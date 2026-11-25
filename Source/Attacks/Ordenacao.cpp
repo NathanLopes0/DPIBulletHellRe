@@ -141,8 +141,8 @@ namespace Ordenacao {
 
     std::string PlacarDoComeco(const int n, const Entrada e) {
         switch (e) {
-            case Entrada::QuaseOrdenada: return PlacarDoComeco(n) + " \xc2\xb7 quase ordenado";
-            case Entrada::Invertida:     return PlacarDoComeco(n) + " \xc2\xb7 invertido: o pior caso";
+            case Entrada::QuaseOrdenada: return PlacarDoComeco(n) + " · quase ordenado";
+            case Entrada::Invertida:     return PlacarDoComeco(n) + " · invertido: o pior caso";
             default:                     return PlacarDoComeco(n);
         }
     }

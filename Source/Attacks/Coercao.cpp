@@ -162,12 +162,10 @@ namespace Coercao {
             std::string como;
             switch (TipagemDe(l)) {
                 case Tipagem::Fraca:         como = "tipagem fraca"; break;
-                // \xc3\xa2 e o a circunflexo e \xc3\xa1 o agudo: o MSVC nao le
-                // acento em literal.
-                case Tipagem::ForteDinamica: como = "forte e din\xc3\xa2" "mica"; break;
-                case Tipagem::ForteEstatica: como = "forte e est\xc3\xa1" "tica"; break;
+                case Tipagem::ForteDinamica: como = "forte e dinâmica"; break;
+                case Tipagem::ForteEstatica: como = "forte e estática"; break;
             }
-            return Nome(l) + " \xc2\xb7 " + como;
+            return Nome(l) + " · " + como;
         }
 
         std::string Expressao(const Comando& c) {
@@ -185,10 +183,9 @@ namespace Coercao {
         switch (r.desfecho) {
             case Desfecho::Valor:            fim = Escrito(r.valor); break;
             case Desfecho::ErroDeExecucao:   fim = "TypeError"; break;
-            case Desfecho::ErroDeCompilacao: fim = "erro de compila\xc3\xa7\xc3\xa3" "o"; break;
+            case Desfecho::ErroDeCompilacao: fim = "erro de compilação"; break;
         }
-        // \xe2\x86\x92 e a seta.
-        return Cabecalho(c) + "\n" + Expressao(c) + "  \xe2\x86\x92  " + fim;
+        return Cabecalho(c) + "\n" + Expressao(c) + "  →  " + fim;
     }
 
     std::string CaraDoNumero(const int n) {

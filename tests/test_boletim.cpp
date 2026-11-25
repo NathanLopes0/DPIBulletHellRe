@@ -87,7 +87,7 @@ TEST_CASE("Boletim: os textos da tabela") {
     CHECK(std::string(Boletim::NomeDa(Situacao::Fechada)) == "Fechada");
     CHECK(Boletim::Nota(74.321f) == "74.32");
     CHECK(Boletim::Nota(0.0f) == "-");
-    CHECK(Boletim::Periodo(2) == "2\xc2\xba per\xc3\xadodo");
+    CHECK(Boletim::Periodo(2) == "2º período");
 }
 
 TEST_CASE("Boletim: as optativas numa secao so, no fim, e fora da conta das aprovadas") {
@@ -118,9 +118,9 @@ TEST_CASE("Boletim: as optativas numa secao so, no fim, e fora da conta das apro
 TEST_CASE("Boletim: o nome longo e encurtado com reticencias, contando letras e nao bytes") {
     CHECK(Boletim::Encurtar("curto", 10) == "curto");
     CHECK(Boletim::Encurtar("exatamente", 10) == "exatamente");
-    CHECK(Boletim::Encurtar("passou do limite", 10) == "passou do\xe2\x80\xa6");
+    CHECK(Boletim::Encurtar("passou do limite", 10) == "passou do…");
     // O acento conta como uma letra so, e nunca e partido ao meio.
-    const std::string longo = "Programa\xc3\xa7\xc3\xa3o Concorrente";
+    const std::string longo = "Programação Concorrente";
     const std::string curto = Boletim::Encurtar(longo, 11);
-    CHECK(curto == "Programa\xc3\xa7\xc3\xa3\xe2\x80\xa6");
+    CHECK(curto == "Programaçã…");
 }

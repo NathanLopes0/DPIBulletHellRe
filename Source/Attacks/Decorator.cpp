@@ -9,9 +9,8 @@
 namespace Decorator {
 
     const char* Nome(const Camada c) {
-        // \xc3\xa1 e o a com acento.
         switch (c) {
-            case Camada::Rapida:     return "R\xc3\xa1pida";
+            case Camada::Rapida:     return "Rápida";
             case Camada::Dividida:   return "Dividida";
             case Camada::Teleguiada: return "Teleguiada";
         }
@@ -38,20 +37,19 @@ namespace Decorator {
     }
 
     std::string OQueFaz(const Camada c) {
-        // \xc3\x97 e o sinal de vezes; \xc3\xaa o e com circunflexo.
         switch (c) {
-            case Camada::Rapida:     return "+R\xc3\xa1pida: a bala anda 1,6\xc3\x97 mais";
+            case Camada::Rapida:     return "+Rápida: a bala anda 1,6× mais";
             case Camada::Dividida:   return "+Dividida: a bala vira duas";
-            case Camada::Teleguiada: return "+Teleguiada: a bala persegue voc\xc3\xaa";
+            case Camada::Teleguiada: return "+Teleguiada: a bala persegue você";
         }
         return "";
     }
 
     std::string OQueSai(const Camada c) {
         switch (c) {
-            case Camada::Rapida:     return "Voc\xc3\xaa tirou a R\xc3\xa1pida: mais devagar";
-            case Camada::Dividida:   return "Voc\xc3\xaa tirou a Dividida";
-            case Camada::Teleguiada: return "Voc\xc3\xaa tirou a Teleguiada: segue reta";
+            case Camada::Rapida:     return "Você tirou a Rápida: mais devagar";
+            case Camada::Dividida:   return "Você tirou a Dividida";
+            case Camada::Teleguiada: return "Você tirou a Teleguiada: segue reta";
         }
         return "";
     }

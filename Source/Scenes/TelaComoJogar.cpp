@@ -123,7 +123,7 @@ void TelaComoJogar::CriarAsMencoes(const float topo, const float meio) {
     }
 
     // No pe da coluna dos desafios, onde sobra lugar: onde ver as que ja tem.
-    auto* nota = TextoAEsquerda("Cada mat\xc3\xa9ria tem as suas: o boletim mostra quais voc\xc3\xaa j\xc3\xa1 tem.",
+    auto* nota = TextoAEsquerda("Cada matéria tem as suas: o boletim mostra quais você já tem.",
                                 direita, topo + kPrimeiraMencao + kEntreMencoes * 6.0f, kLetraDoComo,
                                 static_cast<int>(kColuna));
     nota->SetColor(kCorDoComo);
@@ -155,8 +155,7 @@ void TelaComoJogar::Load() {
     const float meio = largura / 2.0f;
     const float topo = altura * kTopoDaPlaca;
 
-    // \xc3\x87 e \xc3\x95 sao o C cedilha e o O til.
-    Texto(mDaEntrada ? "ANTES DE COME\xc3\x87" "AR: AS MEN\xc3\x87\xc3\x95" "ES" : "COMO JOGAR", meio, topo / 2.0f, 52, 1000);
+    Texto(mDaEntrada ? "ANTES DE COMEÇAR: AS MENÇÕES" : "COMO JOGAR", meio, topo / 2.0f, 52, 1000);
 
     auto placa = std::make_unique<Actor>(this);
     placa->SetPosition(Vector2(meio, topo + kAlturaDaPlaca / 2.0f));
@@ -191,8 +190,8 @@ void TelaComoJogar::Mostrar() {
     bool mencoes = false;
     if (quantas == 0) {
         // Sem o arquivo, a tela diz o que houve em vez de ficar em branco.
-        mTitulo->SetText("Manual indispon\xc3\xadvel");
-        linhas = {"O arquivo Assets/como-jogar.json n\xc3\xa3o foi encontrado."};
+        mTitulo->SetText("Manual indisponível");
+        linhas = {"O arquivo Assets/como-jogar.json não foi encontrado."};
         mIndicador->SetIsVisible(false);
     } else {
         const Manual::Pagina& p = paginas[static_cast<size_t>(mPagina)];
@@ -216,16 +215,14 @@ void TelaComoJogar::Mostrar() {
     mSetaProxima->SetIsVisible(temProxima);
 
     if (mDaEntrada) {
-        // \xc3\xa9 e o e agudo.
-        mRodape->SetText(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "escolher a mat\xc3\xa9ria"}},
+        mRodape->SetText(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "escolher a matéria"}},
                                         mGame->JeitoDoRodape()));
         return;
     }
 
-    // \xc3\xa1 e \xc3\xb3 sao o a e o o agudos: o MSVC nao le acento em literal.
-    mRodape->SetText(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "p\xc3\xa1ginas"),
+    mRodape->SetText(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "páginas"),
                                      {Painel::Jogador::Um, Painel::Botao::Um,
-                                      temProxima ? "pr\xc3\xb3xima" : "terminar"},
+                                      temProxima ? "próxima" : "terminar"},
                                      {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}},
                                     mGame->JeitoDoRodape()));
 }

@@ -75,16 +75,15 @@ namespace Observer {
     }
 
     std::string PlacarDoObserver(const int inscritos) {
-        // \xc3\xaa e o e com circunflexo; \xc2\xb7 o ponto do meio.
         return "Observer: " + std::to_string(inscritos) + (inscritos == 1 ? " olho assina" : " olhos assinam") +
-               " voc\xc3\xaa  \xc2\xb7  virou, \xc3\xa9 notifyAll()";
+               " você  ·  virou, é notifyAll()";
     }
 
     std::string PlacarDaNotificacao(const Estado& antes, const Estado& agora, const int inscritos) {
-        std::string para = "de dire\xc3\xa7\xc3\xa3o";
+        std::string para = "de direção";
         if (agora.x != antes.x) para = agora.x < 0 ? "para a esquerda" : "para a direita";
         else if (agora.y != antes.y) para = agora.y < 0 ? "para cima" : "para baixo";
-        return "notifyAll(): voc\xc3\xaa virou " + para + "  \xc2\xb7  " + std::to_string(inscritos) +
+        return "notifyAll(): você virou " + para + "  ·  " + std::to_string(inscritos) +
                (inscritos == 1 ? " aviso" : " avisos");
     }
 
@@ -92,7 +91,7 @@ namespace Observer {
         const int decimos = static_cast<int>(std::lround(segundos * 10.0f));
         const std::string s = decimos % 10 == 0 ? std::to_string(decimos / 10)
                                                 : std::to_string(decimos / 10) + "," + std::to_string(decimos % 10);
-        return "polling: " + s + " s sem aviso  \xc2\xb7  " + std::to_string(inscritos) +
+        return "polling: " + s + " s sem aviso  ·  " + std::to_string(inscritos) +
                (inscritos == 1 ? " olho pergunta" : " olhos perguntam") + " getEstado()";
     }
 

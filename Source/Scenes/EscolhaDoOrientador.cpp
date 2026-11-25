@@ -80,8 +80,8 @@ void EscolhaDoOrientador::Load() {
     // As setas dizem que ha cartoes escondidos de um lado ou do outro.
     if (static_cast<int>(mCandidatos.size()) > kVisiveis) {
         const float largura = static_cast<float>(mGame->GetWindowWidth());
-        mSetaEsquerda = Texto("\xc2\xab", Vector2(22.0f, kCartaoY), 44, 40, Color::Gold);
-        mSetaDireita = Texto("\xc2\xbb", Vector2(largura - 22.0f, kCartaoY), 44, 40, Color::Gold);
+        mSetaEsquerda = Texto("«", Vector2(22.0f, kCartaoY), 44, 40, Color::Gold);
+        mSetaDireita = Texto("»", Vector2(largura - 22.0f, kCartaoY), 44, 40, Color::Gold);
         // No comeco nada esta escondido a esquerda.
         if (auto* t = mSetaEsquerda->GetComponent<DrawTextComponent>()) t->SetIsVisible(false);
     }
@@ -220,8 +220,7 @@ void EscolhaDoOrientador::CriarCurriculo(const int indice, const Vector2& topo) 
     selo->AddComponent<DrawCaixaComponent>(static_cast<int>(kCurriculoLargura), static_cast<int>(kCurriculoAltura),
                                            cor, kFundoDaPrevia, 1, kOrdemDoRetrato + 2);
     Guardar(AddActor(std::move(selo)));
-    // \xc3\xa1 e o a com acento.
-    const std::string texto = vezes > 0 ? "j\xc3\xa1 orientou " + std::to_string(vezes) + "x" : std::string("novo");
+    const std::string texto = vezes > 0 ? "já orientou " + std::to_string(vezes) + "x" : std::string("novo");
     auto* dc = CriarTexto(*this, mFonte.get(), texto, canto, 14, static_cast<int>(kCurriculoLargura) - 6,
                           static_cast<int>(kCurriculoAltura), kOrdemDoRetrato + 3);
     dc->SetColor(ParaVector3(cor));

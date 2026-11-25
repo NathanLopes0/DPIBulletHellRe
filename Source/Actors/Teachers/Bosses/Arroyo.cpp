@@ -373,8 +373,8 @@ void Arroyo::AtualizarParadigmas(const float t) {
         }
         int voltas = 0;
         for (const Passo& p : mBusca) if (!p.coloca) ++voltas;
-        PlacarDaEtapa(kFase, 2, "Solu\xc3\xa7\xc3\xa3o! " + std::to_string(mBusca.size()) + " passos, " +
-                                 std::to_string(voltas) + " voltas atr\xc3\xa1s");
+        PlacarDaEtapa(kFase, 2, "Solução! " + std::to_string(mBusca.size()) + " passos, " +
+                                 std::to_string(voltas) + " voltas atrás");
     }
     // O tabuleiro, e o que cada rainha de pe ataca (a linha, a coluna e as diagonais).
     const float meia = kCasaDoTabuleiro * static_cast<float>(kRainhas) / 2.0f;

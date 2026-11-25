@@ -237,7 +237,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
         const int noEX = mPipeline.estagio[Pipeline::EX];
         std::string placar = "EX: " + (noEX == Pipeline::kBolha ? std::string("bolha")
                                                                 : programa[static_cast<size_t>(noEX)].texto);
-        if (ciclo.flush) placar += " \xC2\xB7 flush";   // O ponto do meio, em UTF-8.
+        if (ciclo.flush) placar += " · flush";   // O ponto do meio, em UTF-8.
         RegistrarAnuncio(Pipeline::kFaseDoPipeline, placar);
     }
 

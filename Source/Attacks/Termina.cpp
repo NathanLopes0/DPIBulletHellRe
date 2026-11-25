@@ -76,7 +76,7 @@ std::string Pergunta(const Rodada& r) {
 
 std::string Resposta(const std::optional<bool> veredito) {
     if (!veredito) return "?";
-    return *veredito ? "SIM" : "N\xC3\x83O";
+    return *veredito ? "SIM" : "NÃO";
 }
 
 std::string Placar(const Rodada& r, const std::optional<bool> veredito) {
@@ -84,10 +84,10 @@ std::string Placar(const Rodada& r, const std::optional<bool> veredito) {
 }
 
 std::string PlacarDoParadoxo(const std::optional<bool> veredito, const bool contradicao) {
-    if (contradicao) return "Termina n\xC3\xA3o pode existir.\ncontradi\xC3\xA7\xC3\xA3o!";
+    if (contradicao) return "Termina não pode existir.\ncontradição!";
     const std::string programa = "Paradoxo: se Termina(Paradoxo)\n";
-    if (!veredito) return programa + "repete; sen\xC3\xA3o, para.";
-    return programa + (*veredito ? "SIM \xE2\x86\x92 o Paradoxo repete" : "N\xC3\x83O \xE2\x86\x92 o Paradoxo para");
+    if (!veredito) return programa + "repete; senão, para.";
+    return programa + (*veredito ? "SIM → o Paradoxo repete" : "NÃO → o Paradoxo para");
 }
 
 float DuracaoDaVirada(const int k) {

@@ -32,13 +32,12 @@ namespace {
     const SDL_Color kMoldura{235, 235, 235, 110};
     const SDL_Color kFundo{34, 38, 48, 150};
 
-    // \xc3\xba e \xc3\xa3 sao u agudo e a til: o MSVC nao le acento em literal.
-    const char* const kNomes[] = {"M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox", "Daltonismo"};
+    const char* const kNomes[] = {"Música", "Efeitos", "Tela cheia", "Hitbox", "Daltonismo"};
 
     std::string Volume(const int v) {
         return v == 0 ? std::string("< mudo >") : "< " + std::to_string(v) + " >";
     }
-    std::string SimOuNao(const bool b) { return b ? "< sim >" : "< n\xc3\xa3o >"; }
+    std::string SimOuNao(const bool b) { return b ? "< sim >" : "< não >"; }
 }
 
 Opcoes::Opcoes(Game* game)
@@ -56,8 +55,7 @@ void Opcoes::Load() {
     const auto altura = static_cast<float>(mGame->GetWindowHeight());
     const float meio = largura / 2.0f;
 
-    // \xc3\x87 e \xc3\x95 sao o C cedilha e o O til.
-    Texto("OP\xc3\x87\xc3\x95" "ES", meio, altura * 0.15f, 52, 760);
+    Texto("OPÇÕES", meio, altura * 0.15f, 52, 760);
 
     mItens.clear();
     for (const Item item : {Item::Musica, Item::Efeitos, Item::TelaCheia, Item::Hitbox, Item::Daltonismo}) {
@@ -115,7 +113,7 @@ void Opcoes::Mostrar() {
     if (!mDescricao || mItens.empty()) return;
     switch (mItens[static_cast<size_t>(mEscolhida)]) {
         case Item::Musica:
-            mDescricao->SetText("O volume da m\xc3\xbasica da batalha, de mudo a 10.");
+            mDescricao->SetText("O volume da música da batalha, de mudo a 10.");
             break;
         case Item::Efeitos:
             mDescricao->SetText("O volume do tiro, do Ponto Extra e dos ataques.");
@@ -127,7 +125,6 @@ void Opcoes::Mostrar() {
             mDescricao->SetText("Mostra na batalha onde um tiro acerta o aluno.");
             break;
         case Item::Daltonismo:
-            // \xc3\xa1 e \xc3\xa3 sao a agudo e a til.
             mDescricao->SetText(mGame->ModoDeDaltonismo() == Daltonismo::Modo::Desligado
                 ? "Ajusta as cores do jogo para cada tipo de daltonismo."
                 : std::string("Cores ajustadas para ") + Daltonismo::Nome(mGame->ModoDeDaltonismo()) +

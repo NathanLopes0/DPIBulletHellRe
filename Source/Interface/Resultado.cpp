@@ -19,10 +19,9 @@ namespace Resultado {
     }
 
     const char* Texto(const Opcao o) {
-        // \xc3\xa0 e \xc3\xa9 sao a crase e o e agudo: o MSVC nao le acento em literal.
         switch (o) {
             case Opcao::TentarDeNovo: return "Tentar de novo";
-            case Opcao::Voltar:       return "Voltar \xc3\xa0s mat\xc3\xa9rias";
+            case Opcao::Voltar:       return "Voltar às matérias";
         }
         return "";
     }
@@ -68,9 +67,8 @@ namespace Resultado {
 
     std::vector<std::string> Linhas(const Resumo& r) {
         std::vector<std::string> linhas;
-        // \xc2\xb7 e o ponto do meio.
         linhas.push_back("Nota final: " + ComExtra(r.nota, r.extra) +
-                         (r.provaDaSemana.empty() ? "" : "  \xc2\xb7  prova da semana: " + r.provaDaSemana));
+                         (r.provaDaSemana.empty() ? "" : "  ·  prova da semana: " + r.provaDaSemana));
         if (NovoRecorde(r)) {
             linhas.push_back("NOVO RECORDE!");
         } else if (r.temFicha) {
@@ -80,10 +78,10 @@ namespace Resultado {
         linhas.push_back("Acertos sofridos: " + std::to_string(r.acertosSofridos));
         if (Formou(r)) {
             // No solo e "voce"; na dupla, os dois ou o nome de quem se formou agora (o outro ja tinha).
-            const std::string quem = r.partes.size() < 2 ? "Voc\xc3\xaa"
+            const std::string quem = r.partes.size() < 2 ? "Você"
                                    : r.formados.size() >= 2 ? "A dupla" : r.formados.front();
-            // \xc3\xaa e o e circunflexo. "Para sempre" so quando ficou na ficha.
-            linhas.push_back(quem + " ganhou o chap\xc3\xa9u de formatura" +
+            // "Para sempre" so quando ficou na ficha.
+            linhas.push_back(quem + " ganhou o chapéu de formatura" +
                              (r.formaturaGravada ? ", para sempre." : "."));
         }
         if (LinhaDasMencoes(r) >= 0) linhas.push_back(r.mencoes);

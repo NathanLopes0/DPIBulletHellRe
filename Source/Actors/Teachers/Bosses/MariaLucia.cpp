@@ -698,6 +698,6 @@ void MariaLucia::AtualizarLobisomem(const float t, const float deltaTime) {
         mAvisoAte = mRelogio + kAviso;
         it = mBalas.erase(it);
     }
-    PlacarDaFase(kFaseDaBala, mRelogio < mAvisoAte ? mAvisoNoPlacar : std::string("N\xc3\xa3o h\xc3\xa1 bala de prata"));
+    PlacarDaFase(kFaseDaBala, mRelogio < mAvisoAte ? mAvisoNoPlacar : std::string("Não há bala de prata"));
     mAlvo.reset();
 }

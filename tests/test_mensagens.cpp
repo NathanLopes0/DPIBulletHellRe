@@ -39,7 +39,7 @@ TEST_CASE("Mensagens: na assincrona a caixa do cliente enche e esvazia, e ele nu
     }
     CHECK(maior >= 3);                                 // ela enche: o servidor nao espera
     CHECK(NaCaixa(r, kCliente, kPorRodada) == 0);          // e esvazia
-    CHECK(Placar(Rodada::Assincrona, 3, 0, false, false) == "send sem esperar \xc2\xb7 caixa do cliente: 3");
+    CHECK(Placar(Rodada::Assincrona, 3, 0, false, false) == "send sem esperar · caixa do cliente: 3");
 }
 
 TEST_CASE("Mensagens: na sincrona cada envio tem o seu rendezvous, quando o envelope chega") {
@@ -58,7 +58,7 @@ TEST_CASE("Mensagens: na sincrona cada envio tem o seu rendezvous, quando o enve
     }
     CHECK(envios == 3);
     CHECK(encontros == 3);
-    CHECK(Placar(Rodada::Sincrona, 0, 0, true, false) == "send s\xc3\xadncrono \xc2\xb7 cliente bloqueado");
+    CHECK(Placar(Rodada::Sincrona, 0, 0, true, false) == "send síncrono · cliente bloqueado");
 }
 
 TEST_CASE("Mensagens: na rpc o pedido vai, a resposta volta, e o resultado e a soma") {
@@ -79,7 +79,7 @@ TEST_CASE("Mensagens: na rpc o pedido vai, a resposta volta, e o resultado e a s
     }
     CHECK(chamadas == kChamadas);
     CHECK(Soma(ChamadaDaVez(0)) == 5);
-    CHECK(Placar(Rodada::Rpc, 0, 0, true, false) == "r = soma(2, 3) \xc2\xb7 rpc no servidor");
+    CHECK(Placar(Rodada::Rpc, 0, 0, true, false) == "r = soma(2, 3) · rpc no servidor");
     CHECK(Placar(Rodada::Rpc, 0, 1, false, false) == "return 7");
 }
 
@@ -98,8 +98,8 @@ TEST_CASE("Mensagens: no impasse os dois mandam e ninguem recebe, ate o timeout"
     REQUIRE(estoura > 0.0f);
     // Nenhum receive antes do timeout.
     for (const Evento& e : r) if (e.o == Acontece::Recebe) CHECK(e.quando > estoura);
-    CHECK(Placar(Rodada::Impasse, 0, 0, true, false) == "send() e send() \xc2\xb7 deadlock");
-    CHECK(Placar(Rodada::Impasse, 0, 0, false, true) == "timeout \xc2\xb7 send sem esperar");
+    CHECK(Placar(Rodada::Impasse, 0, 0, true, false) == "send() e send() · deadlock");
+    CHECK(Placar(Rodada::Impasse, 0, 0, false, true) == "timeout · send sem esperar");
 }
 
 TEST_CASE("Mensagens: os dois processos no alto, o cliente a esquerda, e o arco desce ate o fundo") {
@@ -283,7 +283,7 @@ TEST_CASE("Mensagens: em toda luta a assincrona abre, as contas sao outras, e as
     // O placar da rpc fala a conta desta luta.
     Plano p = PlanoDeSempre();
     p.chamadas = {Chamada{4, 5}, Chamada{1, 6}};
-    CHECK(Placar(Rodada::Rpc, 0, 0, true, false, p) == "r = soma(4, 5) \xc2\xb7 rpc no servidor");
+    CHECK(Placar(Rodada::Rpc, 0, 0, true, false, p) == "r = soma(4, 5) · rpc no servidor");
     CHECK(Placar(Rodada::Rpc, 0, 1, false, false, p) == "return 7");
 }
 

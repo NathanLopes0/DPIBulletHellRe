@@ -70,22 +70,21 @@ namespace Fita {
             if (q == kParada) return "pare";
             return std::string("q\xE2\x82") + static_cast<char>(0x80 + q);
         }
-        std::string Simbolo(const int s) { return s ? "a" : "\xE2\x96\xA1"; }   // o branco e o quadrado vazio
+        std::string Simbolo(const int s) { return s ? "a" : "□"; }   // o branco e o quadrado vazio
     }
 
     std::string Transicao(const Passo& p) {
-        const std::string seta = p.sentido > 0 ? "\xE2\x86\x92" : "\xE2\x86\x90";
-        return "\xCE\xB4(" + Q(p.de) + ", " + Simbolo(p.leu) + ") = (" + Q(p.para) + ", " +
+        const std::string seta = p.sentido > 0 ? "→" : "←";
+        return "δ(" + Q(p.de) + ", " + Simbolo(p.leu) + ") = (" + Q(p.para) + ", " +
                Simbolo(p.escreveu) + ", " + seta + ")";
     }
 
     std::string Placar(const Estado& e, const Passo& p) {
         if (e.parou) {
-            // \xce\xa3 e o sigma maiusculo.
-            return Transicao(p) + "\nparou: " + std::to_string(e.passos) + " passos, \xCE\xA3(4) = " +
+            return Transicao(p) + "\nparou: " + std::to_string(e.passos) + " passos, Σ(4) = " +
                    std::to_string(Marcas(e));
         }
-        return Transicao(p) + "\npasso " + std::to_string(e.passos) + " \xC2\xB7 " + std::to_string(Marcas(e)) +
+        return Transicao(p) + "\npasso " + std::to_string(e.passos) + " · " + std::to_string(Marcas(e)) +
                " marcas";
     }
 

@@ -9,9 +9,7 @@
 namespace Mensagens {
 
     namespace {
-        // \xc2\xb7 e o ponto do meio, e "nao" e "sincrono" levam acento: o
-        // MSVC nao le acento nem simbolo em literal.
-        const char* const kPonto = " \xc2\xb7 ";
+        const char* const kPonto = " · ";
 
         int Outro(const int processo) { return processo == kCliente ? kServidor : kCliente; }
 
@@ -255,7 +253,7 @@ namespace Mensagens {
             case Rodada::Assincrona:
                 return "send sem esperar" + std::string(kPonto) + "caixa do cliente: " + std::to_string(naCaixa);
             case Rodada::Sincrona:
-                return bloqueado ? "send s\xc3\xadncrono" + std::string(kPonto) + "cliente bloqueado" : std::string("rendezvous");
+                return bloqueado ? "send síncrono" + std::string(kPonto) + "cliente bloqueado" : std::string("rendezvous");
             case Rodada::Rpc: {
                 const Chamada c = plano.chamadas[static_cast<size_t>(((chamada % kChamadas) + kChamadas) % kChamadas)];
                 if (bloqueado) {

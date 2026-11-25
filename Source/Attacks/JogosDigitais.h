@@ -246,7 +246,7 @@ namespace HudHostil {
     /// quebra, os cacos voam por kQuebraDaBarra segundos enquanto a nota escorre, e no fim a nota e
     /// zero e a luta acaba - com kFraseDaNotaDestruida na tela do resultado.
     constexpr float kQuebraDaBarra = 1.6f;
-    inline constexpr const char* kFraseDaNotaDestruida = "Voc\xc3\xaa destruiu a sua pr\xc3\xb3pria nota.";
+    inline constexpr const char* kFraseDaNotaDestruida = "Você destruiu a sua própria nota.";
     /// Os cacos de cada segmento, e a gravidade que os derruba (px/s^2).
     constexpr int kCacosPorSegmento = 3;
     constexpr float kGravidadeDosCacos = 520.0f;
@@ -826,12 +826,12 @@ namespace Lancamento {
     constexpr int kVaoDosCreditos = 6;
     constexpr int kFaixaDoTexto = 7;
     constexpr std::array<const char*, 7> kCreditos = {
-        "UMA PAR\xc3\x93" "DIA DA VIDA ACAD\xc3\x8a" "MICA",
-        "PROGRAMA\xc3\x87\xc3\x83O  \xc2\xb7  Nathan Lopes",
-        "ARTE  \xc2\xb7  feita no Aseprite",
-        "IDE  \xc2\xb7  CLion, em C++17 e SDL2",
-        "COME\xc3\x87OU NA  \xc2\xb7  INF 216, Jogos Digitais",
-        "ELENCO  \xc2\xb7  os professores do DPI",
+        "UMA PARÓDIA DA VIDA ACADÊMICA",
+        "PROGRAMAÇÃO  ·  Nathan Lopes",
+        "ARTE  ·  feita no Aseprite",
+        "IDE  ·  CLion, em C++17 e SDL2",
+        "COMEÇOU NA  ·  INF 216, Jogos Digitais",
+        "ELENCO  ·  os professores do DPI",
         "OBRIGADO POR JOGAR"};
     /// A ultima linha dos creditos: o obrigado, sem parede.
     constexpr bool UltimaLinha(const int linha) { return linha == static_cast<int>(kCreditos.size()) - 1; }

@@ -261,7 +261,7 @@ TEST_CASE("Horas: o requisito da optativa vale junto com a regra - a mencao de o
     // A frase diz tudo o que falta: a regra e os requisitos.
     const std::string frase = c.ExigenciaDe(o1);
     CHECK(frase.find("INF 1") != std::string::npos);
-    CHECK(frase.find("pelo menos 1 men\xc3\xa7\xc3\xa3o de ouro") != std::string::npos);
+    CHECK(frase.find("pelo menos 1 menção de ouro") != std::string::npos);
     CHECK(frase.find("6 h") != std::string::npos);
     CHECK(c.ExigenciaDe(o2).rfind("Precisa de 2 aprova", 0) == 0);
 

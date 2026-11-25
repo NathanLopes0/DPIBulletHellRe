@@ -251,7 +251,7 @@ TEST_CASE("Ordenacao: o vetor chega de tres jeitos - em qualquer ordem, quase or
         }
     }
     CHECK(Ordenacao::PlacarDoComeco(8, Ordenacao::Entrada::Aleatoria) == "bubble sort, n = 8");
-    CHECK(Ordenacao::PlacarDoComeco(7, Ordenacao::Entrada::Invertida) == "bubble sort, n = 7 \xc2\xb7 invertido: o pior caso");
+    CHECK(Ordenacao::PlacarDoComeco(7, Ordenacao::Entrada::Invertida) == "bubble sort, n = 7 · invertido: o pior caso");
 }
 
 TEST_CASE("Ordenacao: a repescagem sorteada passa pelos tres jeitos, e o pior caso cabe na fase") {

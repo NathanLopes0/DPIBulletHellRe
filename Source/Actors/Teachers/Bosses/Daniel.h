@@ -251,12 +251,12 @@ private:
         bool errou = false;
     };
     std::vector<Fantasma> mFantasmas;
-    /// So as primeiras rajadas dizem "previs\xc3\xa3o"; e um "errou!" de cada vez, para nao encher a tela.
+    /// So as primeiras rajadas dizem "previsão"; e um "errou!" de cada vez, para nao encher a tela.
     int mRajadasDaPrevisao = 0;
     float mUltimoErrou = -10.0f;
     static constexpr int kRajadasComNome = 3;
     static constexpr float kEntreErrous = 1.2f;
-    /// Os rotulos curtos do campo ("previs\xc3\xa3o", "errou!", "decorado"), reaproveitados a cada quadro.
+    /// Os rotulos curtos do campo ("previsão", "errou!", "decorado"), reaproveitados a cada quadro.
     std::vector<EtiquetaDeCodigo*> mRotulos;
     size_t mRotulosUsados = 0;
     void Rotulo(const std::string& texto, Vector2 onde, SDL_Color tinta, int largura = 96);

@@ -28,14 +28,14 @@ namespace {
 }
 
 TEST_CASE("Golpe: cada professor de materias.json tem o golpe dele") {
-    CHECK(DoProfessor("Andr\xc3\xa9") == Materia::Andre);
+    CHECK(DoProfessor("André") == Materia::Andre);
     CHECK(DoProfessor("Salles") == Materia::Salles);
     CHECK(DoProfessor("Ricardo") == Materia::Ricardo);
     CHECK(DoProfessor("Thiago") == Materia::Thiago);
     CHECK(DoProfessor("Luizinho") == Materia::Luizinho);
     CHECK(DoProfessor("Vladimir") == Materia::Vladimir);
-    CHECK(DoProfessor("J\xc3\xbalio") == Materia::Julio);
-    CHECK(DoProfessor("Maria L\xc3\xba" "cia") == Materia::MariaLucia);
+    CHECK(DoProfessor("Júlio") == Materia::Julio);
+    CHECK(DoProfessor("Maria Lúcia") == Materia::MariaLucia);
     CHECK(DoProfessor("Lucas") == Materia::Lucas);
     CHECK(DoProfessor("Vitor") == Materia::Vitor);
     CHECK(DoProfessor("Daniel") == Materia::Daniel);

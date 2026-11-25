@@ -124,7 +124,7 @@ namespace Compilador {
 
     // ---- O placar ----
 
-    /// O placar: a linha, e embaixo a etapa - "l\xc3\xa9xico", "sint\xc3\xa1tico" ou a instrucao
+    /// O placar: a linha, e embaixo a etapa - "léxico", "sintático" ou a instrucao
     /// que acabou de sair.
     std::string Placar(const std::string& linha, Etapa e, const std::string& instrucao = "");
 

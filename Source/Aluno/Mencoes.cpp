@@ -135,49 +135,46 @@ namespace Mencoes {
     }
 
     const char* Nome(const Mencao m) {
-        // \xc3\xad e o i com acento: o MSVC nao le acento em literal.
         switch (m) {
             case Mencao::Bronze:    return "bronze";
             case Mencao::Prata:     return "prata";
             case Mencao::Ouro:      return "ouro";
             case Mencao::NotaCheia: return "nota cheia";
-            case Mencao::Dificil:   return "no Dif\xc3\xad" "cil";
+            case Mencao::Dificil:   return "no Difícil";
             case Mencao::Dupla:     return "em dupla";
             case Mencao::Orientou:  return "orientou o TCC";
             case Mencao::Pacifista: return "quietinho da turma";
-            case Mencao::Intocavel: return "intoc\xc3\xa1vel";
-            case Mencao::Mira:      return "prestando aten\xc3\xa7\xc3\xa3o";
+            case Mencao::Intocavel: return "intocável";
+            case Mencao::Mira:      return "prestando atenção";
             case Mencao::DePerto:   return "sentar na frente";
         }
         return "";
     }
 
     const char* ComoGanhar(const Mencao m) {
-        // As duvidas sao os tiros do aluno. \xc3\xa1 a, \xc3\xa9 e, \xc3\xad i, \xc3\xb3 o, \xc3\xba u agudos;
-        // \xc3\xa7 c cedilha; \xc3\xa3 a til; \xc3\xaa e circunflexo.
+        // As duvidas sao os tiros do aluno.
         switch (m) {
-            case Mencao::Bronze:    return "Passe na mat\xc3\xa9ria.";
+            case Mencao::Bronze:    return "Passe na matéria.";
             case Mencao::Prata:     return "Passe com nota 80 ou mais.";
             case Mencao::Ouro:      return "Passe com nota 90 ou mais.";
             case Mencao::NotaCheia: return "Termine a prova com a nota cheia: 100.";
-            case Mencao::Dificil:   return "Passe no modo Dif\xc3\xad" "cil.";
+            case Mencao::Dificil:   return "Passe no modo Difícil.";
             case Mencao::Dupla:     return "Passe jogando em dupla.";
-            case Mencao::Orientou:  return "Passe no TCC com o professor da mat\xc3\xa9ria de orientador.";
+            case Mencao::Orientou:  return "Passe no TCC com o professor da matéria de orientador.";
             case Mencao::Pacifista: return "Passe sem fazer nenhuma pergunta.";
             case Mencao::Intocavel: return "Passe sem ser acertado nenhuma vez.";
-            case Mencao::Mira:      return "70% das suas d\xc3\xba" "vidas chegam ao professor (de 50 ou mais).";
+            case Mencao::Mira:      return "70% das suas dúvidas chegam ao professor (de 50 ou mais).";
             case Mencao::DePerto:   return "Metade dos acertos feitos de perto (de 50 ou mais).";
         }
         return "";
     }
 
     std::string Legenda() {
-        // \xc3\xa7\xc3\xa3 e "ca" de aprovacao; \xc2\xb7, o ponto do meio.
-        const std::string ponto = "  \xc2\xb7  ";
-        return std::string("B aprova\xc3\xa7\xc3\xa3o") + ponto + "P nota 80" + ponto + "O nota 90" + ponto +
-               "100 nota cheia" + ponto + "D no Dif\xc3\xad" "cil" + ponto + "2 em dupla" + ponto +
-               "T orientou o seu TCC" + ponto + "Q quietinho" + ponto + "I intoc\xc3\xa1vel" + ponto +
-               "A prestando aten\xc3\xa7\xc3\xa3o" + ponto + "F sentar na frente";
+        const std::string ponto = "  ·  ";
+        return std::string("B aprovação") + ponto + "P nota 80" + ponto + "O nota 90" + ponto +
+               "100 nota cheia" + ponto + "D no Difícil" + ponto + "2 em dupla" + ponto +
+               "T orientou o seu TCC" + ponto + "Q quietinho" + ponto + "I intocável" + ponto +
+               "A prestando atenção" + ponto + "F sentar na frente";
     }
 
     Cor CorDa(const Mencao m) {
@@ -199,8 +196,7 @@ namespace Mencoes {
 
     std::string FraseDasNovas(const std::vector<Mencao>& novas) {
         if (novas.empty()) return "";
-        // \xc3\xa7\xc3\xa3o e "cao"; \xc3\xa7\xc3\xb5 e "co" de mencoes.
-        std::string frase = novas.size() == 1 ? "Nova men\xc3\xa7\xc3\xa3o: " : "Novas men\xc3\xa7\xc3\xb5" "es: ";
+        std::string frase = novas.size() == 1 ? "Nova menção: " : "Novas menções: ";
         for (size_t i = 0; i < novas.size(); ++i) frase += (i == 0 ? "" : ", ") + std::string(Nome(novas[i]));
         return frase;
     }

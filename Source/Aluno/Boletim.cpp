@@ -84,8 +84,7 @@ namespace Boletim {
     }
 
     std::string Periodo(const int n) {
-        // \xc2\xba e o "o" sobrescrito.
-        return std::to_string(n) + "\xc2\xba per\xc3\xadodo";
+        return std::to_string(n) + "º período";
     }
 
     std::string Secao(const Linha& l) {
@@ -100,9 +99,9 @@ namespace Boletim {
             if ((static_cast<unsigned char>(texto[b]) & 0xC0) != 0x80) inicio.push_back(b);
         }
         if (inicio.size() <= maximo || maximo == 0) return texto;
-        // Cabem maximo - 1 letras e a reticencia (\xe2\x80\xa6), sem espaco antes dela.
+        // Cabem maximo - 1 letras e a reticencia (…), sem espaco antes dela.
         std::string curto = texto.substr(0, inicio[maximo - 1]);
         while (!curto.empty() && curto.back() == ' ') curto.pop_back();
-        return curto + "\xe2\x80\xa6";
+        return curto + "…";
     }
 }

@@ -126,8 +126,8 @@ TEST_CASE("Mencoes: as novas de uma batalha, a frase delas, e os selos") {
     const DaMateria depois = Da(p, curso, kA);
     const std::vector<Mencao> novas = Novas(antes, depois);
     CHECK(novas == std::vector<Mencao>{Mencao::Bronze, Mencao::Prata, Mencao::Dupla});
-    CHECK(FraseDasNovas(novas) == "Novas men\xc3\xa7\xc3\xb5" "es: bronze, prata, em dupla");
-    CHECK(FraseDasNovas({Mencao::Ouro}) == "Nova men\xc3\xa7\xc3\xa3o: ouro");
+    CHECK(FraseDasNovas(novas) == "Novas menções: bronze, prata, em dupla");
+    CHECK(FraseDasNovas({Mencao::Ouro}) == "Nova menção: ouro");
     CHECK(FraseDasNovas({}).empty());
     CHECK(Novas(depois, depois).empty());
     const Total total = DoCurso(p, curso);
@@ -193,5 +193,5 @@ TEST_CASE("Mencoes: os desafios cumpridos acendem o selo, e contam no curso") {
     CHECK(std::string(Nome(Mencao::Pacifista)) == "quietinho da turma");
     CHECK(std::string(Nome(Mencao::DePerto)) == "sentar na frente");
     for (const Mencao m : kTodas) CHECK(std::string(ComoGanhar(m)).size() > 10u);
-    CHECK(FraseDasNovas({Mencao::Intocavel}) == "Nova men\xc3\xa7\xc3\xa3o: intoc\xc3\xa1vel");
+    CHECK(FraseDasNovas({Mencao::Intocavel}) == "Nova menção: intocável");
 }

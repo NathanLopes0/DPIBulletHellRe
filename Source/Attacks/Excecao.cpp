@@ -14,10 +14,8 @@ namespace Excecao {
         Quadro Catch(const std::string& funcao, const Tipo t) { return Quadro{funcao, t, false}; }
         Quadro Finally(const std::string& funcao) { return Quadro{funcao, std::nullopt, true}; }
 
-        // \xc2\xb7 e o ponto do meio, \xe2\x86\x92 a seta: o MSVC nao le
-        // acento nem simbolo em literal.
-        const char* const kPonto = " \xc2\xb7 ";
-        const char* const kSeta = " \xe2\x86\x92 ";
+        const char* const kPonto = " · ";
+        const char* const kSeta = " → ";
     }
 
     Tipo Pai(const Tipo t) {

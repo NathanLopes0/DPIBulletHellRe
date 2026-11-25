@@ -119,7 +119,7 @@ void TelaDoResultado::MostrarCausas(const std::vector<Devolutiva::Causa>& causas
     CriarTexto(mCena, mFonte, "Mais te acertou:", onde + Vector2(-150.0f, 0.0f), 26, 230, 34, ordem);
     float x = onde.x - 10.0f;
     for (const Devolutiva::Causa& c : causas) {
-        const std::string vezes = "\xc3\x97" + std::to_string(c.acertos);
+        const std::string vezes = "×" + std::to_string(c.acertos);
         const auto* fabrica = chefe ? dynamic_cast<FabricaDeProjetil*>(chefe->GetProjectileFactory(c.causa)) : nullptr;
         if (c.causa == Devolutiva::kEsbarrao || !fabrica) {
             // O esbarrao nao tem desenho de projetil: o nome dele.

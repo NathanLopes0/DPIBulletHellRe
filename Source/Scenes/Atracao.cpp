@@ -88,8 +88,7 @@ Atracao::Cartaz Atracao::CriarChamada() {
     AddActor(std::move(titulo));
 
     // A arte do titulo ocupa ate y = 607 de 800, entao as duas linhas vivem na faixa de baixo.
-    // \xc3\xa7 e \xc3\xa3 sao o c cedilha e o a til.
-    cartaz.push_back(Texto("Uma gradua\xc3\xa7\xc3\xa3o em formato de Arcade",
+    cartaz.push_back(Texto("Uma graduação em formato de Arcade",
                            largura / 2.0f, altura * 0.86f, 28, 1000, Color::White));
 
     cartaz.push_back(Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "jogar"}},
@@ -126,12 +125,11 @@ Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAlun
     Cartaz cartaz;
 
     const bool dificil = lista.nivel == Dificuldade::Nivel::Dificil;
-    // \xc3\xad e o i agudo.
     const std::string titulo = std::string(dupla ? "MELHORES DUPLAS" : "MELHORES DO CURSO") +
-                               (dificil ? " \xc2\xb7 DIF\xc3\x8d" "CIL" : "");
+                               (dificil ? " · DIFÍCIL" : "");
     cartaz.push_back(Texto(titulo, largura / 2.0f, altura * 0.14f, 44, 1000, dificil ? Color::LightPink : Color::White));
     cartaz.push_back(Texto("media das melhores notas " + std::string(dupla ? "em dupla " : "") + "no " +
-                               (dificil ? "Dif\xc3\xad" "cil" : "Normal") + ", sobre as " +
+                               (dificil ? "Difícil" : "Normal") + ", sobre as " +
                                std::to_string(contadas.size()) + " materias",
                            largura / 2.0f, altura * 0.21f, 22, 1100, Color::LightBlue));
 

@@ -64,7 +64,7 @@ namespace Resultado {
         /// da das mencoes. Vazia sem nenhuma.
         std::string horas;
 
-        /// Na prova da semana, o lugar de quem jogou no ranking dela ("2\xc2\xba de 5"), que vai ao
+        /// Na prova da semana, o lugar de quem jogou no ranking dela ("2º de 5"), que vai ao
         /// lado da nota; vazio fora dela, e para o visitante.
         std::string provaDaSemana;
         /// O rival da turma (Rival::FraseDoResultado): quem esta nota passou no ranking da materia, ou

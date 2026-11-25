@@ -40,7 +40,7 @@ namespace {
 
     std::string NomeDoLado(const Lado l) {
         switch (l) {
-            case Lado::Baixo:    return "CH\xc3\x83O";
+            case Lado::Baixo:    return "CHÃO";
             case Lado::Esquerda: return "ESQUERDA";
             case Lado::Cima:     return "TETO";
             case Lado::Direita:  return "DIREITA";
@@ -51,8 +51,8 @@ namespace {
     /// O que o placar diz num lado: para onde a gravidade puxa, e o que fazer nele.
     std::string AnuncioDoLado(const Lado l) {
         switch (Gravidade::DesafioDo(l)) {
-            case Gravidade::Desafio::Pulos:   return "gravidade = CH\xc3\x83O: PULE as caixas (segure para ir alto)";
-            case Gravidade::Desafio::Lancas:  return "gravidade = ESQUERDA: lan\xc3\xa7" "a de baixo, PULE; de cima, FIQUE";
+            case Gravidade::Desafio::Pulos:   return "gravidade = CHÃO: PULE as caixas (segure para ir alto)";
+            case Gravidade::Desafio::Lancas:  return "gravidade = ESQUERDA: lança de baixo, PULE; de cima, FIQUE";
             case Gravidade::Desafio::Chuva:   return "gravidade = TETO: fuja dos blocos e PULE as fagulhas";
             case Gravidade::Desafio::Esteira: return "gravidade = DIREITA: ande CONTRA a esteira e pule os espinhos";
         }
@@ -623,11 +623,11 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
     }
     const FaixaDaNota* faixa = Faixa();
     const float nota = std::clamp(faixa ? faixa->Mostrada() : Nota(), 0.0f, 100.0f);
-    const std::string cheia = ::Nota::ECheia(nota) ? "100% cheia: N\xc3\x83O h\xc3\xa1 vazio!" : Inteiro(nota) + "% cheia: passe pelo VAZIO";
+    const std::string cheia = ::Nota::ECheia(nota) ? "100% cheia: NÃO há vazio!" : Inteiro(nota) + "% cheia: passe pelo VAZIO";
     if (arrancada) {
         Placar(kFase, static_cast<size_t>(etapa), "hud.nota.soltar(): a barra da sua nota saiu da HUD!");
     } else {
-        Placar(kFase, static_cast<size_t>(etapa), (etapa == kEtapaDaBarraDeitada ? "A barra \xc3\xa9 a sua nota, " : "Agora ela vem de lado, ") + cheia);
+        Placar(kFase, static_cast<size_t>(etapa), (etapa == kEtapaDaBarraDeitada ? "A barra é a sua nota, " : "Agora ela vem de lado, ") + cheia);
     }
 }
 
@@ -754,7 +754,7 @@ void Ferreira::AtualizarCamera(const float te, const float deltaTime) {
     if (std::fmod(mRelogio, 1.0f) < 0.6f) {
         for (float r = 1.0f; r <= 8.0f; r += 1.0f) Circulo(rec, r, vermelho, 14);
     }
-    Escrever(Etiqueta(mEtiquetasDaCamera, 0, 150, 24), "REC \xc2\xb7 C\xc3\x82MERA", rec + Vector2(92.0f, 0.0f));
+    Escrever(Etiqueta(mEtiquetasDaCamera, 0, 150, 24), "REC · CÂMERA", rec + Vector2(92.0f, 0.0f));
     if (momento != Camera::Aviso) {
         const Vector2 meio(c.x + c.w / 2.0f, c.y + c.h / 2.0f);
         Linha(meio + Vector2(-12.0f, 0.0f), meio + Vector2(12.0f, 0.0f), kGuia);
@@ -894,7 +894,7 @@ void Ferreira::AtualizarAbertura(const float te) {
         Tracejada(GetPosition() + Vector2(0.0f, 40.0f), n.onde, kMagenta, 10.0f);
     }
     switch (n.momento) {
-        case Momento::NaPlaca:      Placar(kFase, kEtapaDaAbertura, "hud.nota: este n\xc3\xbamero \xc3\xa9 meu"); break;
+        case Momento::NaPlaca:      Placar(kFase, kEtapaDaAbertura, "hud.nota: este número é meu"); break;
         case Momento::Indo:         Placar(kFase, kEtapaDaAbertura, "hud.nota.pegar()"); break;
         case Momento::Reescrevendo: Placar(kFase, kEtapaDaAbertura, "nota = " + Inteiro(mNotaAntesDaEdicao) + " -> nota = " + Inteiro(n.valor)); break;
         case Momento::Voltando:     Placar(kFase, kEtapaDaAbertura, "hud.nota.devolver(15)"); break;
@@ -994,7 +994,7 @@ void Ferreira::QuebrarABarra() {
     }
     mClarao = 0.3f;
     mCorDoClarao = SDL_Color{255, 40, 60, 255};
-    Avisar("hud.nota.destruir(): voc\xc3\xaa quebrou a sua pr\xc3\xb3pria nota!", kQuebraDaBarra + 1.0f);
+    Avisar("hud.nota.destruir(): você quebrou a sua própria nota!", kQuebraDaBarra + 1.0f);
     SomDoDisparo();
 }
 
@@ -1099,7 +1099,7 @@ void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo:
         mClarao = 0.15f;
         mCorDoClarao = SDL_Color{255, 214, 90, 255};
         Avisar(mFase == RegrasTrocadas::kFase ? "regras.inverter(): o fantasma virou moeda - pegue!"
-                                               : "powerUp.usar(): agora ELE foge de voc\xc3\xaa!",
+                                               : "powerUp.usar(): agora ELE foge de você!",
                1.3f);
         SomDoDisparo();
     }
@@ -1119,7 +1119,7 @@ void Ferreira::AoTrocarDeEstado(const IaDoInimigo::Estado de, const IaDoInimigo:
         mCorpoMontado = false;
         mClarao = 0.25f;
         mCorDoClarao = SDL_Color{255, 214, 90, 255};
-        Avisar("inimigo.destruir(): + " + Inteiro(kPremioPorDerrotar) + " de b\xc3\xb4nus", 1.6f);
+        Avisar("inimigo.destruir(): + " + Inteiro(kPremioPorDerrotar) + " de bônus", 1.6f);
         SomDoDisparo();
     }
 }
@@ -1342,16 +1342,16 @@ void Ferreira::AtualizarInimigo(const float te, const float deltaTime, const Com
 
     std::string texto;
     switch (mIa.estado) {
-        case Estado::Nascendo:  texto = "new Inimigo(): a IA dele \xc3\xa9 uma m\xc3\xa1quina de estados"; break;
-        case Estado::Patrulha:  texto = "PATRULHA: fique fora do raio de vis\xc3\xa3o dele"; break;
+        case Estado::Nascendo:  texto = "new Inimigo(): a IA dele é uma máquina de estados"; break;
+        case Estado::Patrulha:  texto = "PATRULHA: fique fora do raio de visão dele"; break;
         case Estado::Alerta:    texto = "ALERTA (!): ele te viu - CORRA!"; break;
         case Estado::Persegue:
             texto = Vivo(mPoder) ? "PERSEGUE: pegue o POWER-UP!" : "PERSEGUE: atire no OLHO dele, o ponto fraco";
             break;
         case Estado::Atordoado: texto = "ATORDOADO: o olho era o ponto fraco"; break;
         case Estado::Fugindo:
-            texto = pisca || mIa.susto <= kPiscaNoFim ? "FUGINDO... o power-up est\xc3\xa1 acabando!"
-                                                      : "FUGINDO: encoste nos blocos - cada um \xc3\xa9 nota!";
+            texto = pisca || mIa.susto <= kPiscaNoFim ? "FUGINDO... o power-up está acabando!"
+                                                      : "FUGINDO: encoste nos blocos - cada um é nota!";
             break;
         case Estado::Derrotado:
             texto = "inimigo.destruir(): respawn em " + std::to_string(static_cast<int>(std::ceil(kRespawn - mIa.noEstado)));
@@ -1798,7 +1798,7 @@ void Ferreira::AtualizarInversao(const float te) {
     }
     switch (r) {
         case Regra::Aviso: Placar(kFase, 0, "regras.inverter() em 3, 2, 1..."); break;
-        case Regra::Invertida: Placar(kFase, 0, "INVERTIDO: pegue as moedas e N\xc3\x83O atire"); break;
+        case Regra::Invertida: Placar(kFase, 0, "INVERTIDO: pegue as moedas e NÃO atire"); break;
         case Regra::Voltando: Placar(kFase, 0, "regras.restaurar(): as moedas viram TIROS!"); break;
         case Regra::Normal: Placar(kFase, 0, "Regras de sempre: atire e desvie"); break;
     }
@@ -2000,7 +2000,7 @@ void Ferreira::AtualizarFps(const float te, const float deltaTime) {
     mLinhas = doCampo;
 
     if (te < kComecaOFps) Placar(kFase, kEtapaDoFps, "fps.limite = off: segure o FOCO e o jogo cai para 30 FPS");
-    else Placar(kFase, kEtapaDoFps, "VERMELHO sem deltaTime: corre com o FPS. AZUL com deltaTime: n\xc3\xa3o muda");
+    else Placar(kFase, kEtapaDoFps, "VERMELHO sem deltaTime: corre com o FPS. AZUL com deltaTime: não muda");
 }
 
 void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
@@ -2121,7 +2121,7 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
             }
         }
         if (mSalvo.tem) {
-            const std::string notas = "o save tem " + Inteiro(mSalvo.nota) + ", voc\xc3\xaa tem " + Inteiro(agora);
+            const std::string notas = "o save tem " + Inteiro(mSalvo.nota) + ", você tem " + Inteiro(agora);
             switch (humor) {
                 case Humor::Foge: Placar(kFase, 3, notas + ": ele FOGE - encurrale num canto, ou atire nele!"); break;
                 case Humor::Persegue: Placar(kFase, 3, notas + ": ele te PERSEGUE - fuja!"); break;
@@ -2131,7 +2131,7 @@ void Ferreira::AtualizarSaveLoad(const float te, const float deltaTime) {
     }
     if (!mSalvo.tem) {
         Esconder(mEtiquetasDoSave);
-        Placar(kFase, 3, te > kUltimoSave ? "sem mais saves: s\xc3\xb3 desvie" : "quicksave() a caminho: o save vai guardar a sua nota");
+        Placar(kFase, 3, te > kUltimoSave ? "sem mais saves: só desvie" : "quicksave() a caminho: o save vai guardar a sua nota");
     }
 }
 
@@ -2210,7 +2210,7 @@ void Ferreira::AtualizarHitbox(const float te) {
     // O modo debug mostra todo colisor: o do aluno e o do professor tambem.
     for (const Player* a : Jogadores()) Circulo(a->GetPosition(), RaioDe(a) + 1.0f, kDebug, 10);
     Circulo(GetPosition(), 56.0f, kDebugFraco, 20);
-    Placar(kFase, 0, "debug: a hitbox DESCOLOU. Desvie do c\xc3\xadrculo verde");
+    Placar(kFase, 0, "debug: a hitbox DESCOLOU. Desvie do círculo verde");
 }
 
 void Ferreira::Travar(const int k) {
@@ -2231,7 +2231,7 @@ void Ferreira::Travar(const int k) {
     const bool esperarAEsquerda = LadoDoEsperar(k) == 0;
     mBotoes[0] = Peca(kGatilhoDoBotao, esperarAEsquerda ? esquerda : direita, "Esperar");
     mBotoes[1] = Peca(kGatilhoDoBotao, esperarAEsquerda ? direita : esquerda, "Fechar");
-    Escrever(Etiqueta(mEtiquetasDoDialogo, 0, 440, 26), "DPIBulletHell n\xc3\xa3o est\xc3\xa1 respondendo", meio + Vector2(0.0f, -28.0f));
+    Escrever(Etiqueta(mEtiquetasDoDialogo, 0, 440, 26), "DPIBulletHell não está respondendo", meio + Vector2(0.0f, -28.0f));
     mClarao = 0.18f;
     mCorDoClarao = SDL_Color{255, 255, 255, 255};
     SomDoDisparo();
@@ -2254,7 +2254,7 @@ void Ferreira::Destravar(const Lancamento::Escolha escolha) {
             for (BossProjectile* f : cacos) Cara(f, "Fragmento");
             t.p->Kill();
         }
-        Avisar("Fechou o programa: os tiros estilha\xc3\xa7" "aram!", 1.8f);
+        Avisar("Fechou o programa: os tiros estilhaçaram!", 1.8f);
         mClarao = 0.25f;
         mCorDoClarao = kSave;
     } else {
@@ -2308,7 +2308,7 @@ void Ferreira::AtualizarCrash(const float te) {
         mProximoLeque = te + g.entreAneis * 1.7f;
         for (BossProjectile* p : Leque(kGatilhoDoTiro, 3, 26.0f, g.velocidade + 45.0f, "Tiro")) mTiros.push_back(p);
     }
-    Placar(kFase, 1, "Build de lan\xc3\xa7" "amento: nada pode dar errado");
+    Placar(kFase, 1, "Build de lançamento: nada pode dar errado");
 }
 
 void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
@@ -2342,10 +2342,10 @@ void Ferreira::AtualizarFrota(const float te, const float deltaTime) {
                     mFrota[indice(f, col)] = Peca(kGatilhoDoBug, LugarNaFrota(f, col, topo, Marcha{}), "Bug");
                 }
             }
-            if (mOndaDaFrota > 0) Avisar("new Wave(" + onda + "): mais r\xc3\xa1pida, e o god mode de volta", 1.6f);
+            if (mOndaDaFrota > 0) Avisar("new Wave(" + onda + "): mais rápida, e o god mode de volta", 1.6f);
             SomDoDisparo();
         }
-        Placar(kFase, 2, mOndaDaFrota == 0 ? "genero = nave: os bugs do lan\xc3\xa7" "amento chegaram"
+        Placar(kFase, 2, mOndaDaFrota == 0 ? "genero = nave: os bugs do lançamento chegaram"
                                            : "onda " + onda + " a caminho");
         return;
     }
@@ -2520,7 +2520,7 @@ void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
         mProximoLeque = te + 1.5f;
         Leque(kGatilhoDoTiro, 1, 0.0f, g.velocidade, "Tiro");
     }
-    Placar(kFase, 3, "Cr\xc3\xa9" "ditos: passe pelos v\xc3\xa3os. Obrigado por jogar!");
+    Placar(kFase, 3, "Créditos: passe pelos vãos. Obrigado por jogar!");
 }
 
 // ---- O que o tiro do aluno faz ----

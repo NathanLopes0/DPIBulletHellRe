@@ -241,7 +241,7 @@ void Generico::OnUpdate(const float deltaTime) {
     {
         const SDL_FRect c = Campo();
         if (etapa == Tutorial::Etapa::Chegada) {
-            Letreiro(true, "TUTORIAL", "INF 191 \xc2\xb7 aprenda a jogar em um minuto", SDL_Color{255, 255, 255, 255},
+            Letreiro(true, "TUTORIAL", "INF 191 · aprenda a jogar em um minuto", SDL_Color{255, 255, 255, 255},
                      c.y + c.h * 0.42f);
         } else if (etapa == Tutorial::Etapa::Fim) {
             if (!mTocouNoFim) {
@@ -250,7 +250,7 @@ void Generico::OnUpdate(const float deltaTime) {
                     mScene->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
                 }
             }
-            Letreiro(true, "TUTORIAL CONCLU\xc3\x8d" "DO!", "agora \xc3\xa9 com voc\xc3\xaa: as mat\xc3\xa9rias te esperam",
+            Letreiro(true, "TUTORIAL CONCLUÍDO!", "agora é com você: as matérias te esperam",
                      SDL_Color{255, 215, 80, 255}, c.y + c.h * 0.5f + 115.0f);   // embaixo do visto, longe do professor
         } else {
             Letreiro(false);

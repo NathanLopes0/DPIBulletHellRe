@@ -66,17 +66,16 @@ namespace Virtualizacao {
     }
 
     std::string PlacarDoTrap(const int vm) {
-        // \xc3\xa7\xc3\xa3 e "ca" com cedilha e til; \xe2\x86\x92 a seta.
-        return "VM " + std::to_string(vm) + ": instru\xc3\xa7\xc3\xa3o privilegiada \xe2\x86\x92 trap no hipervisor";
+        return "VM " + std::to_string(vm) + ": instrução privilegiada → trap no hipervisor";
     }
 
     std::string PlacarDaMigracao(const int vm, const int de, const int para) {
-        return "Migra\xc3\xa7\xc3\xa3o ao vivo: VM " + std::to_string(vm) + ", do host " + NomeDoHost(de) + " para o " +
+        return "Migração ao vivo: VM " + std::to_string(vm) + ", do host " + NomeDoHost(de) + " para o " +
                NomeDoHost(para);
     }
 
     std::string PlacarDaEscala(const int de, const int para) {
-        return "Carga subindo: " + std::to_string(de) + " \xe2\x86\x92 " + std::to_string(para) + " VMs";
+        return "Carga subindo: " + std::to_string(de) + " → " + std::to_string(para) + " VMs";
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {

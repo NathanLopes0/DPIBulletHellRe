@@ -47,7 +47,7 @@ TEST_CASE("Pausa: cada opcao tem um texto, e nenhum se repete") {
         vistos.insert(t);
     }
     CHECK(static_cast<int>(vistos.size()) == kQuantas);
-    CHECK(std::string(Texto(Opcao::Recomecar)) == "Recome\xc3\xa7" "ar a fase");
+    CHECK(std::string(Texto(Opcao::Recomecar)) == "Recomeçar a fase");
 }
 
 TEST_CASE("Pausa: a volta conta 3, 2, 1 e entao a luta segue") {

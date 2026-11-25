@@ -529,7 +529,7 @@ TEST_CASE("Fases: corrente de \"ataquesDe\" e recusada") {
 TEST_CASE("Fases: o anuncio da fase e lido como texto, e sem ele a fase nao anuncia") {
 
     // UTF-8 inteiro, porque e o que o placar desenha: "aⁿbⁿ" com o sobrescrito de verdade.
-    const std::string aNbN = "a\xE2\x81\xBF" "b\xE2\x81\xBF";
+    const std::string aNbN = "aⁿbⁿ";
     const auto lidas = LerFases(R"({
       "StateOne":   { "proximo": "StateFinal", "anuncio": ")" + aNbN + R"(",
                       "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },

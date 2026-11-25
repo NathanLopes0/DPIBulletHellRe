@@ -172,7 +172,7 @@ TEST_CASE("Resultado: quem se formou ve FORMADE! e que ganhou o chapeu de format
     CHECK(std::string(Titulo(r)) == "FORMADE!");
     auto l = Linhas(r);
     REQUIRE(l.size() == 5u);
-    CHECK(l[4] == "Voc\xc3\xaa ganhou o chap\xc3\xa9u de formatura, para sempre.");
+    CHECK(l[4] == "Você ganhou o chapéu de formatura, para sempre.");
     CHECK(LinhaDaFormatura(r) == 4);
     CHECK(LinhaEmDestaque(r) == 1);   // o recorde novo continua dourado
 
@@ -181,7 +181,7 @@ TEST_CASE("Resultado: quem se formou ve FORMADE! e que ganhou o chapeu de format
     r.formaturaGravada = false;
     l = Linhas(r);
     REQUIRE(l.size() == 4u);
-    CHECK(l[3] == "Voc\xc3\xaa ganhou o chap\xc3\xa9u de formatura.");
+    CHECK(l[3] == "Você ganhou o chapéu de formatura.");
     CHECK(LinhaDaFormatura(r) == 3);
 
     // Quem reprovou nao se forma, diga a lista o que disser.
@@ -201,7 +201,7 @@ TEST_CASE("Resultado: na dupla, a formatura diz quem se formou, antes da parte d
     r.formados = {"89384", "Aluno 2"};
     auto l = Linhas(r);
     REQUIRE(l.size() == 7u);
-    CHECK(l[4] == "A dupla ganhou o chap\xc3\xa9u de formatura.");
+    CHECK(l[4] == "A dupla ganhou o chapéu de formatura.");
     CHECK(l[5] == "89384: 120 acertos, 8 coberturas, 3 sofridos");
     CHECK(LinhaDaFormatura(r) == 4);
     CHECK(LinhaDaParte(r, 0) == 5);
@@ -211,10 +211,10 @@ TEST_CASE("Resultado: na dupla, a formatura diz quem se formou, antes da parte d
     // So um se formou agora: o outro ja tinha o capelo.
     r.formados = {"89384"};
     r.formaturaGravada = true;
-    CHECK(Linhas(r)[4] == "89384 ganhou o chap\xc3\xa9u de formatura, para sempre.");
+    CHECK(Linhas(r)[4] == "89384 ganhou o chapéu de formatura, para sempre.");
     r.formados = {"Aluno 2"};
     r.formaturaGravada = false;
-    CHECK(Linhas(r)[4] == "Aluno 2 ganhou o chap\xc3\xa9u de formatura.");
+    CHECK(Linhas(r)[4] == "Aluno 2 ganhou o chapéu de formatura.");
 }
 
 TEST_CASE("Resultado: so o gabinete volta sozinho, e so depois da espera") {
@@ -235,7 +235,7 @@ TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e a
     CHECK(LinhaDasMencoes(r) == -1);
     const size_t sem = Linhas(r).size();
 
-    r.mencoes = "Nova men\xc3\xa7\xc3\xa3o: prata";
+    r.mencoes = "Nova menção: prata";
     auto l = Linhas(r);
     REQUIRE(l.size() == sem + 1);
     CHECK(LinhaDasMencoes(r) == 4);
@@ -253,14 +253,14 @@ TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e a
     CHECK(LinhaDaParte(r, 1) == 8);
     // As horas complementares vem depois das mencoes, e o lugar na prova da semana ao lado da nota.
     r.horas = "Horas complementares: +2 h (Fase limpa em INF 213)";
-    r.provaDaSemana = "2\xc2\xba de 5";
+    r.provaDaSemana = "2º de 5";
     l = Linhas(r);
     CHECK(LinhaDasHoras(r) == 6);
     CHECK(l[6] == r.horas);
-    CHECK(l[0] == "Nota final: 85.00  \xc2\xb7  prova da semana: 2\xc2\xba de 5");
+    CHECK(l[0] == "Nota final: 85.00  ·  prova da semana: 2º de 5");
     CHECK(LinhaDaParte(r, 0) == 7);
     // O rival da turma vem por ultimo, antes da parte de cada um.
-    r.rival = "Voc\xc3\xaa passou 90112: agora \xc3\xa9 o 2\xc2\xba da turma";
+    r.rival = "Você passou 90112: agora é o 2º da turma";
     l = Linhas(r);
     CHECK(LinhaDoRival(r) == 7);
     CHECK(l[7] == r.rival);
@@ -271,7 +271,7 @@ TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e a
     CHECK(LinhaDasHoras(r) == 5);                              // sem as mencoes, sobe uma
     r.horas.clear();
     r.provaDaSemana.clear();
-    r.mencoes = "Nova men\xc3\xa7\xc3\xa3o: prata";
+    r.mencoes = "Nova menção: prata";
 
     // Quem reprovou nao ganha mencao, diga o campo o que disser.
     r.aprovado = false;
@@ -301,7 +301,7 @@ TEST_CASE("Resultado: a frase do chefe toma o lugar da devolutiva, com ou sem a 
     r.temFicha = true;
     r.piorFase = Devolutiva::Fase{};
     r.causas = {Devolutiva::Causa{}};
-    r.fraseDoFim = "Voc\xc3\xaa destruiu a sua pr\xc3\xb3pria nota.";
+    r.fraseDoFim = "Você destruiu a sua própria nota.";
     auto l = Linhas(r);
     CHECK(LinhaDaFraseDoFim(r) == 4);
     CHECK(l[4] == r.fraseDoFim);

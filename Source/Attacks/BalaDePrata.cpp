@@ -9,10 +9,9 @@
 namespace BalaDePrata {
 
     const std::vector<std::string>& Promessas() {
-        // \xc3\xa7 e \xc3\xa3 sao c cedilha e a til, \xc3\xa9 e e agudo, \xc3\xa1 a agudo.
         static const std::vector<std::string> promessas = {
-            "IA", "UML", "Orienta\xc3\xa7\xc3\xa3o a objetos", "M\xc3\xa9todos \xc3\xa1geis",
-            "Nuvem", "Low-code", "Microsservi\xc3\xa7os", "Ferramenta CASE"};
+            "IA", "UML", "Orientação a objetos", "Métodos ágeis",
+            "Nuvem", "Low-code", "Microsserviços", "Ferramenta CASE"};
         return promessas;
     }
 
@@ -26,11 +25,11 @@ namespace BalaDePrata {
     }
 
     std::string Desfeita(const std::string& promessa) {
-        return promessa + "? N\xc3\xa3o h\xc3\xa1 bala de prata.";
+        return promessa + "? Não há bala de prata.";
     }
 
     std::string Testada(const std::string& promessa) {
-        return promessa + " \xc2\xb7 teste com usu\xc3\xa1rio: reprovada";
+        return promessa + " · teste com usuário: reprovada";
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
@@ -66,7 +65,6 @@ namespace BalaDePrata {
     }
 
     std::string NaoMatou(const std::string& promessa) {
-        // \xc3\xa3 e o a com til.
-        return promessa + "? N\xc3\xa3o matou o lobisomem.";
+        return promessa + "? Não matou o lobisomem.";
     }
 }

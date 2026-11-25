@@ -1,0 +1,19 @@
+# Como os arquivos do projeto sao escritos (https://editorconfig.org): o CLion, o VS Code e a maioria
+# dos editores seguem isto sozinhos. O .gitattributes garante o fim de linha no repositorio.
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# O codigo e o CMake: CRLF (o .gitattributes poe assim na copia de trabalho), quatro espacos.
+[*.{cpp,h,txt}]
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+
+# Os dados, a documentacao e as ferramentas: LF.
+[*.{json,md,py,sh}]
+end_of_line = lf
+indent_style = space

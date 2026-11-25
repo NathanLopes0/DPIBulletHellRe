@@ -110,8 +110,8 @@ TEST_CASE("Amarracao: o placar diz onde roda e, achado o x, de onde ele veio") {
     CHECK(Placar(p, c, true) == "void f() { { atira(x); } }\nx = 6, do bloco de dentro de f");
     c.onde = Bloco::F;
     CHECK(Placar(p, c, true) == "void f() { atira(x); }\nx = 2, do global");
-    CHECK(Placar(p, Chamada(Regra::Estatico), false) == "g() chama f(): atira(x);\nescopo est\xC3\xA1tico");
-    CHECK(Placar(p, Chamada(Regra::Dinamico), true) == "g() chama f(): atira(x);\ndin\xC3\xA2mico: x = 5, de quem chamou");
+    CHECK(Placar(p, Chamada(Regra::Estatico), false) == "g() chama f(): atira(x);\nescopo estático");
+    CHECK(Placar(p, Chamada(Regra::Dinamico), true) == "g() chama f(): atira(x);\ndinâmico: x = 5, de quem chamou");
     CHECK(Declaracao(p, Bloco::Global) == "int x = 2;  // global");
     CHECK(Declaracao(p, Bloco::F) == "void f() {");
     CHECK(Declaracao(p, Bloco::Interno) == "{ int x = 6;");

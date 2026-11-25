@@ -78,12 +78,11 @@ namespace Disco {
 
     std::string Placar(const Algoritmo a, const int andou, const int atendidos, const int fcfsSeria) {
         const std::string pedidos = std::to_string(atendidos) + (atendidos == 1 ? " pedido" : " pedidos");
-        // \xc3\xa7 e o c cedilha; \xc2\xb7 o ponto do meio.
         if (a == Algoritmo::FCFS) {
-            return std::string("FCFS: o bra\xc3\xa7o andou ") + std::to_string(andou) + " cilindros em " + pedidos;
+            return std::string("FCFS: o braço andou ") + std::to_string(andou) + " cilindros em " + pedidos;
         }
         return std::string(Nome(a)) + ": " + std::to_string(andou) + " cilindros em " + pedidos +
-               "  \xc2\xb7  em FCFS seriam " + std::to_string(fcfsSeria);
+               "  ·  em FCFS seriam " + std::to_string(fcfsSeria);
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {

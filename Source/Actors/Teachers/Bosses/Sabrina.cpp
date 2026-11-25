@@ -34,7 +34,7 @@ namespace {
     }
 
     std::string Graus(const float t) {
-        return std::to_string(static_cast<int>(std::lround(t))) + " \xc2\xb0" "C";
+        return std::to_string(static_cast<int>(std::lround(t))) + " °C";
     }
 
     std::string Letras(const std::vector<Base>& v, const size_t de, const size_t quantas) {
@@ -425,7 +425,7 @@ void Sabrina::OnDerrubou(BossProjectile* qual) {
                 }
                 ++mEdicoes;
                 if (Battle* b = Batalha()) b->Conquistar(2.0f);
-                Avisar("Corte no alvo! A Cas9 abriu a fita  \xc2\xb7  +2", 1.4f);
+                Avisar("Corte no alvo! A Cas9 abriu a fita  ·  +2", 1.4f);
                 Matar(mTesoura);
                 mTesoura = Enfeite(Sequenciamento::kGatilhoDaTesoura, onde, "Tesoura");
                 mTesouraAte = mRelogio + 0.6f;
@@ -438,7 +438,7 @@ void Sabrina::OnDerrubou(BossProjectile* qual) {
                 }
                 f.contas[k] = p;
                 // Uma vez por fita: o placar e onde o guia esta escrito.
-                if (!f.avisou) Avisar("Sem o guia, a Cas9 n\xc3\xa3o corta", 0.9f);
+                if (!f.avisou) Avisar("Sem o guia, a Cas9 não corta", 0.9f);
                 f.avisou = true;
             }
             return;
@@ -576,9 +576,9 @@ void Sabrina::AtualizarHelice(const float t, const float deltaTime) {
                           g.velocidadeDaBase, false);
                 }
             }
-            Placar(kFase, 0, "Dupla h\xc3\xa9lice: s\xc3\xb3 a frente machuca \xe2\x80\x94 passe pelo fundo");
+            Placar(kFase, 0, "Dupla hélice: só a frente machuca — passe pelo fundo");
         } else {
-            Placar(kFase, 2, "Desnatura\xc3\xa7\xc3\xa3o: " + Graus(temperatura) + "  \xc2\xb7  " + std::to_string(mSoltos) + " de " +
+            Placar(kFase, 2, "Desnaturação: " + Graus(temperatura) + "  ·  " + std::to_string(mSoltos) + " de " +
                                  std::to_string(pares) + " pares soltos");
         }
         return;
@@ -613,7 +613,7 @@ void Sabrina::AtualizarHelice(const float t, const float deltaTime) {
         Bases(kGatilhoDoLeque, de, b, g.tirosDoLeque, AnguloAteOAluno(de), 24.0f, g.velocidadeDoLeque, false);
     }
     const float voltas = torcao * static_cast<float>(pares - 1) / Math::TwoPi;
-    Placar(kFase, 1, "Tor\xc3\xa7\xc3\xa3o: " + Decimal(voltas, 1) + " voltas  \xc2\xb7  atravesse pela fita de tr\xc3\xa1s");
+    Placar(kFase, 1, "Torção: " + Decimal(voltas, 1) + " voltas  ·  atravesse pela fita de trás");
 }
 
 // ---- Fase 2: o codigo ----
@@ -786,7 +786,7 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
             SomDoDisparo();
             mDominante = Outra(mSorteio, mDominante, false);
         }
-        Placar(kFase, 0, "Pareamento: a pr\xc3\xb3xima onda \xc3\xa9 de " + LetraDa(mDominante) + ", que pareia com " +
+        Placar(kFase, 0, "Pareamento: a próxima onda é de " + LetraDa(mDominante) + ", que pareia com " +
                              LetraDa(Complementar(mDominante, false)));
         return;
     }
@@ -827,10 +827,10 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
             const int ate = std::min(n - 1, lendo + 4);
             Retangulo(Vector2(de + passo * static_cast<float>(lendo + 1) - 13.0f, fitaY - 13.0f),
                       Vector2(de + passo * static_cast<float>(ate) + 13.0f, fitaY + 13.0f), kOuro);
-            Placar(kFase, 1, "Transcri\xc3\xa7\xc3\xa3o: vem " + Letras(mFitaMolde, static_cast<size_t>(lendo + 1), 4) +
-                                 "  \xc2\xb7  pegue a base do molde (T vira U)");
+            Placar(kFase, 1, "Transcrição: vem " + Letras(mFitaMolde, static_cast<size_t>(lendo + 1), 4) +
+                                 "  ·  pegue a base do molde (T vira U)");
         } else {
-            Placar(kFase, 1, "Transcri\xc3\xa7\xc3\xa3o: o RNA est\xc3\xa1 pronto");
+            Placar(kFase, 1, "Transcrição: o RNA está pronto");
         }
         return;
     }
@@ -916,7 +916,7 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
                 }
                 mPolipeptideo.clear();
                 mOndeDoPolipeptideo.clear();
-                Avisar("C\xc3\xb3" "don de parada: a cadeia se solta!", 1.2f);
+                Avisar("Códon de parada: a cadeia se solta!", 1.2f);
                 break;
         }
         if (fam != Familia::Parada) {
@@ -964,7 +964,7 @@ void Sabrina::AtualizarCodigo(const float t, const float deltaTime) {
 
     const Base* codon = &mMensageiro[static_cast<size_t>(3 * lendo)];
     const char aa = Traduzir(codon[0], codon[1], codon[2]);
-    Placar(kFase, 2, "Tradu\xc3\xa7\xc3\xa3o: " + Letras(mMensageiro, static_cast<size_t>(3 * lendo), 3) + " \xe2\x86\x92 " + NomeDo(aa) + " (" +
+    Placar(kFase, 2, "Tradução: " + Letras(mMensageiro, static_cast<size_t>(3 * lendo), 3) + " → " + NomeDo(aa) + " (" +
                          NomeDa(FamiliaDe(aa)) + ")");
 }
 
@@ -1120,7 +1120,7 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
                 Cara(p, CaraDaFamilia(FamiliaQualquer(mSorteio)));
             }
         }
-        Placar(kFase, 0, "Cadeia: " + std::to_string(mCadeia.size()) + " res\xc3\xad" "duos  \xc2\xb7  o seu tiro \xc3\xa9 a protease");
+        Placar(kFase, 0, "Cadeia: " + std::to_string(mCadeia.size()) + " resíduos  ·  o seu tiro é a protease");
         return;
     }
 
@@ -1195,7 +1195,7 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
             }
             SomDoDisparo();
         }
-        Placar(kFase, 1, "Dobramento: " + std::to_string(escondidos) + " hidrof\xc3\xb3" "bicos no n\xc3\xba" "cleo");
+        Placar(kFase, 1, "Dobramento: " + std::to_string(escondidos) + " hidrofóbicos no núcleo");
         return;
     }
 
@@ -1267,8 +1267,8 @@ void Sabrina::AtualizarProteina(const float t, const float deltaTime) {
             mPremioGuardado = 0.0f;
         }
     }
-    Placar(kFase, 2, algum ? "Encaixe: \xce\x94G = \xe2\x88\x92" + Decimal(-DeltaG(mEncaixado), 1) + " kcal/mol  \xc2\xb7  o tiro s\xc3\xb3 sai pela boca"
-                           : std::string("Encaixe: entre no s\xc3\xadtio ativo pela boca"));
+    Placar(kFase, 2, algum ? "Encaixe: ΔG = −" + Decimal(-DeltaG(mEncaixado), 1) + " kcal/mol  ·  o tiro só sai pela boca"
+                           : std::string("Encaixe: entre no sítio ativo pela boca"));
 }
 
 // ---- A repescagem: o sequenciamento ----
@@ -1401,7 +1401,7 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
         mCopias.erase(std::remove_if(mCopias.begin(), mCopias.end(), [](const Copia& cp) { return cp.p == nullptr; }), mCopias.end());
         Termometro(ciclo.temperatura, 40.0f, 100.0f);
         Placar(kFase, 0, "PCR ciclo " + std::to_string(ciclo.numero + 1) + " (" + Graus(ciclo.temperatura) + "): " +
-                             std::to_string(mCopias.size()) + " c\xc3\xb3pias  \xc2\xb7  derrube os primers");
+                             std::to_string(mCopias.size()) + " cópias  ·  derrube os primers");
         return;
     }
 
@@ -1476,7 +1476,7 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
             MontarOContig();
         }
         mReads.erase(std::remove(mReads.begin(), mReads.end(), nullptr), mReads.end());
-        Placar(kFase, 1, "Shotgun: contig de " + std::to_string(mAtras + mFrente + 1) + " kb  \xc2\xb7  apare as pontas");
+        Placar(kFase, 1, "Shotgun: contig de " + std::to_string(mAtras + mFrente + 1) + " kb  ·  apare as pontas");
         return;
     }
 
@@ -1571,5 +1571,5 @@ void Sabrina::AtualizarSequenciamento(const float t, const float deltaTime) {
     }
     mGenomas.erase(std::remove_if(mGenomas.begin(), mGenomas.end(), [](const FitaDoGenoma& f) { return f.contas.empty(); }),
                    mGenomas.end());
-    Placar(kFase, 2, "CRISPR: guia " + Letras(mGuia, 0, mGuia.size()) + " + NGG  \xc2\xb7  corte s\xc3\xb3 no alvo");
+    Placar(kFase, 2, "CRISPR: guia " + Letras(mGuia, 0, mGuia.size()) + " + NGG  ·  corte só no alvo");
 }

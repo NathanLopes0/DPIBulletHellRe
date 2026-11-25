@@ -45,10 +45,9 @@ namespace Scrum {
     }
 
     std::string Placar(const int sprint, const int dailies, const int faltam) {
-        // \xc2\xb7 e o ponto do meio.
         std::string s = "Sprint " + std::to_string(sprint + 1);
-        if (dailies > 0) s += "  \xc2\xb7  daily " + std::to_string(dailies);
-        return s + "  \xc2\xb7  faltam " + std::to_string(faltam) + (faltam == 1 ? " ponto" : " pontos");
+        if (dailies > 0) s += "  ·  daily " + std::to_string(dailies);
+        return s + "  ·  faltam " + std::to_string(faltam) + (faltam == 1 ? " ponto" : " pontos");
     }
 
     std::string Cara(const int pontos) {

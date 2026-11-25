@@ -122,7 +122,7 @@ namespace Condicional {
         if (c.forma != Forma::Escolha) return {};
         if (n < 0 || n >= kCases) return "n = " + N(n) + ": nenhum case, nada executa";
         if (n == kCases - 1) return {};
-        return "sem break: do case " + N(n) + " cai at\xC3\xA9 o case " + N(kCases - 1);
+        return "sem break: do case " + N(n) + " cai até o case " + N(kCases - 1);
     }
 
     std::string CaraDoRotulo(const Comando& c, const int ramo) {

@@ -10,13 +10,12 @@
 namespace Recorrencia {
 
     namespace {
-        // \xce\x98 e o teta maiusculo; \xc2\xb2 e \xc2\xb3, o expoente 2 e o 3.
-        constexpr const char* kTeta = "\xce\x98";
+        constexpr const char* kTeta = "Θ";
 
         std::string Potencia(const double e) {
             if (std::fabs(e - 1.0) < 1e-6) return "n";
-            if (std::fabs(e - 2.0) < 1e-6) return "n\xc2\xb2";
-            if (std::fabs(e - 3.0) < 1e-6) return "n\xc2\xb3";
+            if (std::fabs(e - 2.0) < 1e-6) return "n²";
+            if (std::fabs(e - 3.0) < 1e-6) return "n³";
             char s[16];
             std::snprintf(s, sizeof(s), "%.2f", e);
             std::string t = s;
@@ -33,13 +32,13 @@ namespace Recorrencia {
     const std::vector<Caso>& Casos() {
         static const std::vector<Caso> casos = {
             {2, 2, 1, "merge sort"},
-            {1, 2, 0, "busca bin\xc3\xa1ria"},
+            {1, 2, 0, "busca binária"},
             {3, 2, 1, "Karatsuba"},
-            {2, 2, 0, "percurso em \xc3\xa1rvore"},
-            {1, 2, 1, "sele\xc3\xa7\xc3\xa3o linear"},
-            {4, 2, 1, "multiplica\xc3\xa7\xc3\xa3o ing\xc3\xaanua"},
+            {2, 2, 0, "percurso em árvore"},
+            {1, 2, 1, "seleção linear"},
+            {4, 2, 1, "multiplicação ingênua"},
             {2, 2, 2, "pares mais distantes"},
-            {3, 3, 1, "merge sort tern\xc3\xa1rio"},
+            {3, 3, 1, "merge sort ternário"},
         };
         return casos;
     }

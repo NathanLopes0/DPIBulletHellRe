@@ -162,7 +162,7 @@ namespace Laboratorio {
     }
 
     std::string Colega(const int k) {
-        static const std::array<const char*, kColegas> nomes = {"Doutoranda", "Mestrando", "P\xc3\xb3" "s-doc", "IC",
+        static const std::array<const char*, kColegas> nomes = {"Doutoranda", "Mestrando", "Pós-doc", "IC",
                                                                 "Mestranda"};
         return nomes[static_cast<size_t>(((k % kColegas) + kColegas) % kColegas)];
     }

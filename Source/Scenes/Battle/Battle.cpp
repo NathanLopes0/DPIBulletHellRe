@@ -612,8 +612,7 @@ std::string Battle::EntrarNoRankingDaSemana(int& posicao) {
     const auto ranking = ProvaDaSemana::Ranking(ProvaDaSemana::Carregar(), mSemanaDaProva, dupla, dificil);
     posicao = ProvaDaSemana::PosicaoDe(ranking, quem);
     if (posicao <= 0) return "";
-    // \xc2\xba e o "o" de ordinal.
-    return std::to_string(posicao) + "\xc2\xba de " + std::to_string(ranking.size());
+    return std::to_string(posicao) + "º de " + std::to_string(ranking.size());
 }
 
 void Battle::FecharPendencias() {
@@ -1101,8 +1100,7 @@ void Battle::EncerrarBatalha(bool aprovado) {
         }
         resumo.mencoes = Mencoes::FraseDasNovas(novas);
         if (const Materias::Materia* m = materias.Por(orientador); m && orientadorNovo) {
-            // \xc3\xad e o i com acento, \xc2\xb7 o ponto do meio.
-            resumo.mencoes += std::string(resumo.mencoes.empty() ? "" : "  \xc2\xb7  ") + "Curr\xc3\xad" "culo: " +
+            resumo.mencoes += std::string(resumo.mencoes.empty() ? "" : "  ·  ") + "Currículo: " +
                               m->nome + " orientou";
         }
     }

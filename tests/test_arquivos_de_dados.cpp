@@ -147,7 +147,7 @@ TEST_CASE("Dados: Assets/como-jogar.json nao tem problema nenhum") {
         CHECK((p.mencoes || !Manual::Linhas(p, true).empty()));
         for (const auto& linha : p.linhas) {
             CAPTURE(linha);
-            for (const char* tecla : {"Esc ", "Espa\xc3\xa7o", "W A S D", "setas"}) {
+            for (const char* tecla : {"Esc ", "Espaço", "W A S D", "setas"}) {
                 CHECK(linha.find(tecla) == std::string::npos);
             }
         }

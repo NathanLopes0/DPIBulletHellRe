@@ -45,7 +45,7 @@ namespace Rival {
     /// A posicao que a nota teria entre os colegas: 1 + quantos tem mais que ela.
     int PosicaoCom(const std::vector<Colega>& colegas, float nota);
 
-    /// A linha do cartao da materia: "Rival: 90112 (2\xc2\xba) \xc2\xb7 faltam 2.41".
+    /// A linha do cartao da materia: "Rival: 90112 (2º) · faltam 2.41".
     std::string Frase(const Situacao& s);
 
     /// A linha da tela do resultado, com o recorde de 'antes' e o de 'depois' desta luta (o maior dos

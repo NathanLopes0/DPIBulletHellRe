@@ -51,10 +51,9 @@ void TrocaDeAlunos::Load() {
     mPainel = std::make_unique<PainelDeMenu>(*this, mFonte.get(), " ",
                                              std::vector<std::string>(kNomes, kNomes + kQuantas), rodape,
                                              kLinhas, medidas);
-    // \xc3\x83 e o A til, \xc3\xa3 o a til, \xc3\xa1 o a agudo e \xc3\xad o i agudo.
     mPainel->SetTitulo("TROCAR ALUNO(S)", Vector3(1.0f, 0.86f, 0.42f));
-    mPainel->SetLinhas({"Quem joga agora? Escolha o modo e entre com a matr\xc3\xad" "cula.",
-                        "O progresso de quem estava jogando j\xc3\xa1 est\xc3\xa1 guardado."});
+    mPainel->SetLinhas({"Quem joga agora? Escolha o modo e entre com a matrícula.",
+                        "O progresso de quem estava jogando já está guardado."});
     mPainel->Selecionar(mSelecionada);
     mPainel->Mostrar(true);
 }

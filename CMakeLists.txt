@@ -3,6 +3,12 @@ project(DPIBulletHellRe)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Os fontes sao UTF-8: os acentos vao direto nos literais ("Matéria", "→"). O GCC e o Clang ja
+# leem UTF-8; o MSVC, sem /utf-8, le o arquivo na pagina de codigo do Windows e troca os acentos.
+if(MSVC)
+    add_compile_options(/utf-8)
+endif()
+
 add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Game.cpp
         Source/Motor/Game.h

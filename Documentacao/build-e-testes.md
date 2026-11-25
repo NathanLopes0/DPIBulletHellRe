@@ -82,6 +82,15 @@ grep -c "Source/Regras/Nota.cpp" CMakeLists.txt     # tem de dar 2
 Esquecer o segundo dá erro de link só no `dpi_tests`, com uma mensagem que não
 menciona o CMake.
 
+### Acentos e fim de linha
+
+Os fontes são **UTF-8**, e os acentos vão direto nos literais (`"Matéria"`,
+`" · "`, `"→"`): o CMake passa `/utf-8` ao MSVC, que sem isso lê o arquivo na
+página de código do Windows. Os `.cpp`, `.h` e o `CMakeLists.txt` ficam em CRLF
+na cópia de trabalho (`.gitattributes`); os dados, a documentação e as
+ferramentas, em LF. O `.editorconfig` diz isso ao editor. Só o `Json.h` e o
+`doctest.h`, de terceiros, ficam como vieram.
+
 ---
 
 ## Rodar os testes

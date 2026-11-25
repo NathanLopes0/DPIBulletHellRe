@@ -41,14 +41,14 @@ TEST_CASE("Automato: os lacos do diagrama sao q0 lendo b e q1 lendo a") {
 
 TEST_CASE("Automato: a leitura anda um simbolo por passo, e o placar e a configuracao") {
     Automato::Leitura l{"abb", 0, Automato::kInicial};
-    CHECK(Automato::Configuracao(l) == "(q\xE2\x82\x80, abb)");
+    CHECK(Automato::Configuracao(l) == "(q₀, abb)");
 
     auto p = Automato::Ler(l);
     CHECK(p.letra == 'a');
     CHECK(p.de == 0);
     CHECK(p.para == 1);
     CHECK_FALSE(p.Laco());
-    CHECK(Automato::Configuracao(l) == "(q\xE2\x82\x81, bb)");
+    CHECK(Automato::Configuracao(l) == "(q₁, bb)");
 
     p = Automato::Ler(l);
     CHECK(p.para == 2);
@@ -57,8 +57,8 @@ TEST_CASE("Automato: a leitura anda um simbolo por passo, e o placar e a configu
     CHECK(p.para == 0);
     CHECK(Automato::Terminou(l));
     // A palavra vazia e escrita epsilon, e o veredito vem atras.
-    CHECK(Automato::Configuracao(l) == "(q\xE2\x82\x80, \xCE\xB5)");
-    CHECK(Automato::Veredito(l) == "(q\xE2\x82\x80, \xCE\xB5) rejeita");
+    CHECK(Automato::Configuracao(l) == "(q₀, ε)");
+    CHECK(Automato::Veredito(l) == "(q₀, ε) rejeita");
 
     // Lida a palavra, ler de novo nao anda.
     p = Automato::Ler(l);
@@ -68,7 +68,7 @@ TEST_CASE("Automato: a leitura anda um simbolo por passo, e o placar e a configu
     Automato::Leitura ab{"ab", 0, Automato::kInicial};
     Automato::Ler(ab);
     Automato::Ler(ab);
-    CHECK(Automato::Veredito(ab) == "(q\xE2\x82\x82, \xCE\xB5) aceita");
+    CHECK(Automato::Veredito(ab) == "(q₂, ε) aceita");
 }
 
 TEST_CASE("Automato: o intercambio troca so o que falta ler") {

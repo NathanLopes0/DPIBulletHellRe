@@ -1166,7 +1166,7 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
         if (mScene && !mVeredito) {
             auto nova = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 340, 26, kOrdemDasLinhas + 2, 20);
             nova->Pintar(SDL_Color{150, 225, 255, 200}, SDL_Color{10, 18, 32, 215}, SDL_Color{180, 235, 255, 255});
-            nova->Escrever("overfitting: o modelo decorou, n\xc3\xa3o generalizou");
+            nova->Escrever("overfitting: o modelo decorou, não generalizou");
             mVeredito = nova.get();
             mScene->AddActor(std::move(nova));
         }
@@ -1205,7 +1205,7 @@ void Daniel::AtualizarSobreajuste(const float t, const float deltaTime) {
                 }
             }
             if (mRajadasDaPrevisao <= kRajadasComNome) {
-                Rotulo("previs\xc3\xa3o", f.onde + Vector2(0.0f, -36.0f), SDL_Color{235, 240, 255, 255});
+                Rotulo("previsão", f.onde + Vector2(0.0f, -36.0f), SDL_Color{235, 240, 255, 255});
             }
         } else {
             if (!f.julgado) {
@@ -1283,14 +1283,14 @@ void Daniel::AtualizarConfusao(const float t, const float deltaTime) {
         }
     }
     // Os nomes: as linhas sao o tipo de verdade, as colunas o que o modelo previu.
-    static const char* const kNomes[Confusao::kTipos] = {"fogo", "\xc3\xa1gua", "planta"};
+    static const char* const kNomes[Confusao::kTipos] = {"fogo", "água", "planta"};
     for (int k = 0; k < Confusao::kTipos; ++k) {
         Rotulo(kNomes[k], Vector2(grade.x - 52.0f, grade.y + lh * (static_cast<float>(k) + 0.5f)), kCor[k], 84);
         Rotulo(kNomes[k], Vector2(grade.x + lw * (static_cast<float>(k) + 0.5f), grade.y - 16.0f), kCor[k], 84);
     }
     Rotulo("real", Vector2(grade.x - 52.0f, grade.y - 16.0f), SDL_Color{210, 215, 230, 255}, 84);
-    Rotulo("previsto \xe2\x86\x92", Vector2(grade.x + grade.w * 0.5f, grade.y - 44.0f), SDL_Color{210, 215, 230, 255}, 120);
-    Rotulo("acur\xc3\xa1" "cia: " + std::to_string(Confusao::Porcento(mMatriz)) + "%",
+    Rotulo("previsto →", Vector2(grade.x + grade.w * 0.5f, grade.y - 44.0f), SDL_Color{210, 215, 230, 255}, 120);
+    Rotulo("acurácia: " + std::to_string(Confusao::Porcento(mMatriz)) + "%",
            Vector2(grade.x + grade.w + 92.0f, grade.y + 14.0f), SDL_Color{150, 240, 165, 255}, 150);
 
     // O modelo classifica: cada monstrinho voa do professor para a casa que ele escolheu.

@@ -71,7 +71,7 @@ void StageSelect::Load() {
     if (sRecemComprada >= 0) {
         const Materias::Materia* m = Materias::Carregadas().Por(sRecemComprada);
         auto* faixa = CriarTexto(*this, mStageSelectFont.get(),
-                                 "MATRICULADO EM " + (m ? m->nome : std::string("OPTATIVA")) + "!  A optativa est\xc3\xa1 aberta",
+                                 "MATRICULADO EM " + (m ? m->nome : std::string("OPTATIVA")) + "!  A optativa está aberta",
                                  Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 104.0f), 26, 760, 40, 250);
         faixa->SetColor(Color::Gold);
         mFaixaDaCompra = faixa->GetOwner();
@@ -305,7 +305,7 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
     if (!unlocked) {
         // O nome da materia fechada, embaixo do losango; a optativa com preco diz quanto custa.
         const int preco = Materias::Carregadas().PrecoDe(subject);
-        const std::string rotuloTexto = preco > 0 ? text + "  \xc2\xb7  " + std::to_string(preco) + " h" : text;
+        const std::string rotuloTexto = preco > 0 ? text + "  ·  " + std::to_string(preco) + " h" : text;
         auto rotulo = std::make_unique<Actor>(this);
         rotulo->SetPosition(position + Vector2(0.0f, kNomeAbaixoDoCadeado));
         const auto dc = rotulo->AddComponent<DrawTextComponent>(
@@ -319,8 +319,7 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
 
         // A optativa que ja da para comprar avisa no proprio losango: "MATRICULAS ABERTAS", piscando.
         if (preco > 0 && DaParaComprar(subject)) {
-            // \xc3\x80 e o A com crase.
-            auto* selo = CriarTexto(*this, mStageSelectFont.get(), "MATR\xc3\x8d" "CULAS ABERTAS", position + Vector2(0.0f, -46.0f),
+            auto* selo = CriarTexto(*this, mStageSelectFont.get(), "MATRÍCULAS ABERTAS", position + Vector2(0.0f, -46.0f),
                                     16, 240, 24);
             selo->SetColor(Color::Gold);
             NoMapa(selo->GetOwner());
@@ -374,7 +373,7 @@ void StageSelect::CreateStaticUI() {
     // E as mencoes do curso, embaixo: passar abre a materia seguinte, e elas sao o que sobra em cada uma.
     const Mencoes::Total mencoes = Mencoes::DoCurso(mGame->Sessoes().front().progresso, materias);
     auto* mencoesDc = CriarTexto(*this, mStageSelectFont.get(),
-                                 "Men\xc3\xa7\xc3\xb5" "es: " + std::to_string(mencoes.ganhas) + " de " +
+                                 "Menções: " + std::to_string(mencoes.ganhas) + " de " +
                                      std::to_string(mencoes.possiveis),
                                  Vector2(w - 190.f, 86.f), 20, 320, 28);
     mencoesDc->SetColor(Color::LightYellow);
@@ -466,12 +465,11 @@ void StageSelect::CriarProvaDaSemana() {
     const SDL_Color ouro{255, 214, 72, 235};
     caixa(Vector2(kProvaX, kProvaY), kProvaLargura, kProvaAltura, ouro, SDL_Color{24, 20, 10, 235}, 2, kOrdemDoCartao);
     caixa(Vector2(kProvaX, topo + 13.0f), kProvaLargura, 26.0f, ouro, ouro, 0, kOrdemDoCartao + 1);
-    // \xc3\xba e o u com acento, \xc2\xb7 o ponto do meio, \xc2\xba o "o" de ordinal, \xc3\xad o i com acento.
     texto("PROVA DA SEMANA", Vector2(kProvaX, topo + 13.0f), 15, static_cast<int>(kProvaLargura) - 20,
           Vector3(0.12f, 0.09f, 0.02f));
-    const std::string prazo = semana.faltam <= 1 ? std::string("\xc3\xbaltimo dia")
+    const std::string prazo = semana.faltam <= 1 ? std::string("último dia")
                                                  : "faltam " + std::to_string(semana.faltam) + " dias";
-    texto(m->nome + "  \xc2\xb7  " + prazo, Vector2(kProvaX, topo + 42.0f), 15, static_cast<int>(kProvaLargura) - 20,
+    texto(m->nome + "  ·  " + prazo, Vector2(kProvaX, topo + 42.0f), 15, static_cast<int>(kProvaLargura) - 20,
           Color::LightYellow);
 
     // O podio do modo e da dificuldade desta partida: medalha, quem e a nota.
@@ -489,7 +487,7 @@ void StageSelect::CriarProvaDaSemana() {
             texto(c.quem, Vector2(kProvaX - 6.0f, y), 15, 172, i == 0 ? Color::White : Color::LightBlue, true);
             texto(nota.str(), Vector2(kProvaX + 100.0f, y), 15, 60, i == 0 ? Color::White : Color::LightBlue);
         } else {
-            texto("ningu\xc3\xa9m ainda", Vector2(kProvaX - 6.0f, y), 14, 172, Vector3(0.5f, 0.52f, 0.62f), true);
+            texto("ninguém ainda", Vector2(kProvaX - 6.0f, y), 14, 172, Vector3(0.5f, 0.52f, 0.62f), true);
         }
     }
 
@@ -501,13 +499,13 @@ void StageSelect::CriarProvaDaSemana() {
     const bool visitante = !mGame->ProgressoEGravado(0);
     const int lugar = visitante ? 0 : ProvaDaSemana::PosicaoDe(ranking, ProvaDaSemana::Quem(eu));
     std::string meu;
-    if (visitante) meu = "visitante n\xc3\xa3o entra no ranking";
-    else if (lugar > 0) meu = (dupla ? "a dupla: " : "voc\xc3\xaa: ") + std::to_string(lugar) + "\xc2\xba de " + std::to_string(ranking.size());
-    else meu = dupla ? "a dupla ainda n\xc3\xa3o fez" : "voc\xc3\xaa ainda n\xc3\xa3o fez";
+    if (visitante) meu = "visitante não entra no ranking";
+    else if (lugar > 0) meu = (dupla ? "a dupla: " : "você: ") + std::to_string(lugar) + "º de " + std::to_string(ranking.size());
+    else meu = dupla ? "a dupla ainda não fez" : "você ainda não fez";
     texto(meu, Vector2(kProvaX, topo + 138.0f), 14, static_cast<int>(kProvaLargura) - 20,
           lugar > 0 ? Color::LightGreen : Color::LightYellow);
-    texto(std::string(dificil ? "Dif\xc3\xad" "cil" : "Normal") + (dupla ? " \xc2\xb7 dupla" : " \xc2\xb7 sozinho") +
-              " \xc2\xb7 a mesma prova para todos",
+    texto(std::string(dificil ? "Difícil" : "Normal") + (dupla ? " · dupla" : " · sozinho") +
+              " · a mesma prova para todos",
           Vector2(kProvaX, topo + 159.0f), 12, static_cast<int>(kProvaLargura) - 16, Color::LightBlue);
 
     // A marca em cima do botao da materia da semana: e ela que chama o cursor.
@@ -642,18 +640,17 @@ void StageSelect::AtualizarDicas() {
     const auto w = static_cast<float>(mGame->GetWindowWidth());
     const auto h = static_cast<float>(mGame->GetWindowHeight());
     if (mPaginas > 1 && !mDicaDireita) {
-        // \xc2\xbb e \xc2\xab sao as aspas angulares, as setas que a fonte tem; \xc3\x93 e o O agudo.
         auto* d = CriarTexto(*this, mStageSelectFont.get(), " ", Vector2(w - 70.0f, h * 0.6f), 16, 140, 26);
         d->SetColor(Color::Gold);
         mDicaDireita = d->GetOwner();
-        auto* e = CriarTexto(*this, mStageSelectFont.get(), "\xc2\xab OBRIGAT\xc3\x93RIAS", Vector2(96.0f, h * 0.48f), 16,
+        auto* e = CriarTexto(*this, mStageSelectFont.get(), "« OBRIGATÓRIAS", Vector2(96.0f, h * 0.48f), 16,
                              170, 26);
         e->SetColor(Color::Gold);
         mDicaEsquerda = e->GetOwner();
     }
     if (mDicaDireita) {
         auto* d = mDicaDireita->GetComponent<DrawTextComponent>();
-        d->SetText(mPagina == 0 ? "OPTATIVAS \xc2\xbb" : "MAIS \xc2\xbb");
+        d->SetText(mPagina == 0 ? "OPTATIVAS »" : "MAIS »");
         d->SetIsVisible(mPagina + 1 < mPaginas);
     }
     if (mDicaEsquerda) mDicaEsquerda->GetComponent<DrawTextComponent>()->SetIsVisible(mPagina > 0);
@@ -705,10 +702,9 @@ void StageSelect::AbrirASaida() {
                                                   mGame->JeitoDoRodape());
         PainelDeMenu::Medidas medidas;
         medidas.alturaDaPlaca = PainelDeMenu::AlturaPara(1);
-        // \xc3\xa3 e o a til.
         mPainelDeSaida = std::make_unique<PainelDeMenu>(
             *this, mStageSelectFont.get(), "MENU PRINCIPAL",
-            std::vector<std::string>{"N\xc3\xa3o, continuar aqui", "Sim, voltar ao menu"}, rodape, 1, medidas);
+            std::vector<std::string>{"Não, continuar aqui", "Sim, voltar ao menu"}, rodape, 1, medidas);
         mPainelDeSaida->SetLinhas({"Tem certeza que quer voltar ao menu principal?"});
         mLeitorDaSaida = std::make_unique<LeitorDoMenu>();
     }
@@ -836,10 +832,9 @@ std::string StageSelect::FraseDaCompra() const {
     const int preco = materias.PrecoDe(mSelectedSubject);
     const std::string custa = std::to_string(preco) + " h";
     if (DaParaComprar()) {
-        // \xc3\xa3 e o a com til, \xc3\xaa o e circunflexo.
-        if (mConfirmandoCompra == mSelectedSubject) return "Bot\xc3\xa3o 1 de novo: matricular-se por " + custa;
+        if (mConfirmandoCompra == mSelectedSubject) return "Botão 1 de novo: matricular-se por " + custa;
         const auto& p = mGame->Sessoes().front().progresso;
-        return "Optativa: " + custa + " de horas (voc\xc3\xaa tem " +
+        return "Optativa: " + custa + " de horas (você tem " +
                std::to_string(Horas::Saldo(p.Atividades(), materias)) + " h)";
     }
     // O que falta, de quem falta: na dupla, o cartao diz quem.
@@ -1010,11 +1005,10 @@ void StageSelect::ComecarARevelacao(const int materia) {
         dc->SetIsVisible(false);
         return dc->GetOwner();
     };
-    // \xc3\x89 e o E agudo.
-    mTituloDaRevelacao = texto("MAT\xc3\x89RIA SECRETA DESBLOQUEADA!", -60.0f, 50, Color::Gold);
+    mTituloDaRevelacao = texto("MATÉRIA SECRETA DESBLOQUEADA!", -60.0f, 50, Color::Gold);
     mNomeDaRevelacao.clear();
     if (m) {
-        mNomeDaRevelacao.push_back(texto(m->nome + "  \xc2\xb7  " + m->nomeCompleto, altura * 0.70f, 30, Color::White));
+        mNomeDaRevelacao.push_back(texto(m->nome + "  ·  " + m->nomeCompleto, altura * 0.70f, 30, Color::White));
         mNomeDaRevelacao.push_back(texto("Prof. " + m->professor, altura * 0.755f, 24, Color::LightBlue));
     }
     mNomeDaRevelacao.push_back(texto(Revelacao::Parabens(materias.QuantasDoCurso()), altura * 0.815f, 26, Color::Gold));
@@ -1133,7 +1127,7 @@ void StageSelect::TerminarARevelacao() {
     ComecarAFesta(materia, true);
     const Materias::Materia* m = Materias::Carregadas().Por(materia);
     auto* faixa = CriarTexto(*this, mStageSelectFont.get(),
-                             (m ? m->nome : std::string("A SECRETA")) + " EST\xc3\x81 ABERTA!  Boa sorte.",
+                             (m ? m->nome : std::string("A SECRETA")) + " ESTÁ ABERTA!  Boa sorte.",
                              Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 104.0f), 26, 760, 40, 250);
     faixa->SetColor(Color::Gold);
     if (mFaixaDaCompra) mFaixaDaCompra->SetState(ActorState::Destroy);
@@ -1172,15 +1166,14 @@ void StageSelect::UpdateStageInfo() const {
 
     if (!mGame->IsStageUnlocked(mSelectedSubject) && materias.PrecoDe(mSelectedSubject) > 0) {
         // O detalhe esta na matricula, ao lado: aqui so o estado, numa linha.
-        // \xc2\xbb e a seta, \xc3\xa1 o a agudo.
-        if (mConfirmandoCompra == mSelectedSubject) frase = "Confirme a matr\xc3\xad" "cula ao lado \xc2\xbb";
-        else if (DaParaComprar()) frase = "Optativa pronta: falta s\xc3\xb3 a matr\xc3\xad" "cula \xc2\xbb";
+        if (mConfirmandoCompra == mSelectedSubject) frase = "Confirme a matrícula ao lado »";
+        else if (DaParaComprar()) frase = "Optativa pronta: falta só a matrícula »";
         else {
             bool regra = true;
             for (const size_t i : mGame->FechadaPara(mSelectedSubject)) {
                 regra = regra && materias.RegraCumprida(mSelectedSubject, mGame->Sessoes()[i].progresso);
             }
-            frase = regra ? "Faltam horas para se matricular \xc2\xbb" : "Optativa trancada: veja o que falta \xc2\xbb";
+            frase = regra ? "Faltam horas para se matricular »" : "Optativa trancada: veja o que falta »";
         }
         cor = DaParaComprar() ? Color::Gold : Color::LightPink;
 
@@ -1483,9 +1476,8 @@ void StageSelect::AtualizarMatricula() const {
     const size_t aluno = quem.front();
     const Progresso& p = mGame->Sessoes()[aluno].progresso;
     const bool dupla = mGame->QuantosJogadores() > 1;
-    // \xc3\x8d e o I agudo.
-    EscreverNoCartao(mTituloDaMatricula, std::string("MATR\xc3\x8d" "CULA NA OPTATIVA") +
-                                             (dupla ? "  \xc2\xb7  J" + std::to_string(aluno + 1) : std::string()),
+    EscreverNoCartao(mTituloDaMatricula, std::string("MATRÍCULA NA OPTATIVA") +
+                                             (dupla ? "  ·  J" + std::to_string(aluno + 1) : std::string()),
                      Vector3(0.12f, 0.09f, 0.02f));
     const std::vector<Materias::ItemDaExigencia> itens = materias.Itens(mSelectedSubject, p);
     bool regra = true;
@@ -1513,9 +1505,8 @@ void StageSelect::AtualizarMatricula() const {
         b->SetFundo(cheio ? (chega ? SDL_Color{255, 210, 70, 255} : SDL_Color{200, 160, 70, 255}) : SDL_Color{34, 38, 58, 230});
         b->SetMoldura(cheio ? SDL_Color{120, 90, 20, 255} : SDL_Color{90, 98, 130, 220});
     }
-    // \xc3\xaa e o e circunflexo.
     EscreverNoCartao(mHorasDaMatricula,
-                     "Pre\xc3\xa7o: " + std::to_string(preco) + " h de horas complementares  \xc2\xb7  voc\xc3\xaa tem " +
+                     "Preço: " + std::to_string(preco) + " h de horas complementares  ·  você tem " +
                          std::to_string(saldo) + " h",
                      chega ? Color::Gold : Color::LightPink);
 
@@ -1526,18 +1517,18 @@ void StageSelect::AtualizarMatricula() const {
     if (mConfirmandoCompra == mSelectedSubject && pode) {
         mBotaoDaMatricula->SetFundo(SDL_Color{230, 100, 50, 245});
         mBotaoDaMatricula->SetMoldura(SDL_Color{255, 230, 200, 255});
-        rotulo = "CONFIRMAR: BOT\xc3\x83O 1 DE NOVO";
-        AtualizarRodape("confirmar a matr\xc3\xad" "cula");
+        rotulo = "CONFIRMAR: BOTÃO 1 DE NOVO";
+        AtualizarRodape("confirmar a matrícula");
     } else if (pode) {
         mBotaoDaMatricula->SetFundo(SDL_Color{255, 214, 72, 240});
         mBotaoDaMatricula->SetMoldura(SDL_Color{120, 80, 10, 255});
-        rotulo = "MATRICULAR-SE  \xc2\xb7  " + std::to_string(preco) + " h";
+        rotulo = "MATRICULAR-SE  ·  " + std::to_string(preco) + " h";
         corDoRotulo = Vector3(0.12f, 0.09f, 0.02f);
         AtualizarRodape("matricular-se");
     } else {
         mBotaoDaMatricula->SetFundo(SDL_Color{52, 56, 72, 235});
         mBotaoDaMatricula->SetMoldura(SDL_Color{90, 98, 130, 220});
-        rotulo = !regra ? std::string("FALTA O QUE EST\xc3\x81 EM ROSA")
+        rotulo = !regra ? std::string("FALTA O QUE ESTÁ EM ROSA")
                         : "FALTAM " + std::to_string(preco - saldo) + " h PARA SE MATRICULAR";
         corDoRotulo = Color::LightPink;
         AtualizarRodape("jogar");
@@ -1547,6 +1538,6 @@ void StageSelect::AtualizarMatricula() const {
     // O premio: o professor dela vira orientador do TCC.
     const Materias::Materia* m = materias.Por(mSelectedSubject);
     EscreverNoCartao(mPremioDaMatricula,
-                     "Pr\xc3\xaamio: o Prof. " + (m ? m->professor : std::string()) + " vira seu orientador no TCC",
+                     "Prêmio: o Prof. " + (m ? m->professor : std::string()) + " vira seu orientador no TCC",
                      Color::LightGreen);
 }

@@ -670,8 +670,7 @@ void Lucas::NovoCiclo(const float t) {
     mDesfecho = Desfecho::EmAberto;
     mInicioDaFuria = -1.0f;
     mProximoLeque = t + 1.2f;
-    // \xc3\x89 e o E agudo.
-    TrocarAnuncio(Masmorra::kFase, "\xc3\x89 perigoso ir sozinho!");
+    TrocarAnuncio(Masmorra::kFase, "É perigoso ir sozinho!");
 }
 
 void Lucas::AtualizarMasmorra(const float t, const float deltaTime) {

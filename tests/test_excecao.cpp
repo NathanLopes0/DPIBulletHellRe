@@ -136,10 +136,10 @@ TEST_CASE("Excecao: a excecao sobe sem cobrir o canto de nenhuma faixa") {
 }
 
 TEST_CASE("Excecao: os textos") {
-    CHECK(Rotulo(Quadro{"f", Tipo::IOException, false}) == "f() \xc2\xb7 catch (IOException e)");
-    CHECK(Rotulo(Quadro{"g", std::nullopt, true}) == "g() \xc2\xb7 finally");
+    CHECK(Rotulo(Quadro{"f", Tipo::IOException, false}) == "f() · catch (IOException e)");
+    CHECK(Rotulo(Quadro{"g", std::nullopt, true}) == "g() · finally");
     CHECK(Rotulo(Quadro{"h", std::nullopt, false}) == "h()");
-    CHECK(PlacarDasChamadas(RodadaDaVez(0)) == "main() \xe2\x86\x92 f() \xe2\x86\x92 g() \xe2\x86\x92 h()");
+    CHECK(PlacarDasChamadas(RodadaDaVez(0)) == "main() → f() → g() → h()");
     CHECK(PlacarDoLancamento(RodadaDaVez(0)).find("h(): throw new IOException();") != std::string::npos);
     CHECK(PlacarDoDesfecho(RodadaDaVez(0)) == "throw new IOException();\ncapturada em f()");
     CHECK(PlacarDoDesfecho(RodadaDaVez(3)) == "Exception in thread \"main\"\njava.lang.NullPointerException");

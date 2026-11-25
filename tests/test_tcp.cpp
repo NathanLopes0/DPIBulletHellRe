@@ -206,14 +206,14 @@ TEST_CASE("Tcp: o roteador mira adiante de quem anda, e em cima de quem para") {
 
 TEST_CASE("Tcp: os textos") {
     Conexao c;
-    CHECK(Placar(c) == "cwnd = 1 \xc2\xb7 slow start");
+    CHECK(Placar(c) == "cwnd = 1 · slow start");
     c.cwnd = 9;
     c.estado = Estado::Evitacao;
-    CHECK(Placar(c) == "cwnd = 9 \xc2\xb7 evita\xc3\xa7\xc3\xa3o");
-    CHECK(PlacarDaPerda(c) == "3 ACKs duplicados \xc2\xb7 cwnd = 9");
-    CHECK(PlacarDoTimeout(c) == "timeout \xc2\xb7 cwnd = 9");
-    CHECK(Fila(7) == "roteador \xc2\xb7 7/10");
-    CHECK(Fila(15) == "roteador \xc2\xb7 10/10");
+    CHECK(Placar(c) == "cwnd = 9 · evitação");
+    CHECK(PlacarDaPerda(c) == "3 ACKs duplicados · cwnd = 9");
+    CHECK(PlacarDoTimeout(c) == "timeout · cwnd = 9");
+    CHECK(Fila(7) == "roteador · 7/10");
+    CHECK(Fila(15) == "roteador · 10/10");
 }
 
 // ---- A variacao e o degrau ----
@@ -280,8 +280,8 @@ TEST_CASE("Tcp: o sorteio cobre as capacidades, os ssthresh e a faixa do roteado
     CHECK(PlanoDeSempre().capacidade == kCapacidade);
     CHECK(PlanoDeSempre().ssthreshInicial == kSsthreshInicial);
     CHECK(Roteador(1200.0f, PlanoDeSempre().fracaoDoRoteador).x == doctest::Approx(Roteador(1200.0f).x));
-    CHECK(Fila(7, 12) == "roteador \xc2\xb7 7/12");
-    CHECK(Fila(15, 8) == "roteador \xc2\xb7 8/8");
+    CHECK(Fila(7, 12) == "roteador · 7/12");
+    CHECK(Fila(15, 8) == "roteador · 8/8");
 }
 
 TEST_CASE("Tcp: o degrau - o Normal e o de sempre, o Dificil encaminha mais e mais depressa") {

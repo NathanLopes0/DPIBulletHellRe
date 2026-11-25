@@ -290,7 +290,7 @@ void Orientador::EncherComOTempo(const float deltaTime) {
 void Orientador::AvisarSePronto() {
     if (!PoderPronto() || mAvisouPronto) return;
     mAvisouPronto = true;
-    Anunciar("BOT\xc3\x83O 3: " + mPoder.nome + "\n" + mProfessor + " est\xc3\xa1 pronto");
+    Anunciar("BOTÃO 3: " + mPoder.nome + "\n" + mProfessor + " está pronto");
     GetScene()->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
 }
 
